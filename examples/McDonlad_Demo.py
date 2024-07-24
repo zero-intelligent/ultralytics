@@ -1,8 +1,6 @@
 
 from ultralytics import YOLO
-import sys
-
-print(sys.path)
+import sys; print(sys.path)
 
 # Load a model
 model = YOLO("yolov8n.pt")  # load an official detection model
