@@ -235,6 +235,9 @@ class Annotator:
             lineType=cv2.LINE_AA,
         )
 
+    def routing_path(self, paths, color=(128, 128, 128)):
+        cv2.polylines(self.im, [np.asarray(paths,dtype=int)], False, color, self.lw)  # cv2 requires nparray box
+
     def text_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), margin=5):
         """
         Draws a label with a background rectangle centered within a given bounding box.
