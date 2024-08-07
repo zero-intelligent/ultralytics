@@ -20,7 +20,7 @@ def analyze_frames(source=0):
             break
         
         # 进行目标检测
-        results = model(frame)
+        results = model(frame,classes=[0])
         annotated_frame = results[0].plot()  # 在帧上绘制检测结果
         
         # 编码帧为JPEG格式
