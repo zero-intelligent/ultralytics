@@ -17,7 +17,7 @@ async def get_capture_addr():
 
 @app.get("/available_cameras")
 async def get_available_cameras():
-    return {"available_cameras": v.get_available_cameras()}
+    return {k:f'Camera {k}' for k in v.get_available_cameras()}
 
 @app.post("/capture_addr")
 async def put_capture_addr(capture_addr:str = Body(..., media_type="text/plain")):
