@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI
+from fastapi import Body
 from fastapi.responses import StreamingResponse
 import mcd.video as v
 
@@ -19,25 +20,25 @@ async def get_available_cameras():
     return {"available_cameras": v.get_available_cameras()}
 
 @app.post("/capture_addr")
-async def put_capture_addr(request: Request, response: Response):
-    global_store['capture_addr'] = request.json()['capture_addr']
-    return {"capture_addr": global_store['capture_addr']}
+async def put_capture_addr(capture_addr:str = Body(..., media_type="text/plain")):
+    global_store['capture_addr'] = capture_addr
+    return {"capture_addr": capture_addr}
 
 def pad_frame(frame):
     return (b'--frame\r\n Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 @app.get('/video_source_feed')
-async def video_source_feed(request: Request, response: Response):
+async def video_source_feed():
     source = global_store['capture_addr']
     return StreamingResponse(v.capture_frames(source,pad_frame), media_type='multipart/x-mixed-replace; boundary=frame')
 
 @app.get('/person_detect_video_output_feed')
-async def person_detect_video_output_feed(request: Request, response: Response):
+async def person_detect_video_output_feed():
     source = global_store['capture_addr']
     return StreamingResponse(v.detect_person_frames(source,pad_frame), media_type='multipart/x-mixed-replace; boundary=frame')
 
 @app.get('/mcd_package_detect_video_output_feed')
-async def mcd_package_detect_video_output_feed(request: Request, response: Response):
+async def mcd_package_detect_video_output_feed():
     source = global_store['capture_addr']
     return StreamingResponse(v.detect_mcd_packages_frames(source,pad_frame), media_type='multipart/x-mixed-replace; boundary=frame')
 
