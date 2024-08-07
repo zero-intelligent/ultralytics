@@ -23,19 +23,18 @@ async def put_capture_addr(request: Request, response: Response):
     global_store['capture_addr'] = request.json()['capture_addr']
     return {"capture_addr": global_store['capture_addr']}
 
-def pad_frames(frames_generator):
-    for frame in frames_generator:
-        yield (b'--frame\r\n Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+def pad_frame(frame):
+    return (b'--frame\r\n Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 @app.get('/video_source_feed')
 async def video_source_feed(request: Request, response: Response):
     source = global_store['capture_addr']
-    return StreamingResponse(pad_frames(v.capture_frames(source)), media_type='multipart/x-mixed-replace; boundary=frame')
+    return StreamingResponse(v.capture_frames(source,pad_frame), media_type='multipart/x-mixed-replace; boundary=frame')
 
 @app.get('/video_output_feed')
 async def video_output_feed(request: Request, response: Response):
     source = global_store['capture_addr']
-    return StreamingResponse(pad_frames(v.analyze_frames(source)), media_type='multipart/x-mixed-replace; boundary=frame')
+    return StreamingResponse(v.detect_person_frames(source,pad_frame), media_type='multipart/x-mixed-replace; boundary=frame')
 
 
 if __name__ == "__main__":
