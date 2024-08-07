@@ -16,12 +16,12 @@ async def get_capture_addr():
 
 @app.get("/available_cameras")
 async def get_available_cameras():
-    return v.get_available_cameras()
+    return JSONResponse(status_code=200, content={"available_cameras": v.get_available_cameras()})
 
 @app.post("/capture_addr")
 async def put_capture_addr(request: Request, response: Response):
     global_store['capture_addr'] = request.json()['capture_addr']
-    return {"capture_addr": global_store['capture_addr']}
+    return JSONResponse(status_code=200, content={"capture_addr": global_store['capture_addr']})
 
 def pad_frame(frame):
     return (b'--frame\r\n Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
