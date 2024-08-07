@@ -31,10 +31,16 @@ async def video_source_feed(request: Request, response: Response):
     source = global_store['capture_addr']
     return StreamingResponse(v.capture_frames(source,pad_frame), media_type='multipart/x-mixed-replace; boundary=frame')
 
-@app.get('/video_output_feed')
-async def video_output_feed(request: Request, response: Response):
+@app.get('/person_detect_video_output_feed')
+async def person_detect_video_output_feed(request: Request, response: Response):
     source = global_store['capture_addr']
     return StreamingResponse(v.detect_person_frames(source,pad_frame), media_type='multipart/x-mixed-replace; boundary=frame')
+
+@app.get('/mcd_package_detect_video_output_feed')
+async def mcd_package_detect_video_output_feed(request: Request, response: Response):
+    source = global_store['capture_addr']
+    return StreamingResponse(v.detect_mcd_packages_frames(source,pad_frame), media_type='multipart/x-mixed-replace; boundary=frame')
+
 
 
 if __name__ == "__main__":
