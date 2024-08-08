@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi import Body
 from fastapi.responses import StreamingResponse
 import mcd.video as v
+from mcd.camera import get_cameras
 
 app = FastAPI()
 
@@ -17,7 +18,7 @@ async def get_capture_addr():
 
 @app.get("/available_cameras")
 async def get_available_cameras():
-    return {k:f'Camera {k}' for k in v.get_available_cameras()}
+    return {id:name for id,name in get_cameras()}
 
 @app.post("/capture_addr")
 async def put_capture_addr(capture_addr:str = Body(..., media_type="text/plain")):
