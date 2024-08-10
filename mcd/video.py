@@ -2,16 +2,6 @@ import cv2
 from ultralytics import YOLO
 model = YOLO('yolov8n.pt')  # 使用 YOLOv8n 预训练模型
 
-
-def get_available_cameras(max_cameras=10):
-    available_cameras = []
-    for camera_id in range(max_cameras):
-        cap = cv2.VideoCapture(camera_id)
-        if cap.isOpened():
-            available_cameras.append(camera_id)
-            cap.release()  # 释放摄像头
-    return available_cameras
-
     
 def detect_frame(frame):
     results = model(frame,classes=[0])
