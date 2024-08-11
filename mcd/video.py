@@ -1,7 +1,7 @@
 import cv2
 from ultralytics import YOLO
 person_detect_model = YOLO('yolov8x.pt')  # 使用 YOLOv8n 预训练模型
-combo_meal_detect_model = YOLO('mcd/combo_meal_detect_model.pt')  # 使用 YOLOv8n 预训练模型
+combo_meal_detect_model = YOLO('mcd/combo_meal_detect_model.yolo')  # 使用 YOLOv8n 预训练模型
 
 
 def detect_person_frames(source=0,bufferTransform=None):
