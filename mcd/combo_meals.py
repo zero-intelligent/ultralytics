@@ -30,12 +30,12 @@ combo_meals = [
         "name": '麦辣鸡腿汉堡中套餐',
         "items":[
             [0,'Burgen',1],
-            [1,'French Fries',1]
+            [1,'French Fries',1],
             [2,'Large Coke',1]
         ]
     },
     {
-        "id": 0,
+        "id": 1,
         "name": '周末聚划算四人餐',
         "items":[
             [0,'Burgen',4],

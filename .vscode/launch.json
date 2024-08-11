@@ -8,7 +8,7 @@
             "name": "fastapi_debug",
             "type": "debugpy",
             "request": "launch",
-            "program": "web/app.py",
+            "program": "api/app.py",
             "console": "integratedTerminal",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"

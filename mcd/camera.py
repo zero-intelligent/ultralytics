@@ -2,8 +2,6 @@ import platform
 import subprocess
 import re
 import cv2
-import objc
-from AppKit import AVCaptureDevice
 
 
 def list_cameras():
