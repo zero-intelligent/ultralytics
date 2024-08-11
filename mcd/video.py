@@ -1,20 +1,26 @@
 import cv2
 from ultralytics import YOLO
-model = YOLO('yolov8n.pt')  # 使用 YOLOv8n 预训练模型
+person_detect_model = YOLO('yolov8x.pt')  # 使用 YOLOv8n 预训练模型
+combo_meal_detect_model = YOLO('mcd/combo_meal_detect_model.pt')  # 使用 YOLOv8n 预训练模型
 
-    
-def detect_frame(frame):
-    results = model(frame,classes=[0])
-    return results[0].plot()  # 在帧上
 
 def detect_person_frames(source=0,bufferTransform=None):
+    def person_detect_frame(frame):
+        results = person_detect_model(frame,classes=[0])
+        return results[0].plot()  # 在帧上
+
     return capture_frames(source,
-                          frameTransform=detect_frame,
+                          frameTransform=person_detect_frame,
                           bufferTransform=bufferTransform)
     
 def detect_mcd_packages_frames(source=0,bufferTransform=None):
+
+    def combo_meal_detect_frame(frame):
+        results = person_detect_model(frame,classes=[0])
+        return results[0].plot()  # 在帧上
+
     return capture_frames(source,
-                          frameTransform=detect_frame,
+                          frameTransform=combo_meal_detect_frame,
                           bufferTransform=bufferTransform)
     
 def gray_frames(source=0,bufferTransform=None):

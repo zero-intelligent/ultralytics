@@ -3,6 +3,7 @@ from fastapi import Body
 from fastapi.responses import StreamingResponse
 import mcd.video as v
 from mcd.camera import get_cameras
+from mcd.combo_meals import combo_meals,current_combo_meals
 
 app = FastAPI()
 
@@ -15,6 +16,21 @@ global_store = {
 async def get_capture_addr():
     return global_store['capture_addr']
 
+@app.get("/combo_meals")
+async def get_combo_meals():
+    return {
+        "combo_meals": combo_meals,
+        "current": current_combo_meals
+    }
+
+@app.get("/combo_meals_analysis")
+async def get_combo_meals_analysis():
+    # 此处需要将视频分析的结果和套餐的信息进行合并
+    return {
+        "current": current_combo_meals,
+        "combo_meal_source_feed":"video_source_feed",
+        "combo_meal_detect_video_output_feed":"mcd_combo_meal_detect_video_output_feed"
+    }
 
 @app.get("/available_cameras")
 async def get_available_cameras():
@@ -38,8 +54,8 @@ async def person_detect_video_output_feed():
     source = global_store['capture_addr']
     return StreamingResponse(v.detect_person_frames(source,pad_frame), media_type='multipart/x-mixed-replace; boundary=frame')
 
-@app.get('/mcd_package_detect_video_output_feed')
-async def mcd_package_detect_video_output_feed():
+@app.get('/combo_meal_detect_video_output_feed')
+async def mcd_combo_meal_detect_video_output_feed():
     source = global_store['capture_addr']
     return StreamingResponse(v.detect_mcd_packages_frames(source,pad_frame), media_type='multipart/x-mixed-replace; boundary=frame')
 
