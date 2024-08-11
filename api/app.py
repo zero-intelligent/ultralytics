@@ -54,6 +54,16 @@ async def person_detect_video_output_feed():
     source = global_store['capture_addr']
     return StreamingResponse(v.detect_person_frames(source,pad_frame), media_type='multipart/x-mixed-replace; boundary=frame')
 
+
+
+@app.get('/combo_meal_detect_video_events')
+async def mcd_combo_meal_detect_video_events():
+    async def combo_meal_detect_event_generator():
+        while True:
+            meal_result = await v.video_yolo_result_queue.get()
+            yield meal_result
+    return StreamingResponse(combo_meal_detect_event_generator(), media_type='text/event-stream')
+
 @app.get('/combo_meal_detect_video_output_feed')
 async def mcd_combo_meal_detect_video_output_feed():
     source = global_store['capture_addr']
