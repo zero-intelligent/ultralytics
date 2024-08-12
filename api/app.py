@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import FastAPI
 from fastapi import Body
 from fastapi.responses import StreamingResponse
@@ -39,35 +40,35 @@ async def get_available_cameras():
 @app.post("/capture_addr")
 async def put_capture_addr(capture_addr:str = Body(..., media_type="text/plain")):
     global_store['capture_addr'] = capture_addr
+    v.start_combo_meal_detect(global_store['capture_addr'])
     return {"capture_addr": capture_addr}
 
 def pad_frame(frame):
     return (b'--frame\r\n Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
+
 @app.get('/video_source_feed')
 async def video_source_feed():
-    source = global_store['capture_addr']
-    return StreamingResponse(v.capture_frames(source,pad_frame), media_type='multipart/x-mixed-replace; boundary=frame')
+    event_generator = v.stream_generator('source_frame',pad_frame)
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+@app.get('/combo_meal_detect_video_events')
+async def mcd_combo_meal_detect_video_events():
+
+    event_generator = v.stream_generator('combo_meal_result_detected')
+    return StreamingResponse(event_generator(), media_type='text/event-stream')
+
+@app.get('/combo_meal_detect_video_output_feed')
+async def mcd_combo_meal_detect_video_output_feed():
+    event_generator = v.stream_generator('combo_meal_img_detected')
+
+    return StreamingResponse(event_generator(), media_type='multipart/x-mixed-replace; boundary=frame')
+
 
 @app.get('/person_detect_video_output_feed')
 async def person_detect_video_output_feed():
     source = global_store['capture_addr']
     return StreamingResponse(v.detect_person_frames(source,pad_frame), media_type='multipart/x-mixed-replace; boundary=frame')
-
-
-
-@app.get('/combo_meal_detect_video_events')
-async def mcd_combo_meal_detect_video_events():
-    async def combo_meal_detect_event_generator():
-        while True:
-            meal_result = await v.video_yolo_result_queue.get()
-            yield meal_result
-    return StreamingResponse(combo_meal_detect_event_generator(), media_type='text/event-stream')
-
-@app.get('/combo_meal_detect_video_output_feed')
-async def mcd_combo_meal_detect_video_output_feed():
-    source = global_store['capture_addr']
-    return StreamingResponse(v.detect_mcd_packages_frames(source,pad_frame), media_type='multipart/x-mixed-replace; boundary=frame')
 
 
 
