@@ -11,7 +11,9 @@ def start_combo_meal_detect(source):
 def detect_person_frames(source=0,bufferTransform=None):
     def person_detect_frame(frame):
         results = person_detect_model(frame,classes=[0])
-        return results[0].plot()  # 在帧上
+        img = results[0].plot()
+        events_publisher.trigger_event('model_result_img_detected',img)
+        return img
 
     return capture_frames(source,
                           frameTransform=person_detect_frame,
@@ -36,7 +38,7 @@ def detect_mcd_packages_frames(source=0,bufferTransform=None):
         meal_result = {k:len(v) for k,v in meal_result.items()}
         events_publisher.trigger_event('combo_meal_result_detected',meal_result)
         img = results[0].plot()
-        events_publisher.trigger_event('combo_meal_img_detected',img)
+        events_publisher.trigger_event('model_result_img_detected',img)
         return img
 
     return capture_frames(source,

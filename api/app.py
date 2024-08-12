@@ -38,10 +38,13 @@ async def get_available_cameras():
     return {id:name for id,name in get_cameras()}
 
 @app.post("/capture_addr")
-async def put_capture_addr(capture_addr:str = Body(..., media_type="text/plain")):
+async def put_capture_addr(capture_addr:str = Body(..., media_type="text/plain"),type:int = 1):
     global_store['capture_addr'] = capture_addr
-    v.start_combo_meal_detect(global_store['capture_addr'])
-    return {"capture_addr": capture_addr}
+    if type == 1:
+        v.start_combo_meal_detect(global_store['capture_addr'])
+    else:
+        v.detect_person_frames(global_store['capture_addr'])
+    return {"capture_addr": capture_addr,"type":type}
 
 def pad_frame(frame):
     return (b'--frame\r\n Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
@@ -60,15 +63,15 @@ async def mcd_combo_meal_detect_video_events():
 
 @app.get('/combo_meal_detect_video_output_feed')
 async def mcd_combo_meal_detect_video_output_feed():
-    event_generator = v.stream_generator('combo_meal_img_detected')
 
+    event_generator = v.stream_generator('model_result_img_detected')
     return StreamingResponse(event_generator(), media_type='multipart/x-mixed-replace; boundary=frame')
 
 
 @app.get('/person_detect_video_output_feed')
 async def person_detect_video_output_feed():
-    source = global_store['capture_addr']
-    return StreamingResponse(v.detect_person_frames(source,pad_frame), media_type='multipart/x-mixed-replace; boundary=frame')
+    event_generator = v.stream_generator('model_result_img_detected')
+    return StreamingResponse(event_generator(), media_type='multipart/x-mixed-replace; boundary=frame')
 
 
 
