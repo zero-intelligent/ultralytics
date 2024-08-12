@@ -1,12 +1,12 @@
 from fastapi import FastAPI
-from fastapi import Body
+from fastapi import Body,Query
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, StreamingResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 import mcd.video as v
 from mcd.camera import get_cameras
-from mcd.combo_meals import combo_meals,current_combo_meals
+import mcd.combo_meals  as cm
 
 app = FastAPI()
 
@@ -22,15 +22,24 @@ async def get_capture_addr():
 @app.get("/combo_meals")
 async def get_combo_meals():
     return {
-        "combo_meals": combo_meals,
-        "current": current_combo_meals
+        "combo_meals": cm.combo_meals,
+        "current": cm.current_combo_meals
+    }
+
+@app.get("/switch_combo_meals")
+async def switch_combo_meals(combo_meals_id:int = Query(0, ge=0, le=1)):
+    cm.current_combo_meals = cm.combo_meals[combo_meals_id]
+    # 此处需要将视频分析的结果和套餐的信息进行合并
+    return {
+        "code": 0,
+        "msg":"switch success"
     }
 
 @app.get("/combo_meals_analysis")
 async def get_combo_meals_analysis():
     # 此处需要将视频分析的结果和套餐的信息进行合并
     return {
-        "current_combo_meals": current_combo_meals,
+        "current_combo_meals": cm.current_combo_meals,
         "input_video":"video_source_feed",
         "output_video":"combo_meal_detect_video_output_feed"
     }
