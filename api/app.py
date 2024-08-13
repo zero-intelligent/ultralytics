@@ -144,6 +144,11 @@ async def global_exception_handler(request, exc):
         content={"code": 3, "msg": str(exc)}
     )
 
+@app.lifespan
+async def startup_shutdown(app):
+    conf.load_config()
+    yield
+    conf.save_config()
 
 
 if __name__ == "__main__":

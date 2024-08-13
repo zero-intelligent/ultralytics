@@ -1,4 +1,5 @@
-
+import json
+import os
 
 
 # 当前的分析模式 套餐汇集分析：huiji_detect, 大厅人员检测分析：person_detect
@@ -59,4 +60,21 @@ person_detect_config = {
 
 
 
+config_file = 'mcd_conf.json'
 
+def load_config():
+    if os.path.exists(config_file):
+        conf = json.load(config_file)
+        global current_mode,huiji_detect_config,person_detect_config
+        current_mode = conf['current_mode']
+        huiji_detect_config = conf['huiji_detect_config']
+        person_detect_config = conf['person_detect_config']
+
+def save_config():
+    conf = {
+        'current_mode': current_mode,
+        'huiji_detect_config': huiji_detect_config,
+        'person_detect_config': person_detect_config
+    }
+    with open(config_file, 'w') as json_file:
+        json.dump(conf, json_file, indent=4)

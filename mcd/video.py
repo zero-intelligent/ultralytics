@@ -4,6 +4,7 @@ from ultralytics import YOLO
 import mcd.conf as conf
 
 async def start():
+    global cap
     if cap:
         cap.release()
     if conf.current_mode == "huiji_detect":
@@ -87,9 +88,10 @@ def stream_generator(event_name,wrapper_frame=None):
     return event_generator
 
 
-cap = None;
+cap = None
 
 def capture_frames(source=0,frameTransform=None):
+    global cap
     cap = cv2.VideoCapture(source)  # 捕获摄像头输入，0 表示默认摄像头
     while True:
         ret, frame = cap.read()
