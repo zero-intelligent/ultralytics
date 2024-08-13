@@ -166,11 +166,16 @@ async def global_exception_handler(request, exc):
         content={"code": 3, "msg": str(exc)}
     )
 
-@app.lifespan
-async def startup_shutdown(app):
+from contextlib import asynccontextmanager
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     conf.load_config()
     yield
     conf.save_config()
+
+app.router.lifespan_context = lifespan
 
 
 if __name__ == "__main__":
