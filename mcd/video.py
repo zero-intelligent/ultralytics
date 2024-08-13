@@ -1,30 +1,32 @@
 import asyncio
 import cv2
 from ultralytics import YOLO
+import mcd.conf as conf
 
-person_detect_model = YOLO('yolov8x.pt')  # 使用 YOLOv8n 预训练模型
-combo_meal_detect_model = YOLO('mcd/combo_meal_detect_model.yolo')  # 使用 YOLOv8n 预训练模型
+async def start():
+    if cap:
+        cap.release()
+    if conf.current_mode == "huiji_detect":
+        detect_mcd_packages_frames(conf.huiji_detect_config['camera_source'])
+    else:
+        detect_person_frames(conf.person_detect_config['camera_source'])
 
-def start_combo_meal_detect(source):
-    detect_mcd_packages_frames(source)
 
-def detect_person_frames(source=0,bufferTransform=None):
+def detect_person_frames(source=0):
+    person_detect_model = YOLO(conf.person_detect_config['model'])
     def person_detect_frame(frame):
         results = person_detect_model(frame,classes=[0])
         img = results[0].plot()
         events_publisher.trigger_event('model_result_img_detected',img)
         return img
 
-    return capture_frames(source,
-                          frameTransform=person_detect_frame,
-                          bufferTransform=bufferTransform)
+    return capture_frames(source,frameTransform=person_detect_frame)
 
 
-def detect_mcd_packages_frames(source=0,bufferTransform=None):
-
+def detect_mcd_packages_frames(source=0):
+    huiji_detect_model = YOLO(conf.huiji_detect_config['model'])
     def combo_meal_detect_frame(frame):
-        results = person_detect_model(frame,classes=[0])
-
+        results = huiji_detect_model(frame,classes=[0])
         meal_result = {}
         for result in results:
             # 提取每个检测结果的 id 和 class 信息
@@ -41,9 +43,7 @@ def detect_mcd_packages_frames(source=0,bufferTransform=None):
         events_publisher.trigger_event('model_result_img_detected',img)
         return img
 
-    return capture_frames(source,
-                          frameTransform=combo_meal_detect_frame,
-                          bufferTransform=bufferTransform)
+    return capture_frames(source,frameTransform=combo_meal_detect_frame)
     
 
 class EventPublisher:
@@ -86,7 +86,10 @@ def stream_generator(event_name,wrapper_frame=None):
             pass
     return event_generator
 
-def capture_frames(source=0,frameTransform=None,bufferTransform=None):
+
+cap = None;
+
+def capture_frames(source=0,frameTransform=None):
     cap = cv2.VideoCapture(source)  # 捕获摄像头输入，0 表示默认摄像头
     while True:
         ret, frame = cap.read()
@@ -97,9 +100,6 @@ def capture_frames(source=0,frameTransform=None,bufferTransform=None):
             frame = frameTransform(frame)
         # 编码帧为JPEG格式
         ret, buffer = cv2.imencode('.jpg', frame)
-        
-        if bufferTransform:
-            buffer = bufferTransform(buffer)
         yield buffer.tobytes()
 
     cap.release()

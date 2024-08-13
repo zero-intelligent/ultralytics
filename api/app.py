@@ -6,65 +6,94 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 import mcd.video as v
 from mcd.camera import get_cameras
-import mcd.combo_meals  as cm
+import mcd.conf as conf
 
 app = FastAPI()
 
-# 存储全局信息
-global_store = {
-    "capture_addr": 0
-}
+
+@app.get("/switch_mode")
+async def switch_mode(mode:str = Query('huiji_detect'),enum=['huiji_detect','person_detect']):
+    conf.current_mode = mode
+    return {
+        "code": 0,
+        "msg":f"mode set to ${mode}"
+    }
 
 @app.get("/capture_addr")
 async def get_capture_addr():
-    return global_store['capture_addr']
+    capture_addr = conf.huiji_detect_config['camera_source'] \
+                if conf.current_mode == "huiji_detect" \
+                else conf.person_detect_config['camera_source']
+    return {
+        "code":0,
+        "data":capture_addr
+    }
 
 @app.get("/combo_meals")
 async def get_combo_meals():
     return {
-        "combo_meals": cm.combo_meals,
-        "current": cm.current_combo_meals
+        "code":0,
+        "data":{
+            "combo_meals": conf.huiji_detect_config["combo_meals"],
+            "current": conf.huiji_detect_config["current_combo_meals"]
+        }
     }
 
 @app.get("/switch_combo_meals")
 async def switch_combo_meals(combo_meals_id:int = Query(0, ge=0, le=1)):
-    cm.current_combo_meals = cm.combo_meals[combo_meals_id]
+    conf.huiji_detect_config["current_combo_meals"] = conf.huiji_detect_config["combo_meals"][combo_meals_id]
     # 此处需要将视频分析的结果和套餐的信息进行合并
     return {
         "code": 0,
         "msg":"switch success"
     }
 
+
 @app.get("/combo_meals_analysis")
-async def get_combo_meals_analysis():
+async def start_combo_meals_analysis():
     # 此处需要将视频分析的结果和套餐的信息进行合并
     return {
-        "current_combo_meals": cm.current_combo_meals,
-        "input_video":"video_source_feed",
-        "output_video":"combo_meal_detect_video_output_feed"
+        "code":0,
+        "data":{
+            "current_combo_meals": conf.huiji_detect_config["current_combo_meals"],
+            "input_video":"video_source_feed",
+            "output_video":"combo_meal_detect_video_output_feed"
+        }
     }
-
 
 @app.get("/person_analysis")
 async def get_person_analysis():
-    # 此处需要将视频分析的结果和套餐的信息进行合并
     return {
-        "input_video":"video_source_feed",
-        "output_video":"person_detect_video_output_feed"
+        "code":0,
+        "data":{
+            "input_video":"video_source_feed",
+            "output_video":"person_detect_video_output_feed"
+        }
     }
 
 @app.get("/available_cameras")
 async def get_available_cameras():
-    return {id:name for id,name in get_cameras()}
+    return {
+        "code":0,
+        "data":{id:name for id,name in get_cameras()}
+    }
 
 @app.post("/capture_addr")
 async def put_capture_addr(type:int = 1, capture_addr:str = Body(..., media_type="text/plain")):
-    global_store['capture_addr'] = capture_addr
-    if type == 1:
-        v.start_combo_meal_detect(global_store['capture_addr'])
+    if conf.current_mode == "huiji_detect":
+        conf.huiji_detect_config['camera_source'] = capture_addr
     else:
-        v.detect_person_frames(global_store['capture_addr'])
-    return {"capture_addr": capture_addr,"type":type}
+        conf.person_detect_config['camera_source'] = capture_addr
+
+    v.start()
+
+    return {
+        "code":0,
+        "data":{
+            "mode":conf.current_mode,
+            "capture_addr": capture_addr
+        }
+    }
 
 def pad_frame(frame):
     return (b'--frame\r\n Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
