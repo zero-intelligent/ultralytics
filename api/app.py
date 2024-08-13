@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import FastAPI
 from fastapi import Body,Query
 from fastapi.exceptions import RequestValidationError
@@ -13,11 +14,20 @@ app = FastAPI()
 
 @app.get("/switch_mode")
 async def switch_mode(mode:str = Query('huiji_detect'),enum=['huiji_detect','person_detect']):
+    if conf.current_mode == mode:
+        return {
+            "code": 0,
+            "msg":f"mode has been ${mode}"
+        }
+    
     conf.current_mode = mode
+    # 切换模式时，自动运行
+    asyncio.create_task(v.start())
     return {
         "code": 0,
-        "msg":f"mode set to ${mode}"
+        "msg":f"mode swit to ${mode}"
     }
+    
 
 @app.get("/capture_addr")
 async def get_capture_addr():
@@ -80,12 +90,24 @@ async def get_available_cameras():
 
 @app.post("/capture_addr")
 async def put_capture_addr(type:int = 1, capture_addr:str = Body(..., media_type="text/plain")):
+    if conf.current_mode == "huiji_detect" and conf.huiji_detect_config['camera_source'] == capture_addr \
+    or conf.current_mode == "person_detect" and conf.person_detect_config['camera_source'] == capture_addr:
+        return {
+            "code":0,
+            "data":{
+                "mode":conf.current_mode,
+                "capture_addr": capture_addr
+            },
+            "msg":f'camera has been {capture_addr},not changed'
+        }
+
     if conf.current_mode == "huiji_detect":
         conf.huiji_detect_config['camera_source'] = capture_addr
     else:
         conf.person_detect_config['camera_source'] = capture_addr
 
-    v.start()
+    #异步启动摄像头
+    asyncio.create_task(v.start())
 
     return {
         "code":0,
