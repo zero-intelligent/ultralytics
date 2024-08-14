@@ -1,5 +1,5 @@
 import asyncio
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi import Body,Query
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -11,6 +11,26 @@ from mcd.camera import get_cameras
 import mcd.conf as conf
 
 app = FastAPI()
+
+@app.get("/")
+async def index():
+    html_content = """
+    <html>
+    <head>
+    <title>Camera Stream</title>
+    </head>
+    <body>
+    <h1>Camera Stream</h1>
+    <video width="1024" height="768" controls autoplay>
+        <source src="/video_source_feed" type="multipart/x-mixed-replace; boundary=frame">
+    </video>
+    </body>
+    </html>
+    """
+    # 启动默认摄像头
+    asyncio.create_task(v.start())
+
+    return Response(content=html_content, media_type="text/html")
 
 
 @app.get("/switch_mode")
@@ -124,25 +144,24 @@ def pad_frame(frame):
 
 @app.get('/video_source_feed')
 async def video_source_feed():
-    event_generator = v.stream_generator('source_frame',pad_frame)
+    event_generator = v.stream_generator('source_frame_img',pad_frame)
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 @app.get('/combo_meal_detect_video_events')
 async def mcd_combo_meal_detect_video_events():
-
-    event_generator = v.stream_generator('combo_meal_result_detected')
+    event_generator = v.get_detect_person_frames_stream(lambda r: r[1])
     return StreamingResponse(event_generator(), media_type='text/event-stream')
 
 @app.get('/combo_meal_detect_video_output_feed')
 async def mcd_combo_meal_detect_video_output_feed():
 
-    event_generator = v.stream_generator('model_result_img_detected')
+    event_generator = v.get_detect_mcd_packages_frames_stream(lambda r: pad_frame(r[0]))
     return StreamingResponse(event_generator(), media_type='multipart/x-mixed-replace; boundary=frame')
 
 
 @app.get('/person_detect_video_output_feed')
 async def person_detect_video_output_feed():
-    event_generator = v.stream_generator('model_result_img_detected')
+    event_generator = v.get_detect_person_frames_stream(pad_frame)
     return StreamingResponse(event_generator(), media_type='multipart/x-mixed-replace; boundary=frame')
 
 
@@ -173,6 +192,8 @@ async def lifespan(app: FastAPI):
     conf.load_config()
     yield
     conf.save_config()
+    if v.cap:
+        v.cap.release()
 
 app.router.lifespan_context = lifespan
 

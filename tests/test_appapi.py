@@ -69,6 +69,9 @@ def test_person_analysis():
 
 
 def test_pvideo_source_feed():
+    response = client.get("/")
+    assert response.status_code == 200
+    
     response = client.get("/video_source_feed")
     assert response.status_code == 200
     assert response.headers['Content-Type'] == 'image/jpeg'

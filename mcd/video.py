@@ -2,31 +2,42 @@ import asyncio
 import cv2
 from ultralytics import YOLO
 import mcd.conf as conf
+from mcd.logger import log
+
 
 async def start():
     global cap
     if cap:
         cap.release()
     if conf.current_mode == "huiji_detect":
-        detect_mcd_packages_frames(conf.huiji_detect_config['camera_source'])
+        await capture_frames(conf.huiji_detect_config['camera_source'])
     else:
-        detect_person_frames(conf.person_detect_config['camera_source'])
+        await capture_frames(conf.person_detect_config['camera_source'])
 
+models = {}
 
-def detect_person_frames(source=0):
-    person_detect_model = YOLO(conf.person_detect_config['model'])
+def get_model(model_path):
+    global models
+    if not models.get(model_path):
+        models[model_path] = YOLO(model_path)
+    return models[model_path]
+
+def get_detect_person_frames_stream(padframe=None):
     def person_detect_frame(frame):
+        person_detect_model = get_model(conf.person_detect_config['model'])
         results = person_detect_model(frame,classes=[0])
         img = results[0].plot()
-        events_publisher.trigger_event('model_result_img_detected',img)
+        if padframe:
+            img = padframe(img)
         return img
 
-    return capture_frames(source,frameTransform=person_detect_frame)
+    return stream_generator("source_frame",person_detect_frame)
 
 
-def detect_mcd_packages_frames(source=0):
-    huiji_detect_model = YOLO(conf.huiji_detect_config['model'])
+def get_detect_mcd_packages_frames_stream(padframe=None):
+    
     def combo_meal_detect_frame(frame):
+        huiji_detect_model = get_model(conf.huiji_detect_config['model'])
         results = huiji_detect_model(frame,classes=[0])
         meal_result = {}
         for result in results:
@@ -39,12 +50,12 @@ def detect_mcd_packages_frames(source=0):
                 meal_result[obj_class].add(obj_id)
 
         meal_result = {k:len(v) for k,v in meal_result.items()}
-        events_publisher.trigger_event('combo_meal_result_detected',meal_result)
         img = results[0].plot()
-        events_publisher.trigger_event('model_result_img_detected',img)
-        return img
+        if padframe:
+            img = padframe(img)
+        return (img,meal_result)
 
-    return capture_frames(source,frameTransform=combo_meal_detect_frame)
+    return stream_generator("source_frame",combo_meal_detect_frame)
     
 
 class EventPublisher:
@@ -88,9 +99,11 @@ def stream_generator(event_name,wrapper_frame=None):
     return event_generator
 
 
+
 cap = None
 
-def capture_frames(source=0,frameTransform=None):
+async def capture_frames(source=0):
+    log.info("==== capture_frames ====")
     global cap
     cap = cv2.VideoCapture(source)  # 捕获摄像头输入，0 表示默认摄像头
     while True:
@@ -98,11 +111,6 @@ def capture_frames(source=0,frameTransform=None):
         if not ret:
             break
         events_publisher.trigger_event('source_frame',frame)
-        if frameTransform:
-            frame = frameTransform(frame)
-        # 编码帧为JPEG格式
-        ret, buffer = cv2.imencode('.jpg', frame)
-        yield buffer.tobytes()
-
+        ret, buffer = cv2.imencode('.jpg', frame)  # 编码帧为JPEG格式
+        events_publisher.trigger_event('source_frame_img',buffer.tobytes())
     cap.release()
-
