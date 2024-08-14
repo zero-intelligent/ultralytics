@@ -4,8 +4,71 @@ from api.app import app
 
 client = TestClient(app)
 
-def test_get_capture_addr():
+@pytest.mark.skip()
+def test_demo():
+    response = client.get("/start")
+    assert response.status_code == 200
+    json =  response.json()
+    assert json['code'] == 0
+
+def test_switch_mode():
+    response = client.get("/switch_mode?mode=huiji_detect")
+    assert response.status_code == 200
+    json =  response.json()
+    assert json['code'] == 0
+
+
+def test_available_cameras():
+    response = client.get("/available_cameras")
+    assert response.status_code == 200
+    json =  response.json()
+    assert json['code'] == 0
+    assert len(json['data']) > 0
+
+def test_capture_addr():
     response = client.get("/capture_addr")
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
+    assert json['data'] == 0
+
+    response = client.post("/capture_addr",json="0")
+    assert response.status_code == 200
+    json =  response.json()
+    assert json['code'] == 0
+    assert json['data']['capture_addr'] == "0"
+
+
+def test_combo_meals():
+    response = client.get("/combo_meals")
+    assert response.status_code == 200
+    json =  response.json()
+    assert json['code'] == 0
+    assert len(json['data']['combo_meals']) == 2
+    assert json['data']['current_combo_meals_id'] == 0
+
+def test_switch_combo_meal():
+    response = client.get("/switch_combo_meal?combo_meals_id=1")
+    assert response.status_code == 200
+    json =  response.json()
+    assert json['code'] == 0
+
+    
+def test_combo_meals_analysis():
+    response = client.get("/combo_meals_analysis")
+    assert response.status_code == 200
+    json =  response.json()
+    assert json['code'] == 0
+
+
+def test_person_analysis():
+    response = client.get("/person_analysis")
+    assert response.status_code == 200
+    json =  response.json()
+    assert json['code'] == 0
+
+
+def test_pvideo_source_feed():
+    response = client.get("/video_source_feed")
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'image/jpeg'

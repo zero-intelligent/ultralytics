@@ -4,6 +4,7 @@ from fastapi import Body,Query
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, StreamingResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from contextlib import asynccontextmanager
 
 import mcd.video as v
 from mcd.camera import get_cameras
@@ -45,11 +46,11 @@ async def get_combo_meals():
         "code":0,
         "data":{
             "combo_meals": conf.huiji_detect_config["combo_meals"],
-            "current": conf.huiji_detect_config["current_combo_meals"]
+            "current_combo_meals_id": conf.huiji_detect_config["current_combo_meals_id"]
         }
     }
 
-@app.get("/switch_combo_meals")
+@app.get("/switch_combo_meal")
 async def switch_combo_meals(combo_meals_id:int = Query(0, ge=0, le=1)):
     conf.huiji_detect_config["current_combo_meals"] = conf.huiji_detect_config["combo_meals"][combo_meals_id]
     # 此处需要将视频分析的结果和套餐的信息进行合并
@@ -89,7 +90,7 @@ async def get_available_cameras():
     }
 
 @app.post("/capture_addr")
-async def put_capture_addr(type:int = 1, capture_addr:str = Body(..., media_type="text/plain")):
+async def put_capture_addr(capture_addr:str = Body(..., media_type="text/plain")):
     if conf.current_mode == "huiji_detect" and conf.huiji_detect_config['camera_source'] == capture_addr \
     or conf.current_mode == "person_detect" and conf.person_detect_config['camera_source'] == capture_addr:
         return {
@@ -165,8 +166,6 @@ async def global_exception_handler(request, exc):
         status_code=500,
         content={"code": 3, "msg": str(exc)}
     )
-
-from contextlib import asynccontextmanager
 
 
 @asynccontextmanager

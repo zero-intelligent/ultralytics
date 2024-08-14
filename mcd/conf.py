@@ -12,7 +12,7 @@ huiji_detect_config = {
     "camera_source": 0,
 
     # 当前选中的套餐id
-    "current_combo_meals": 0,
+    "current_combo_meals_id": 0,
 
     #当前使用的模型
     "model": "mcd/combo_meal_detect_model.yolo",
