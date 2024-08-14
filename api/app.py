@@ -21,14 +21,10 @@ async def index():
     </head>
     <body>
     <h1>Camera Stream</h1>
-    <video width="1024" height="768" controls autoplay>
-        <source src="/video_source_feed" type="multipart/x-mixed-replace; boundary=frame">
-    </video>
+    <img src="/huiji_video_source_feed" width="1024" height="768" />
     </body>
     </html>
     """
-    # 启动默认摄像头
-    asyncio.create_task(v.start())
 
     return Response(content=html_content, media_type="text/html")
 
@@ -38,7 +34,7 @@ async def switch_mode(mode:str = Query('huiji_detect'),enum=['huiji_detect','per
     if conf.current_mode == mode:
         return {
             "code": 0,
-            "msg":f"mode has been ${mode}"
+            "msg":f"mode has been {mode}"
         }
     
     conf.current_mode = mode
@@ -87,8 +83,8 @@ async def start_combo_meals_analysis():
         "code":0,
         "data":{
             "current_combo_meals": conf.huiji_detect_config["current_combo_meals"],
-            "input_video":"video_source_feed",
-            "output_video":"combo_meal_detect_video_output_feed"
+            "input_video":"huiji_video_source_feed",
+            "output_video":"huiji_video_output_feed"
         }
     }
 
@@ -97,7 +93,7 @@ async def get_person_analysis():
     return {
         "code":0,
         "data":{
-            "input_video":"video_source_feed",
+            "input_video":"person_video_source_feed",
             "output_video":"person_detect_video_output_feed"
         }
     }
@@ -142,27 +138,31 @@ def pad_frame(frame):
     return (b'--frame\r\n Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 
-@app.get('/video_source_feed')
-async def video_source_feed():
-    event_generator = v.stream_generator('source_frame_img',pad_frame)
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+@app.get('/huiji_video_source_feed')
+async def huiji_video_source_feed():
+    img_stream = (pad_frame(r[0]) for r in v.huiji_detect_frames())
+    return StreamingResponse(img_stream, media_type="multipart/x-mixed-replace; boundary=frame")
 
-@app.get('/combo_meal_detect_video_events')
-async def mcd_combo_meal_detect_video_events():
-    event_generator = v.get_detect_person_frames_stream(lambda r: r[1])
-    return StreamingResponse(event_generator(), media_type='text/event-stream')
+@app.get('/huiji_video_events')
+async def huiji_video_events():
+    img_stream = (v[2] for v in v.huiji_detect_frames())
+    return StreamingResponse(img_stream, media_type="text/json")
 
-@app.get('/combo_meal_detect_video_output_feed')
-async def mcd_combo_meal_detect_video_output_feed():
+@app.get('/huiji_video_output_feed')
+async def huiji_video_output_feed():
+    img_stream = (pad_frame(v[1]) for v in v.huiji_detect_frames())
+    return StreamingResponse(img_stream, media_type="multipart/x-mixed-replace; boundary=frame")
 
-    event_generator = v.get_detect_mcd_packages_frames_stream(lambda r: pad_frame(r[0]))
-    return StreamingResponse(event_generator(), media_type='multipart/x-mixed-replace; boundary=frame')
 
+@app.get('/person_video_source_feed')
+async def person_video_source_feed():
+    img_stream = (pad_frame(v[0]) for v in v.person_detect_frames())
+    return StreamingResponse(img_stream, media_type="multipart/x-mixed-replace; boundary=frame")
 
-@app.get('/person_detect_video_output_feed')
+@app.get('/person_video_output_feed')
 async def person_detect_video_output_feed():
-    event_generator = v.get_detect_person_frames_stream(pad_frame)
-    return StreamingResponse(event_generator(), media_type='multipart/x-mixed-replace; boundary=frame')
+    img_stream = (pad_frame(v[1]) for v in v.person_detect_frames())
+    return StreamingResponse(img_stream, media_type="multipart/x-mixed-replace; boundary=frame")
 
 
 @app.exception_handler(RequestValidationError)
@@ -194,6 +194,7 @@ async def lifespan(app: FastAPI):
     conf.save_config()
     if v.cap:
         v.cap.release()
+        v.cap = None
 
 app.router.lifespan_context = lifespan
 

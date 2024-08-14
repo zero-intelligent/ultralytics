@@ -15,7 +15,7 @@ huiji_detect_config = {
     "current_combo_meals_id": 0,
 
     #当前使用的模型
-    "model": "mcd/combo_meal_detect_model.yolo",
+    "model": "mcd/huiji_detect_model.pt",
 
     # 食品清单信息：id,EnglishName, ChineseName
     "meals_info": [
@@ -76,5 +76,5 @@ def save_config():
         'huiji_detect_config': huiji_detect_config,
         'person_detect_config': person_detect_config
     }
-    with open(config_file, 'w') as json_file:
+    with open(config_file, 'w',encoding='utf8') as json_file:
         json.dump(conf, json_file, indent=4)
