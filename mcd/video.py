@@ -1,5 +1,5 @@
-import cv2
 from ultralytics import YOLO
+import cv2
 import mcd.conf as conf
 from mcd.logger import log
 
@@ -13,11 +13,9 @@ def get_model(model_path):
 
 def person_detect_frame(frame):
     person_detect_model = get_model(conf.person_detect_config['model'])
-    results = person_detect_model(frame,classes=[0])
+    results = person_detect_model.track(frame,classes=[0])
     img = results[0].plot()
-    ret, buffer = cv2.imencode('.jpg', frame)
-    frame = buffer.tobytes()
-    return (frame,img)
+    return (array2jpg(frame),array2jpg(img))
 
 def person_detect_frames():
     # 打开摄像头
@@ -33,28 +31,30 @@ def person_detect_frames():
 
 get_model(conf.huiji_detect_config['model'])
 
+def array2jpg(frame):
+    ret, buffer = cv2.imencode('.jpg', frame)
+    return buffer.tobytes()
+
 def combo_meal_detect_frame(frame):
     img=None
     meal_result=None
 
-    # huiji_detect_model = get_model(conf.huiji_detect_config['model'])
-    # results = huiji_detect_model(frame,classes=[0])
-    # meal_result = {}
-    # for result in results:
-    #     # 提取每个检测结果的 id 和 class 信息
-    #     for obj in result.boxes:
-    #         obj_id = obj.id.item() if hasattr(obj, 'id') else None
-    #         obj_class = obj.cls.item()
-    #         if obj_class not in meal_result:
-    #             meal_result[obj_class]=set()
-    #         meal_result[obj_class].add(obj_id)
+    huiji_detect_model = get_model(conf.huiji_detect_config['model'])
+    results = huiji_detect_model(frame) # 需要确保图片尺寸一致
+    meal_result = {}
+    for result in results:
+        # 提取每个检测结果的 id 和 class 信息
+        for obj in result.boxes:
+            obj_id = obj.id.item() if hasattr(obj, 'id') else None
+            obj_class = obj.cls.item()
+            if obj_class not in meal_result:
+                meal_result[obj_class]=set()
+            meal_result[obj_class].add(obj_id)
 
-    # meal_result = {k:len(v) for k,v in meal_result.items()}
-    # img = results[0].plot()
+    meal_result = {k:len(v) for k,v in meal_result.items()}
+    img = results[0].plot()
 
-    ret, buffer = cv2.imencode('.jpg', frame)
-    frame = buffer.tobytes()
-    return (frame,img,meal_result)
+    return (array2jpg(frame),array2jpg(img),meal_result)
 
 
 

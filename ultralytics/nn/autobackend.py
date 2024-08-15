@@ -8,9 +8,9 @@ import zipfile
 from collections import OrderedDict, namedtuple
 from pathlib import Path
 
+import torch
 import cv2
 import numpy as np
-import torch
 import torch.nn as nn
 from PIL import Image
 

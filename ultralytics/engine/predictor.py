@@ -34,9 +34,9 @@ import re
 import threading
 from pathlib import Path
 
+import torch
 import cv2
 import numpy as np
-import torch
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source

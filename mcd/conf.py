@@ -54,7 +54,7 @@ huiji_detect_config = {
 person_detect_config = {
     # 当前摄像头地址，本地为 0,1,2， 网络是 uri 地址
     "camera_source": 0,
-    "model": "yolov8x.pt"
+    "model": "yolov8n.pt"
 
 }
 
