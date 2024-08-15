@@ -24,7 +24,7 @@ async def index():
     <table>
         <tr>
             <td><img src="/person_video_source_feed" width="1024" height="768" /></td>
-            <td><img src="/person_detect_video_output_feed" width="1024" height="768" /></td>
+            <td><img src="/person_video_output_feed" width="1024" height="768" /></td>
         </tr>
     </table>
     </body>
@@ -99,7 +99,7 @@ async def get_person_analysis():
         "code":0,
         "data":{
             "input_video":"person_video_source_feed",
-            "output_video":"person_detect_video_output_feed"
+            "output_video":"person_video_output_feed"
         }
     }
 
