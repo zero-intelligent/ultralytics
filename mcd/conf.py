@@ -19,12 +19,27 @@ huiji_detect_config = {
 
     # 食品清单信息：id,EnglishName, ChineseName
     "meals_info": [
-        (0,'Fried Chicken','炸鸡'),
-        (1,'Burgen','汉堡'),
-        (3,'French Fries','薯条'),
-        (4,'Large Coke','大杯可乐'),
-        (5,'Medium Coke','中杯可乐'),
-        (6,'Small Coke','小杯可乐')
+        (0,'Breakfast','早餐'),
+        (1,'Burger with Box','汉堡（盒装）'),
+        (2,'Burger with Package','汉堡（包装）'),
+        (3,'Burger','汉堡'),
+        (4,'Cold Drink','冷饮'),
+        (5,'Crispy Thighs','脆鸡腿'),
+        (6,'Curly Fries','薯卷'),
+        (7,'Fresh Corn Cup','玉米杯'),
+        (8,'Fries','薯条'),
+        (9,'Hash Browns','薯饼'),
+        (10,'Hot Drink','热饮'),
+        (11,'McFlurry','麦旋风'),
+        (12,'McNuggets','麦乐鸡'),
+        (13,'McWings','麦翅'),
+        (14,'Pie','派'),
+        (15,'Sundae','圣代'),
+        (16,'Twist Cone','甜筒'),
+        (17,'Twisty Pasta Box','意面（盒装）'),
+        (18,'Twisty Pasta','意面'),
+        (19,'breakfast box','早餐盒'),
+        (20,'salad','沙拉')
     ],
 
     # 预配置套餐信息
@@ -33,19 +48,18 @@ huiji_detect_config = {
             "id": 0,
             "name": '麦辣鸡腿汉堡中套餐',
             "items":[
-                [0,'Burgen',1],
-                [1,'French Fries',1],
-                [2,'Large Coke',1]
+                [3,'Burger',1],
+                [12,'McNuggets',1],
+                [4,'Cold Drink',1]
             ]
         },
         {
             "id": 1,
             "name": '周末聚划算四人餐',
             "items":[
-                [0,'Burgen',4],
-                [1,'French Fries',1],
-                [2,'Medium Coke',4],
-                [3,'Chicken McNuggets',5]
+                [3,'Burger',4],
+                [12,'McNuggets',1],
+                [4,'Cold Drink',4]
             ]
         }
     ]
