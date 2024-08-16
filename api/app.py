@@ -44,8 +44,6 @@ async def switch_mode(mode:str = Query('huiji_detect'),enum=['huiji_detect','per
         }
     
     conf.current_mode = mode
-    # 切换模式时，自动运行
-    asyncio.create_task(v.start())
     return {
         "code": 0,
         "msg":f"mode swit to ${mode}"
@@ -128,9 +126,6 @@ async def put_capture_addr(capture_addr:str = Body(..., media_type="text/plain")
         conf.huiji_detect_config['camera_source'] = capture_addr
     else:
         conf.person_detect_config['camera_source'] = capture_addr
-
-    #异步启动摄像头
-    asyncio.create_task(v.start())
 
     return {
         "code":0,
