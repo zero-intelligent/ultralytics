@@ -1,4 +1,5 @@
 import asyncio
+import copy
 from fastapi import FastAPI, Response
 from fastapi import Body,Query
 from fastapi.exceptions import RequestValidationError
@@ -6,7 +7,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from contextlib import asynccontextmanager
 
-import mcd.video as v
+import mcd.video as video_srv
 from mcd.camera import get_cameras
 import mcd.conf as conf
 
@@ -145,28 +146,51 @@ def pad_frame(frame):
 
 @app.get('/huiji_video_source_feed')
 async def huiji_video_source_feed():
-    img_stream = (pad_frame(r[0]) for r in v.huiji_detect_frames())
+    img_stream = (pad_frame(r[0]) for r in video_srv.huiji_detect_frames())
     return StreamingResponse(img_stream, media_type="multipart/x-mixed-replace; boundary=frame")
+
+current_result = {}
 
 @app.get('/huiji_video_events')
 async def huiji_video_events():
-    img_stream = (v[2] for v in v.huiji_detect_frames())
-    return StreamingResponse(img_stream, media_type="text/json")
+    def changed(detect_result):
+        global current_result
+        if current_result != detect_result:
+            current_result = detect_result
+            return True
+        return False
+    
+    def current_detect_result(detect_result):
+        taocan_id = conf.huiji_detect_config['current_combo_meals_id']
+        taocan =  conf.huiji_detect_config['combo_meals'][taocan_id]
+        return [
+            {
+                'id': t[0],
+                'name': t[1],
+                'count': t[2],
+                'real_count': detect_result[id] if id in detect_result else 0,
+                'lack_item': id not in detect_result,
+                'lack_count': id in detect_result and  detect_result[id] < t[2]
+            } for t in taocan['items']
+        ]
+        
+    event_stream = (current_detect_result(v[2]) for v in video_srv.huiji_detect_frames() if changed(v[2]))
+    return StreamingResponse(event_stream, media_type="text/json")
 
 @app.get('/huiji_video_output_feed')
 async def huiji_video_output_feed():
-    img_stream = (pad_frame(v[1]) for v in v.huiji_detect_frames())
+    img_stream = (pad_frame(v[1]) for v in video_srv.huiji_detect_frames())
     return StreamingResponse(img_stream, media_type="multipart/x-mixed-replace; boundary=frame")
 
 
 @app.get('/person_video_source_feed')
 async def person_video_source_feed():
-    img_stream = (pad_frame(v[0]) for v in v.person_detect_frames())
+    img_stream = (pad_frame(v[0]) for v in video_srv.person_detect_frames())
     return StreamingResponse(img_stream, media_type="multipart/x-mixed-replace; boundary=frame")
 
 @app.get('/person_video_output_feed')
 async def person_detect_video_output_feed():
-    img_stream = (pad_frame(v[1]) for v in v.person_detect_frames())
+    img_stream = (pad_frame(v[1]) for v in video_srv.person_detect_frames())
     return StreamingResponse(img_stream, media_type="multipart/x-mixed-replace; boundary=frame")
 
 
@@ -197,9 +221,6 @@ async def lifespan(app: FastAPI):
     conf.load_config()
     yield
     conf.save_config()
-    if v.cap:
-        v.cap.release()
-        v.cap = None
 
 app.router.lifespan_context = lifespan
 
