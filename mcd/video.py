@@ -35,6 +35,26 @@ def array2jpg(frame):
     ret, buffer = cv2.imencode('.jpg', frame)
     return buffer.tobytes()
 
+last_taocan_check_result = {}
+current_taocan_check_result = {}
+
+def changed(detect_result):
+    return detect_result != last_taocan_check_result
+
+def get_detect_items(detect_result):
+    taocan_id = conf.huiji_detect_config['current_combo_meals_id']
+    taocan =  conf.huiji_detect_config['combo_meals'][taocan_id]
+    return [
+        {
+            'id': t[0],
+            'name': t[1],
+            'count': t[2],
+            'real_count': detect_result[id] if id in detect_result else 0,
+            'lack_item': id not in detect_result,
+            'lack_count': id in detect_result and  detect_result[id] < t[2]
+        } for t in taocan['items']
+    ]
+
 def combo_meal_detect_frame(frame):
     img=None
     meal_result=None
@@ -51,10 +71,12 @@ def combo_meal_detect_frame(frame):
                 meal_result[obj_class]=set()
             meal_result[obj_class].add(obj_id)
 
-    meal_result = {k:len(v) for k,v in meal_result.items()}
+    global current_taocan_check_result,last_taocan_check_result
+    last_taocan_check_result = current_taocan_check_result
+    current_taocan_check_result = {k:len(v) for k,v in meal_result.items()}
     img = results[0].plot()
 
-    return (array2jpg(frame),array2jpg(img),meal_result)
+    return (array2jpg(frame),array2jpg(img),current_taocan_check_result)
 
 
 

@@ -144,11 +144,10 @@ async def huiji_video_source_feed():
     img_stream = (pad_frame(r[0]) for r in video_srv.huiji_detect_frames())
     return StreamingResponse(img_stream, media_type="multipart/x-mixed-replace; boundary=frame")
 
-current_result = {}
 
 @app.get('/huiji_video_taocan_detect_result')
-async def huiji_video_events():
-    if not current_result:
+async def sync_huiji_video_events():
+    if not video_srv.current_taocan_check_result:
         return {
             "code":1,
             "data":{},
@@ -161,43 +160,13 @@ async def huiji_video_events():
         "data":{
             "taocan_id": taocan_id,
             "taocan_name":taocan['name'],
-            "items":[
-                {
-                    'id': t[0],
-                    'name': t[1],
-                    'count': t[2],
-                    'real_count': current_result[id] if id in current_result else 0,
-                    'lack_item': id not in current_result,
-                    'lack_count': id in current_result and  current_result[id] < t[2]
-                } for t in taocan['items']
-            ]
+            "items": video_srv.get_detect_items(video_srv.current_taocan_check_result)
         }
     }
 
 @app.get('/huiji_video_events')
-async def huiji_video_events():
-    def changed(detect_result):
-        global current_result
-        if current_result != detect_result:
-            current_result = detect_result
-            return True
-        return False
-    
-    def current_detect_result(detect_result):
-        taocan_id = conf.huiji_detect_config['current_combo_meals_id']
-        taocan =  conf.huiji_detect_config['combo_meals'][taocan_id]
-        return [
-            {
-                'id': t[0],
-                'name': t[1],
-                'count': t[2],
-                'real_count': detect_result[id] if id in detect_result else 0,
-                'lack_item': id not in detect_result,
-                'lack_count': id in detect_result and  detect_result[id] < t[2]
-            } for t in taocan['items']
-        ]
-        
-    event_stream = (current_detect_result(v[2]) for v in video_srv.huiji_detect_frames() if changed(v[2]))
+async def async_huiji_video_events():
+    event_stream = (video_srv.get_detect_items(v[2]) for v in video_srv.huiji_detect_frames() if video_srv.changed(v[2]))
     return StreamingResponse(event_stream, media_type="text/json")
 
 @app.get('/huiji_video_output_feed')
