@@ -146,6 +146,34 @@ async def huiji_video_source_feed():
 
 current_result = {}
 
+@app.get('/huiji_video_taocan_detect_result')
+async def huiji_video_events():
+    if not current_result:
+        return {
+            "code":1,
+            "data":{},
+            "msg":"当前没有检测结果"
+        }
+    taocan_id = conf.huiji_detect_config['current_combo_meals_id']
+    taocan =  conf.huiji_detect_config['combo_meals'][taocan_id]
+    return {
+        "code":0,
+        "data":{
+            "taocan_id": taocan_id,
+            "taocan_name":taocan['name'],
+            "items":[
+                {
+                    'id': t[0],
+                    'name': t[1],
+                    'count': t[2],
+                    'real_count': current_result[id] if id in current_result else 0,
+                    'lack_item': id not in current_result,
+                    'lack_count': id in current_result and  current_result[id] < t[2]
+                } for t in taocan['items']
+            ]
+        }
+    }
+
 @app.get('/huiji_video_events')
 async def huiji_video_events():
     def changed(detect_result):
