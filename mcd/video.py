@@ -45,7 +45,7 @@ def combo_meal_detect_frame(frame):
     for result in results:
         # 提取每个检测结果的 id 和 class 信息
         for obj in result.boxes:
-            obj_id = obj.id.item() if hasattr(obj, 'id') else None
+            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else None
             obj_class = obj.cls.item()
             if obj_class not in meal_result:
                 meal_result[obj_class]=set()

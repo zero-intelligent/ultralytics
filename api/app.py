@@ -24,8 +24,8 @@ async def index():
     <h1>Camera Stream</h1>
     <table>
         <tr>
-            <td><img src="/person_video_source_feed" width="1024" height="768" /></td>
-            <td><img src="/person_video_output_feed" width="1024" height="768" /></td>
+            <td><img src="/huiji_video_source_feed" width="1024" height="768" /></td>
+            <td><img src="/huiji_video_output_feed" width="1024" height="768" /></td>
         </tr>
     </table>
     </body>
