@@ -93,12 +93,15 @@ async def switch_taocan(taocan_id:int = Query(0, ge=0, le=1)):
 
 @app.get("/taocan_analysis")
 async def start_taocan_analysis():
-    # 此处需要将视频分析的结果和套餐的信息进行合并
-    current_taocan_result = await sync_huiji_video_events()
+    # 先启动视频捕获
+    if not video_srv.current_taocan_check_result:
+        detect_result = next(video_srv.huiji_detect_frames())
+    result = video_srv.get_detect_items(video_srv.current_taocan_check_result)
+
     return {
         "code":0,
         "data":{
-            "current_taocan_result": current_taocan_result['data'],
+            "current_taocan_result": result,
             "input_video":"huiji_video_source_feed",
             "output_video":"huiji_video_output_feed"
         }

@@ -60,8 +60,19 @@ def test_taocan_analysis():
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
-    assert json['data']['current_taocan_result'] == {}
+    results = json['data']['current_taocan_result']
+    print(results)
+    assert len(results) > 0
+    assert 'id' in results[0].keys()
+    assert 'name' in results[0].keys()
+    assert 'real_count' in results[0].keys()
+    assert 'lack_item' in results[0].keys()
+    assert 'lack_count' in results[0].keys()
 
+    if results[0]['lack_item'] == True:
+        assert results[0]['real_count'] == 0
+    if results[0]['lack_item'] == False:
+        assert results[0]['real_count'] >= 1
 
 def test_person_analysis():
     response = client.get("/person_analysis")
