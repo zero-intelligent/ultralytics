@@ -1,4 +1,5 @@
 import pytest
+import httpx
 from fastapi.testclient import TestClient
 from api.app import app  
 
@@ -66,6 +67,14 @@ def test_person_analysis():
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
+
+def test_huiji_video_taocan_detect_result():
+    #client.get("/huiji_video_output_feed")
+    response = client.get("/huiji_video_taocan_detect_result")
+    assert response.status_code == 200
+    json =  response.json()
+    assert json['code'] == 1
+
 
 
 def test_pvideo_source_feed():

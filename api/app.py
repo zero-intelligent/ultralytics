@@ -83,10 +83,11 @@ async def switch_combo_meals(combo_meals_id:int = Query(0, ge=0, le=1)):
 @app.get("/combo_meals_analysis")
 async def start_combo_meals_analysis():
     # 此处需要将视频分析的结果和套餐的信息进行合并
+    current_taocan_result = await sync_huiji_video_events()
     return {
         "code":0,
         "data":{
-            "current_combo_meals": conf.huiji_detect_config["current_combo_meals"],
+            "current_taocan_result": current_taocan_result['data'],
             "input_video":"huiji_video_source_feed",
             "output_video":"huiji_video_output_feed"
         }
