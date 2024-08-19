@@ -7,11 +7,22 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from contextlib import asynccontextmanager
 
+from fastapi.middleware.cors import CORSMiddleware
+
+
 import mcd.video as video_srv
 from mcd.camera import get_cameras
 import mcd.conf as conf
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://pinda.cn"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 async def index():
@@ -150,7 +161,10 @@ async def sync_huiji_video_events():
     if not video_srv.current_taocan_check_result:
         return {
             "code":1,
-            "data":{},
+            "data":{
+                "input_video": "person_video_source_feed",
+                "output_video": "person_video_output_feed"
+            },
             "msg":"当前没有检测结果"
         }
     taocan_id = conf.huiji_detect_config['current_combo_meals_id']
@@ -219,4 +233,4 @@ app.router.lifespan_context = lifespan
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
+    uvicorn.run(app, host="0.0.0.0", port=6789, log_level="info")
