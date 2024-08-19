@@ -83,7 +83,7 @@ async def get_taocans():
 
 @app.get("/switch_taocan")
 async def switch_taocan(taocan_id:int = Query(0, ge=0, le=1)):
-    conf.huiji_detect_config["current_taocan"] = conf.huiji_detect_config["taocan"][taocan_id]
+    conf.huiji_detect_config["current_taocan_id"] = conf.huiji_detect_config["taocans"][taocan_id]
     # 此处需要将视频分析的结果和套餐的信息进行合并
     return {
         "code": 0,
@@ -96,7 +96,7 @@ async def start_taocan_analysis():
     # 先启动视频捕获
     if not video_srv.current_taocan_check_result:
         next(video_srv.huiji_detect_frames())
-    if not video_srv.current_taocan_check_result:
+    if video_srv.current_taocan_check_result is None:
         raise Exception('启动huji检测失败！')
     result = video_srv.get_detect_items(video_srv.current_taocan_check_result)
 

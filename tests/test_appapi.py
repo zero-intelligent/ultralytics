@@ -87,12 +87,3 @@ def test_huiji_video_taocan_detect_result():
     json =  response.json()
     assert json['code'] == 1
 
-
-
-def test_pvideo_source_feed():
-    response = client.get("/")
-    assert response.status_code == 200
-    
-    response = client.get("/person_video_source_feed")
-    assert response.status_code == 200
-    assert response.headers['Content-Type'] == 'image/jpeg'

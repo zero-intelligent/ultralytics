@@ -35,8 +35,7 @@ def array2jpg(frame):
     ret, buffer = cv2.imencode('.jpg', frame)
     return buffer.tobytes()
 
-last_taocan_check_result = {}
-current_taocan_check_result = {}
+
 
 def changed(detect_result):
     return detect_result != last_taocan_check_result
@@ -54,6 +53,9 @@ def get_detect_items(detect_result):
             'lack_count': id in detect_result and  detect_result[id] < t[2]
         } for t in taocan['items']
     ]
+
+last_taocan_check_result = None
+current_taocan_check_result = None
 
 def combo_meal_detect_frame(frame):
     img=None
