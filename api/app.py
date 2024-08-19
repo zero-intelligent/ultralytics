@@ -95,7 +95,9 @@ async def switch_taocan(taocan_id:int = Query(0, ge=0, le=1)):
 async def start_taocan_analysis():
     # 先启动视频捕获
     if not video_srv.current_taocan_check_result:
-        detect_result = next(video_srv.huiji_detect_frames())
+        next(video_srv.huiji_detect_frames())
+    if not video_srv.current_taocan_check_result:
+        raise Exception('启动huji检测失败！')
     result = video_srv.get_detect_items(video_srv.current_taocan_check_result)
 
     return {
