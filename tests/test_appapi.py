@@ -60,6 +60,7 @@ def test_taocan_analysis():
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
+    assert json['data']['current_taocan_result'] == {}
 
 
 def test_person_analysis():

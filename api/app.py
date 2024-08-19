@@ -162,10 +162,7 @@ async def sync_huiji_video_events():
     if not video_srv.current_taocan_check_result:
         return {
             "code":1,
-            "data":{
-                "input_video": "person_video_source_feed",
-                "output_video": "person_video_output_feed"
-            },
+            "data":{},
             "msg":"当前没有检测结果"
         }
     taocan_id = conf.huiji_detect_config['current_taocan_id']
