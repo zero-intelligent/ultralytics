@@ -42,8 +42,8 @@ def changed(detect_result):
     return detect_result != last_taocan_check_result
 
 def get_detect_items(detect_result):
-    taocan_id = conf.huiji_detect_config['current_combo_meals_id']
-    taocan =  conf.huiji_detect_config['combo_meals'][taocan_id]
+    taocan_id = conf.huiji_detect_config['current_taocan_id']
+    taocan =  conf.huiji_detect_config['taocans'][taocan_id]
     return [
         {
             'id': t[0],

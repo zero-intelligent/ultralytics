@@ -71,19 +71,19 @@ async def get_capture_addr():
         "data":capture_addr
     }
 
-@app.get("/combo_meals")
-async def get_combo_meals():
+@app.get("/taocans")
+async def get_taocans():
     return {
         "code":0,
         "data":{
-            "combo_meals": conf.huiji_detect_config["combo_meals"],
-            "current_combo_meals_id": conf.huiji_detect_config["current_combo_meals_id"]
+            "taocans": conf.huiji_detect_config["taocans"],
+            "current_taocan_id": conf.huiji_detect_config["current_taocan_id"]
         }
     }
 
-@app.get("/switch_combo_meal")
-async def switch_combo_meals(combo_meals_id:int = Query(0, ge=0, le=1)):
-    conf.huiji_detect_config["current_combo_meals"] = conf.huiji_detect_config["combo_meals"][combo_meals_id]
+@app.get("/switch_taocan")
+async def switch_taocan(taocan_id:int = Query(0, ge=0, le=1)):
+    conf.huiji_detect_config["current_taocan"] = conf.huiji_detect_config["taocan"][taocan_id]
     # 此处需要将视频分析的结果和套餐的信息进行合并
     return {
         "code": 0,
@@ -91,8 +91,8 @@ async def switch_combo_meals(combo_meals_id:int = Query(0, ge=0, le=1)):
     }
 
 
-@app.get("/combo_meals_analysis")
-async def start_combo_meals_analysis():
+@app.get("/taocan_analysis")
+async def start_taocan_analysis():
     # 此处需要将视频分析的结果和套餐的信息进行合并
     current_taocan_result = await sync_huiji_video_events()
     return {
@@ -168,8 +168,8 @@ async def sync_huiji_video_events():
             },
             "msg":"当前没有检测结果"
         }
-    taocan_id = conf.huiji_detect_config['current_combo_meals_id']
-    taocan =  conf.huiji_detect_config['combo_meals'][taocan_id]
+    taocan_id = conf.huiji_detect_config['current_taocan_id']
+    taocan =  conf.huiji_detect_config['taocan'][taocan_id]
     return {
         "code":0,
         "data":{

@@ -12,7 +12,7 @@ huiji_detect_config = {
     "camera_source": 0,
 
     # 当前选中的套餐id
-    "current_combo_meals_id": 0,
+    "current_taocan_id": 0,
 
     #当前使用的模型
     "model": "mcd/huiji_detect_model.pt",
@@ -43,7 +43,7 @@ huiji_detect_config = {
     ],
 
     # 预配置套餐信息
-    "combo_meals": [
+    "taocans": [
         {
             "id": 0,
             "name": '麦辣鸡腿汉堡中套餐',

@@ -40,23 +40,23 @@ def test_capture_addr():
     assert json['data']['capture_addr'] == "0"
 
 
-def test_combo_meals():
-    response = client.get("/combo_meals")
+def test_taocans():
+    response = client.get("/taocans")
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
-    assert len(json['data']['combo_meals']) == 2
-    assert json['data']['current_combo_meals_id'] == 0
+    assert len(json['data']['taocans']) == 2
+    assert json['data']['current_taocan_id'] == 0
 
-def test_switch_combo_meal():
-    response = client.get("/switch_combo_meal?combo_meals_id=1")
+def test_switch_taocan():
+    response = client.get("/switch_taocan?taocan_id=1")
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
 
     
-def test_combo_meals_analysis():
-    response = client.get("/combo_meals_analysis")
+def test_taocan_analysis():
+    response = client.get("/taocan_analysis")
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
@@ -81,6 +81,6 @@ def test_pvideo_source_feed():
     response = client.get("/")
     assert response.status_code == 200
     
-    response = client.get("/video_source_feed")
+    response = client.get("/person_video_source_feed")
     assert response.status_code == 200
     assert response.headers['Content-Type'] == 'image/jpeg'
