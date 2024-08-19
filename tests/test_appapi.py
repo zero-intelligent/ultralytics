@@ -5,12 +5,6 @@ from api.app import app
 
 client = TestClient(app)
 
-@pytest.mark.skip()
-def test_demo():
-    response = client.get("/start")
-    assert response.status_code == 200
-    json =  response.json()
-    assert json['code'] == 0
 
 def test_switch_mode():
     response = client.get("/switch_mode?mode=huiji_detect")
@@ -87,4 +81,15 @@ def test_huiji_video_taocan_detect_result():
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 1
+
+@pytest.mark.skip()
+def test_huiji_video_output_feed():
+    response = client.get("/huiji_video_output_feed")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == 'ultipart/x-mixed-replace; boundary=frame'
+    stream = response.iter_bytes()
+
+    assert b'Content-Type: image/jpeg' in next(stream)
+    assert b'Content-Type: image/jpeg' in next(stream)
+    assert b'Content-Type: image/jpeg' in next(stream)
 
