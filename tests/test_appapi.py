@@ -69,10 +69,11 @@ def test_taocan_analysis():
     assert 'lack_item' in results[0].keys()
     assert 'lack_count' in results[0].keys()
 
-    if results[0]['lack_item'] == True:
+    if results[0]['lack_item']:
         assert results[0]['real_count'] == 0
-    if results[0]['lack_item'] == False:
+    else:
         assert results[0]['real_count'] >= 1
+        
 
 def test_person_analysis():
     response = client.get("/person_analysis")
