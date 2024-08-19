@@ -78,7 +78,11 @@ config_file = 'mcd_conf.json'
 
 def load_config():
     if os.path.exists(config_file):
-        conf = json.load(config_file)
+        print(config_file)
+        with open(config_file, 'r') as config_file1:
+            conf = json.load(config_file1)
+        # conf = json.load(config_file)
+        print(conf)
         global current_mode,huiji_detect_config,person_detect_config
         current_mode = conf['current_mode']
         huiji_detect_config = conf['huiji_detect_config']
