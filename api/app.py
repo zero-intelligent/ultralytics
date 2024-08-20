@@ -1,6 +1,6 @@
-import asyncio
-import copy
-from fastapi import FastAPI, Response
+import aiofiles
+import os
+from fastapi import Form,File, Path ,UploadFile, FastAPI, Response
 from fastapi import Body,Query
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -13,6 +13,20 @@ from fastapi.middleware.cors import CORSMiddleware
 import mcd.video as video_srv
 from mcd.camera import get_cameras
 import mcd.conf as conf
+from pydantic import BaseModel
+
+class CameraSetting(BaseModel):
+    type: str
+    local: str
+    url: str
+
+class ConfigSetting:
+    model:str
+    camera_type: str
+    camera_local: str
+    camera_url: str
+    taocan_id: str
+
 
 app = FastAPI()
 
@@ -66,6 +80,28 @@ async def demo_person():
 
     return Response(content=html_content, media_type="text/html")
 
+
+@app.get("/get_config")
+async def get_config():
+    configSetting = ConfigSetting()
+    configSetting.model = conf.current_mode
+    print(conf.huiji_detect_config)
+    configSetting.taocan_id = conf.huiji_detect_config["current_taocan_id"]["id"]
+
+    if conf.current_mode == 'huiji_detect':
+        configSetting.camera_type=0
+        configSetting.camera_local = conf.huiji_detect_config["camera_source"]
+        configSetting.camera_url = ""
+
+    if conf.current_mode == 'person_detect':
+        configSetting.camera_type = 0
+        configSetting.camera_local = conf.person_detect_config["camera_source"]
+        configSetting.camera_url = ""
+
+    return {
+        "code":0,
+        "data":configSetting
+    }
 
 
 @app.get("/switch_mode")
@@ -148,8 +184,11 @@ async def get_available_cameras():
         "data":{id:name for id,name in get_cameras()}
     }
 
-@app.post("/capture_addr")
-async def put_capture_addr(capture_addr:str = Body(..., media_type="text/plain")):
+
+@app.post("/set_camera")
+async def set_camera(cameraSetting: CameraSetting):
+    capture_addr = cameraSetting.local
+
     if conf.current_mode == "huiji_detect" and conf.huiji_detect_config['camera_source'] == capture_addr \
     or conf.current_mode == "person_detect" and conf.person_detect_config['camera_source'] == capture_addr:
         return {
