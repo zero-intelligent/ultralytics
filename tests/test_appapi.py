@@ -93,6 +93,6 @@ def test_huiji_video_taocan_detect_result():
 
 def test_get_video_model_output_file():
     response = client.get("/video_model_output_file")
-    assert response.status_code == 400
-    assert response.json() == {"code":2,"msg": "未找到输出文件"}
+    assert response.status_code == 404
+    assert response.json() == {"code":2,"msg": "File not found"}
 
