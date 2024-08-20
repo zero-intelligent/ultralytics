@@ -8,8 +8,13 @@ current_mode = 'huiji_detect'
 
 huiji_detect_config = {
 
+    # 数据源类型，只可以是: 摄像头(camera)/视频文件(video_file)
+    "data_source_type": "camera",
+
     # 当前摄像头地址，本地为 0,1,2， 网络是 uri 地址
     "camera_source": 0,
+
+    "video_file": "",
 
     # 当前选中的套餐id
     "current_taocan_id": 0,
@@ -66,8 +71,11 @@ huiji_detect_config = {
 }
 
 person_detect_config = {
+    # 数据源类型，只可以是: 摄像头(camera)/视频文件(video_file)
+    "data_source_type": "camera",
     # 当前摄像头地址，本地为 0,1,2， 网络是 uri 地址
     "camera_source": 0,
+    "video_file": "",
     "model": "yolov8n.pt"
 
 }
