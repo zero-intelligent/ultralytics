@@ -27,7 +27,7 @@ class ConfigSetting:
     camera_type: str
     camera_local: str
     camera_url: str
-    taocan_id: str
+    taocan_id: int
 
 
 app = FastAPI()
