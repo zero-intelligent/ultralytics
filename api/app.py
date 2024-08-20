@@ -92,11 +92,13 @@ async def get_config():
         configSetting.camera_type=0
         configSetting.camera_local = conf.huiji_detect_config["camera_source"]
         configSetting.camera_url = ""
+        configSetting.data_type = "camera"
 
     if conf.current_mode == 'person_detect':
         configSetting.camera_type = 0
         configSetting.camera_local = conf.person_detect_config["camera_source"]
         configSetting.camera_url = ""
+        configSetting.data_type = "camera"
 
     return {
         "code":0,
