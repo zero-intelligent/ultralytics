@@ -42,8 +42,7 @@ def changed(detect_result):
 
 def get_detect_items(detect_result):
     taocan_id = conf.huiji_detect_config['current_taocan_id']
-    print(taocan_id)
-    taocan =  conf.huiji_detect_config['taocans'][taocan_id]
+    taocan =  [t for t in conf.huiji_detect_config['taocans'] if t['id'] == taocan_id][0]
     return [
         {
             'id': t[0],
