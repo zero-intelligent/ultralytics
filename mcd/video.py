@@ -42,6 +42,7 @@ def changed(detect_result):
 
 def get_detect_items(detect_result):
     taocan_id = conf.huiji_detect_config['current_taocan_id']
+    print(taocan_id)
     taocan =  conf.huiji_detect_config['taocans'][taocan_id]
     return [
         {
@@ -96,7 +97,7 @@ def huiji_detect_frames():
 
 def analysis_video_file():
     save_dir = 'analysis_video_output'
-    if conf.mode == "huiji_detect":
+    if conf.current_mode == "huiji_detect":
         conf.huiji_detect_config['video_model_output_file'] = ''
         datasource = conf.huiji_detect_config['data_source']
         model = get_model(conf.huiji_detect_config['model'])
