@@ -398,7 +398,7 @@ async def upload_file(
             await f.write(await file.read())
 
     if current == total:
-        merge_chunks(identifier, name)
+        await merge_chunks(identifier, name)
 
     return {"code": 200, "data": {
         'chunk': f'{identifier}_{current}'}}
@@ -406,7 +406,7 @@ async def upload_file(
 
 
 
-def merge_chunks(identifier, name):
+async def merge_chunks(identifier, name):
 
     UPLOAD_FILE_PATH = "uploads/" + identifier
 
@@ -424,6 +424,14 @@ def merge_chunks(identifier, name):
     #     os.remove(f'{UPLOAD_FILE_PATH}/{chunk_file}')
 
     print('File saved successfully')
+
+    # 上传完成后，更新文件信息
+    await set_mode_datasource(ModeDataSourceRequest(
+        mode = conf.current_mode,
+        data_source_type = "video_file",
+        data_source = output_file
+    ))
+
 
 
 @app.exception_handler(RequestValidationError)
