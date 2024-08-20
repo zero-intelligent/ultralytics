@@ -134,12 +134,18 @@ async def set_mode_datasource(request: ModeDataSourceRequest):
         conf.huiji_detect_config['data_source_type'] = request.data_source_type
         if conf.huiji_detect_config['data_source'] != request.data_source:
             conf.huiji_detect_config['data_source'] = request.data_source
-            video_srv.analysis_video_file()
+            if request.data_source_type == 'video_file':
+                video_srv.analysis_video_file()
+            else:
+                video_srv.huiji_detect_frames()
     else:
         conf.person_detect_config['data_source_type'] = request.data_source_type
         if conf.person_detect_config['data_source'] != request.data_source:
             conf.person_detect_config['data_source'] = request.data_source
-            video_srv.analysis_video_file()
+            if request.data_source_type == 'video_file':
+                video_srv.analysis_video_file()
+            else:
+                video_srv.person_detect_frames()
 
     return {
         "code": 0,
