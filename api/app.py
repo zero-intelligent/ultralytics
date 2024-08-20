@@ -1,12 +1,12 @@
 import aiofiles
 import os
-from fastapi import Form,File, Path ,UploadFile, FastAPI, Response
+from fastapi import Form,File ,UploadFile, FastAPI, Response
 from fastapi import Body,Query
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, StreamingResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from contextlib import asynccontextmanager
-
+from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -268,28 +268,28 @@ async def person_detect_video_output_feed():
 @app.post('/upload')
 async def upload_file(
         identifier: str = Form(..., description="文件唯一标识符"),
-        chunkNumber: str = Form(..., description="文件分片序号（初值为1）"),
-        totalChunks: str = Form(..., description="总分片数量"),
+        current: str = Form(..., description="文件分片序号（初值为1）"),
+        total: str = Form(..., description="总分片数量"),
         name: str = Form(..., description="文件名"),
         file: UploadFile = File(..., description="文件")
 ):
     """文件分片上传"""
     UPLOAD_FILE_PATH = "uploads"
-    chunkNumber = chunkNumber.zfill(3)
-    totalChunks = totalChunks.zfill(3)
+    current = current.zfill(3)
+    total   = total.zfill(3)
     path = Path(UPLOAD_FILE_PATH, identifier)
     if not os.path.exists(path):
         os.makedirs(path)
-    file_name = Path(path, f'{identifier}_{chunkNumber}')
+    file_name = Path(path, f'{identifier}_{current}')
     if not os.path.exists(file_name):
         async with aiofiles.open(file_name, 'wb') as f:
             await f.write(await file.read())
 
-    if chunkNumber == totalChunks:
+    if current == total:
         merge_chunks(identifier, name)
 
     return {"code": 200, "data": {
-        'chunk': f'{identifier}_{chunkNumber}'}}
+        'chunk': f'{identifier}_{current}'}}
 
 
 
