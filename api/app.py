@@ -177,7 +177,7 @@ MIME_TYPES = {
 
 def response_file(video_file):
     if not video_file or not os.path.exists(video_file):
-        raise HTTPException(status_code=400, detail="未找到输出文件")
+        raise HTTPException(status_code=404, detail="File not found")
     
     file_name, file_extension = os.path.splitext(os.path.basename(video_file))
     # 获取文件扩展名
