@@ -175,9 +175,7 @@ MIME_TYPES = {
     ".mkv": "video/x-matroska",
 }
 
-@app.get("/video_model_output_file")
-async def get_video_model_output_file():
-    video_file = conf.huiji_detect_config.get('video_model_output_file')
+def response_file(video_file):
     if not video_file or not os.path.exists(video_file):
         raise HTTPException(status_code=400, detail="未找到输出文件")
     
@@ -199,6 +197,7 @@ async def get_video_model_output_file():
         media_type=media_type,
         filename=os.path.basename(video_file)
     )
+
 
 @app.get("/capture_addr")
 async def get_capture_addr():
@@ -265,37 +264,13 @@ async def get_available_cameras():
         "data":{id:name for id,name in get_cameras()}
     }
 
-@app.put("/video_input_file")
-async def put_video_file(capture_addr:str = Body(..., media_type="text/plain")):
-    return {
-        "code":0,
-        "data":{
-            "mode":conf.current_mode,
-            "capture_addr": capture_addr
-        }
-    }
-
 @app.get("/video_input_file")
-async def get_video_file(capture_addr:str = Body(..., media_type="text/plain")):
-    return {
-        "code":0,
-        "data":{
-            "mode":conf.current_mode,
-            "capture_addr": capture_addr
-        }
-    }
+async def get_video_source_file():
+    return response_file(conf.huiji_detect_config.get('video_file'))
 
 @app.get("/video_model_output_file")
-async def get_video_model_output_file(capture_addr:str = Body(..., media_type="text/plain")):
-    return {
-        "code":0,
-        "data":{
-            "mode":conf.current_mode,
-            "capture_addr": capture_addr
-        }
-    }
-
-
+async def get_video_model_output_file():
+    return response_file(conf.huiji_detect_config.get('video_model_output_file'))
 
 @app.post("/capture_addr")
 async def put_capture_addr(capture_addr:str = Body(..., media_type="text/plain")):

@@ -97,19 +97,18 @@ def huiji_detect_frames():
 def analysis_video_file():
     save_dir = 'analysis_video_output'
     if conf.mode == "huiji_detect":
+        conf.huiji_detect_config['video_model_output_file'] = ''
         datasource = conf.huiji_detect_config['data_source']
         model = get_model(conf.huiji_detect_config['model'])
         results = model.track(datasource,save=True, save_dir=save_dir)
+        conf.huiji_detect_config['video_model_output_file'] = str(Path(save_dir) / Path(datasource).name)
     else:
+        conf.person_detect_config['video_model_output_file'] = ''
         datasource = conf.person_detect_config['data_source']
         model = get_model(conf.person_detect_config['model'])
         results = model.track(datasource,classes=[0],save=True, save_dir=save_dir)
-
-    output_file = Path(save_dir) / Path(datasource).name
-    conf.huiji_detect_config['video_model_output_file'] = str(output_file)
-    return output_file
-
-
+        conf.person_detect_config['video_model_output_file'] = str(Path(save_dir) / Path(datasource).name)
+    
 
 def capture_frames():
     # 打开摄像头
