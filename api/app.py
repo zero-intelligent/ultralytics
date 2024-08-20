@@ -13,6 +13,20 @@ from fastapi.middleware.cors import CORSMiddleware
 import mcd.video as video_srv
 from mcd.camera import get_cameras
 import mcd.conf as conf
+from pydantic import BaseModel
+
+class CameraSetting(BaseModel):
+    type: str
+    local: str
+    url: str
+
+class ConfigSetting:
+    model:str
+    camera_type: str
+    camera_local: str
+    camera_url: str
+    taocan_id: str
+
 
 app = FastAPI()
 
@@ -24,8 +38,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-async def index():
+@app.get("/demo_huiji")
+async def demo_huiji():
     html_content = """
     <html>
     <head>
@@ -44,6 +58,52 @@ async def index():
     """
 
     return Response(content=html_content, media_type="text/html")
+
+@app.get("/demo_person")
+async def demo_person():
+    html_content = """
+    <html>
+    <head>
+    <title>Camera Stream</title>
+    </head>
+    <body>
+    <h1>Camera Stream</h1>
+    <table>
+        <tr>
+            <td><img src="/person_video_source_feed" width="1024" height="768" /></td>
+            <td><img src="/person_video_output_feed" width="1024" height="768" /></td>
+        </tr>
+    </table>
+    </body>
+    </html>
+    """
+
+    return Response(content=html_content, media_type="text/html")
+
+
+@app.get("/get_config")
+async def get_config():
+    configSetting = ConfigSetting()
+    configSetting.model = conf.current_mode
+    print(conf.huiji_detect_config)
+    configSetting.taocan_id = conf.huiji_detect_config["current_taocan_id"]["id"]
+
+    if conf.current_mode == 'huiji_detect':
+        configSetting.camera_type=0
+        configSetting.camera_local = conf.huiji_detect_config["camera_source"]
+        configSetting.camera_url = ""
+        configSetting.data_type = "camera"
+
+    if conf.current_mode == 'person_detect':
+        configSetting.camera_type = 0
+        configSetting.camera_local = conf.person_detect_config["camera_source"]
+        configSetting.camera_url = ""
+        configSetting.data_type = "camera"
+
+    return {
+        "code":0,
+        "data":configSetting
+    }
 
 
 @app.get("/switch_mode")
@@ -310,6 +370,56 @@ async def person_video_source_feed():
 async def person_detect_video_output_feed():
     img_stream = (pad_frame(v[1]) for v in video_srv.person_detect_frames())
     return StreamingResponse(img_stream, media_type="multipart/x-mixed-replace; boundary=frame")
+
+
+
+@app.post('/upload')
+async def upload_file(
+        identifier: str = Form(..., description="文件唯一标识符"),
+        current: str = Form(..., description="文件分片序号（初值为1）"),
+        total: str = Form(..., description="总分片数量"),
+        name: str = Form(..., description="文件名"),
+        file: UploadFile = File(..., description="文件")
+):
+    """文件分片上传"""
+    UPLOAD_FILE_PATH = "uploads"
+    current = current.zfill(3)
+    total   = total.zfill(3)
+    path = Path(UPLOAD_FILE_PATH, identifier)
+    if not os.path.exists(path):
+        os.makedirs(path)
+    file_name = Path(path, f'{identifier}_{current}')
+    if not os.path.exists(file_name):
+        async with aiofiles.open(file_name, 'wb') as f:
+            await f.write(await file.read())
+
+    if current == total:
+        merge_chunks(identifier, name)
+
+    return {"code": 200, "data": {
+        'chunk': f'{identifier}_{current}'}}
+
+
+
+
+def merge_chunks(identifier, name):
+
+    UPLOAD_FILE_PATH = "uploads/" + identifier
+
+    chunk_files = sorted(os.listdir(UPLOAD_FILE_PATH)) # 获取所有分片文件
+    print(chunk_files)
+    output_file = f'{UPLOAD_FILE_PATH}/{name}' # 定义合并后的文件路径
+
+    with open(output_file, 'wb') as output:
+        for chunk_file in chunk_files:
+            with open(f'{UPLOAD_FILE_PATH}/{chunk_file}', 'rb') as chunk:
+                output.write(chunk.read()) # 将分片内容写入合并后的文件
+
+    # 删除所有分片文件
+    # for chunk_file in chunk_files:
+    #     os.remove(f'{UPLOAD_FILE_PATH}/{chunk_file}')
+
+    print('File saved successfully')
 
 
 @app.exception_handler(RequestValidationError)
