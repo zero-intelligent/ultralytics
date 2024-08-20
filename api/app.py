@@ -225,6 +225,56 @@ async def person_detect_video_output_feed():
     return StreamingResponse(img_stream, media_type="multipart/x-mixed-replace; boundary=frame")
 
 
+
+@app.post('/upload')
+async def upload_file(
+        identifier: str = Form(..., description="文件唯一标识符"),
+        chunkNumber: str = Form(..., description="文件分片序号（初值为1）"),
+        totalChunks: str = Form(..., description="总分片数量"),
+        name: str = Form(..., description="文件名"),
+        file: UploadFile = File(..., description="文件")
+):
+    """文件分片上传"""
+    UPLOAD_FILE_PATH = "uploads"
+    chunkNumber = chunkNumber.zfill(3)
+    totalChunks = totalChunks.zfill(3)
+    path = Path(UPLOAD_FILE_PATH, identifier)
+    if not os.path.exists(path):
+        os.makedirs(path)
+    file_name = Path(path, f'{identifier}_{chunkNumber}')
+    if not os.path.exists(file_name):
+        async with aiofiles.open(file_name, 'wb') as f:
+            await f.write(await file.read())
+
+    if chunkNumber == totalChunks:
+        merge_chunks(identifier, name)
+
+    return {"code": 200, "data": {
+        'chunk': f'{identifier}_{chunkNumber}'}}
+
+
+
+
+def merge_chunks(identifier, name):
+
+    UPLOAD_FILE_PATH = "uploads/" + identifier
+
+    chunk_files = sorted(os.listdir(UPLOAD_FILE_PATH)) # 获取所有分片文件
+    print(chunk_files)
+    output_file = f'{UPLOAD_FILE_PATH}/{name}' # 定义合并后的文件路径
+
+    with open(output_file, 'wb') as output:
+        for chunk_file in chunk_files:
+            with open(f'{UPLOAD_FILE_PATH}/{chunk_file}', 'rb') as chunk:
+                output.write(chunk.read()) # 将分片内容写入合并后的文件
+
+    # 删除所有分片文件
+    # for chunk_file in chunk_files:
+    #     os.remove(f'{UPLOAD_FILE_PATH}/{chunk_file}')
+
+    print('File saved successfully')
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
     return JSONResponse(
