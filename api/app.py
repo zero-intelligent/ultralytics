@@ -88,7 +88,7 @@ async def get_config():
     configSetting = ConfigSetting()
     configSetting.model = conf.current_mode
     print(conf.huiji_detect_config)
-    configSetting.taocan_id = conf.huiji_detect_config["current_taocan_id"]["id"]
+    configSetting.taocan_id = conf.huiji_detect_config["current_taocan_id"]
 
     if conf.current_mode == 'huiji_detect':
         configSetting.camera_type=0
@@ -119,7 +119,7 @@ async def switch_mode(mode:str = Query(default='huiji_detect',enum=['huiji_detec
     conf.current_mode = mode
     return {
         "code": 0,
-        "msg":f"mode swit to ${mode}"
+        "msg":f"mode swit to {mode}"
     }
 
 class ModeDataSourceRequest(BaseModel):
@@ -271,6 +271,27 @@ async def get_video_source_file():
 @app.get("/video_model_output_file")
 async def get_video_model_output_file():
     return response_file(conf.huiji_detect_config.get('video_model_output_file'))
+
+@app.get("/do_set_type")
+async def do_set_type():
+    conf.current_mode = "huiji_detect"
+    conf.huiji_detect_config['data_source_type'] = "video_file"
+    conf.huiji_detect_config['data_source'] = "/Users/chenyuyun/Documents/GitHub/ultralytics/api/demo.mp4"
+    video_srv.analysis_video_file()
+    return {
+        "code":0
+    }
+
+@app.get("/switch_data_type")
+async def switch_data_type(type:str):
+    # conf.current_mode = "huiji_detect"
+    # conf.huiji_detect_config['data_source_type'] = "video_file"
+    # conf.huiji_detect_config['data_source'] = "/Users/chenyuyun/Documents/GitHub/ultralytics/api/demo.mp4"
+    # video_srv.analysis_video_file()
+    return {
+        "code":0
+    }
+
 
 @app.post("/capture_addr")
 async def put_capture_addr(capture_addr:str = Body(..., media_type="text/plain")):
