@@ -132,20 +132,25 @@ async def set_mode_datasource(request: ModeDataSourceRequest):
     conf.current_mode = request.mode
     if request.mode == "huiji_detect":
         conf.huiji_detect_config['data_source_type'] = request.data_source_type
-        if conf.huiji_detect_config['data_source'] != request.data_source:
-            conf.huiji_detect_config['data_source'] = request.data_source
-            if request.data_source_type == 'video_file':
-                video_srv.analysis_video_file()
-            else:
+        if request.data_source_type == 'camera':
+            if conf.huiji_detect_config['camera_source'] != request.data_source:
+                conf.huiji_detect_config['camera_source'] = request.data_source
                 video_srv.huiji_detect_frames()
+        else:
+            if conf.huiji_detect_config['video_file'] != request.data_source:
+                conf.huiji_detect_config['video_file'] = request.data_source
+                video_srv.analysis_video_file()
+            
     else:
         conf.person_detect_config['data_source_type'] = request.data_source_type
-        if conf.person_detect_config['data_source'] != request.data_source:
-            conf.person_detect_config['data_source'] = request.data_source
-            if request.data_source_type == 'video_file':
-                video_srv.analysis_video_file()
-            else:
+        if request.data_source_type == 'camera':
+            if conf.person_detect_config['camera_source'] != request.data_source:
+                conf.person_detect_config['camera_source'] = request.data_source
                 video_srv.person_detect_frames()
+        else:
+            if conf.person_detect_config['video_file'] != request.data_source:
+                conf.person_detect_config['video_file'] = request.data_source
+                video_srv.analysis_video_file()
 
     return {
         "code": 0,
