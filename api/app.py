@@ -24,8 +24,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-async def index():
+@app.get("/demo_huiji")
+async def demo_huiji():
     html_content = """
     <html>
     <head>
@@ -44,6 +44,28 @@ async def index():
     """
 
     return Response(content=html_content, media_type="text/html")
+
+@app.get("/demo_person")
+async def demo_person():
+    html_content = """
+    <html>
+    <head>
+    <title>Camera Stream</title>
+    </head>
+    <body>
+    <h1>Camera Stream</h1>
+    <table>
+        <tr>
+            <td><img src="/person_video_source_feed" width="1024" height="768" /></td>
+            <td><img src="/person_video_output_feed" width="1024" height="768" /></td>
+        </tr>
+    </table>
+    </body>
+    </html>
+    """
+
+    return Response(content=html_content, media_type="text/html")
+
 
 
 @app.get("/switch_mode")
