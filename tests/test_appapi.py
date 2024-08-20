@@ -76,20 +76,23 @@ def test_person_analysis():
     assert json['code'] == 0
 
 def test_huiji_video_taocan_detect_result():
-    #client.get("/huiji_video_output_feed")
     response = client.get("/huiji_video_taocan_detect_result")
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 1
 
-@pytest.mark.skip()
-def test_huiji_video_output_feed():
-    response = client.get("/huiji_video_output_feed")
-    assert response.status_code == 200
-    assert response.headers["content-type"] == 'ultipart/x-mixed-replace; boundary=frame'
-    stream = response.iter_bytes()
 
-    assert b'Content-Type: image/jpeg' in next(stream)
-    assert b'Content-Type: image/jpeg' in next(stream)
-    assert b'Content-Type: image/jpeg' in next(stream)
+
+# def test_upload_file():
+#     response = client.get("/upload")
+#     assert response.status_code == 200
+#     json =  response.json()
+#     assert json['code'] == 1
+
+
+
+def test_get_video_model_output_file():
+    response = client.get("/video_model_output_file")
+    assert response.status_code == 400
+    assert response.json() == {"code":2,"msg": "未找到输出文件"}
 
