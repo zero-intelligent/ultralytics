@@ -108,26 +108,21 @@ model_result_save_dir = "analysis_video_output"
 import os;os.makedirs(model_result_save_dir,exist_ok=True)
 
 def analysis_video_file():
-    if conf.current_mode == "huiji_detect":
-        conf.huiji_detect_config['video_model_output_file'] = ''
-        datasource = conf.huiji_detect_config['video_file']
-        model = get_model(conf.huiji_detect_config['model'])
+    def analysis(detect_config):
+        detect_config['video_model_output_file'] = ''
+        datasource = detect_config['video_file']
+        model = get_model(detect_config['model'])
         results = model.track(datasource,save=True)
 
         model_output_file = Path(results[0].save_dir) / Path(datasource).name
         model_output_target_file = Path(model_result_save_dir) / Path(datasource).name
-        model_output_target_file.write_bytes(model_output_file.read_bytes())
-        conf.huiji_detect_config['video_model_output_file'] = str(model_output_target_file)
-    else:
-        conf.person_detect_config['video_model_output_file'] = ''
-        datasource = conf.person_detect_config['video_file']
-        model = get_model(conf.person_detect_config['model'])
-        results = model.track(datasource,classes=[0],save=True)
+        model_output_target_file.write_bytes(model_output_file.read_bytes())  # 复制文件
+        detect_config['video_model_output_file'] = str(model_output_target_file)
 
-        model_output_file = Path(results[0].save_dir) / Path(datasource).name
-        model_output_target_file = Path(model_result_save_dir) / Path(datasource).name
-        model_output_target_file.write_bytes(model_output_file.read_bytes())
-        conf.person_detect_config['video_model_output_file'] = str(model_output_target_file)
+    if conf.current_mode == "huiji_detect":
+        analysis(conf.huiji_detect_config)
+    else:
+        analysis(conf.person_detect_config)
 
 
 def normal_camera_source():
