@@ -95,6 +95,14 @@ def test_upload_file():
     assert response.json()["filename"] == "demo.mp4"
     assert os.path.exists("uploads/demo.mp4")
 
+    response = client.get("/mode_datasource")
+    assert response.status_code == 200
+    json =  response.json()
+    assert json['code'] == 0
+    assert json['data']['data_source_type'] == 'video_file'
+    assert json['data']['data_source'] == file_path
+
+
 
 
 def test_get_video_model_output_file():

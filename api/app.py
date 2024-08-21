@@ -361,7 +361,14 @@ async def single_upload_file(file: UploadFile = File(...)):
         file_path = f"uploads/{file.filename}"
         with open(file_path, "wb") as f:
             f.write(file_content)
+         # 上传完成后，更新文件信息
+        await set_mode_datasource(ModeDataSourceRequest(
+            mode = conf.current_mode,
+            data_source_type = "video_file",
+            data_source = file_path
+        ))
         return {"filename": file.filename, "file_size": len(file_content)}
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
