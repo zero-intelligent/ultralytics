@@ -5,6 +5,7 @@ import os
 import mcd.conf as conf
 from mcd.logger import log
 from pathlib import Path
+from mcd.custom_result import PersonResults
 
 
 models = {}
@@ -17,6 +18,7 @@ def get_model(model_path):
 def person_detect_frame(frame):
     person_detect_model = get_model(conf.person_detect_config['model'])
     results = person_detect_model.track(frame,classes=[0],verbose=False)
+    results[0].__class__ = PersonResults
     img = results[0].plot()
     return (array2jpg(frame),array2jpg(img))
 
@@ -87,7 +89,7 @@ def get_detect_items(detect_result):
 last_taocan_check_result = None
 current_taocan_check_result = None
 
-def combo_meal_detect_frame(frame):
+def huiji_detect_frame(frame):
     img=None
     meal_result=None
 
@@ -123,29 +125,60 @@ def huiji_detect_frames():
         ret, frame = cap.read()
         if not ret:
             break
-        yield combo_meal_detect_frame(frame)
+        yield huiji_detect_frame(frame)
 
     cap.release()
 
 model_result_save_dir = "analysis_video_output"
 import os;os.makedirs(model_result_save_dir,exist_ok=True)
 
+def analysis_huiji_video_file():
+    conf.huiji_detect_config['video_model_output_file'] = ''
+    datasource = conf.huiji_detect_config['video_file']
+    model = get_model(conf.huiji_detect_config['model'])
+    results = model.track(datasource,save=True, verbose=False)
+
+    model_output_file = Path(results[0].save_dir) / Path(datasource).name
+    model_output_target_file = Path(model_result_save_dir) / Path(datasource).name
+    model_output_target_file.write_bytes(model_output_file.read_bytes())  # 复制文件
+    conf.huiji_detect_config['video_model_output_file'] = str(model_output_target_file)
+        
+
+def analysis_person_video_file():
+    conf.huiji_detect_config['video_model_output_file'] = ''
+    datasource = conf.huiji_detect_config['video_file']
+    model = get_model(conf.huiji_detect_config['model'])
+    results = model.track(datasource, verbose=True)
+
+    # 获取输入视频的帧率和尺寸
+    input_video = cv2.VideoCapture(datasource)
+    fps = input_video.get(cv2.CAP_PROP_FPS)
+    width = int(input_video.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(input_video.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+    # 定义输出视频文件路径和编码器
+    output_file = Path(model_result_save_dir) / Path(datasource).name
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    out = cv2.VideoWriter(str(output_file), fourcc, fps, (width, height))
+
+    # 遍历结果并保存每帧图像
+    for result in results:
+        result.__class__ = PersonResults
+        img = result.plot()
+        out.write(img)
+
+    # 释放资源
+    out.release()
+    input_video.release()
+
+    conf.person_detect_config['video_model_output_file'] = str(output_file)
+
+
 def analysis_video_file():
-    def analysis(detect_config):
-        detect_config['video_model_output_file'] = ''
-        datasource = detect_config['video_file']
-        model = get_model(detect_config['model'])
-        results = model.track(datasource,save=True)
-
-        model_output_file = Path(results[0].save_dir) / Path(datasource).name
-        model_output_target_file = Path(model_result_save_dir) / Path(datasource).name
-        model_output_target_file.write_bytes(model_output_file.read_bytes())  # 复制文件
-        detect_config['video_model_output_file'] = str(model_output_target_file)
-
     if conf.current_mode == "huiji_detect":
-        analysis(conf.huiji_detect_config)
+        analysis_huiji_video_file()
     else:
-        analysis(conf.person_detect_config)
+        analysis_person_video_file()
 
 
 def normal_camera_source():
