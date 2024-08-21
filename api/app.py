@@ -98,8 +98,8 @@ async def get_config():
         configSetting.camera_local = conf.huiji_detect_config["camera_source"]
         configSetting.camera_url = ""
         configSetting.data_type = conf.huiji_detect_config.get('data_source_type')
-        configSetting.data_file_source = conf.huiji_detect_config.get('video_file')
-        configSetting.data_file_target  =conf.huiji_detect_config.get('video_model_output_file')
+        configSetting.data_file_source = "/video_input_file" if conf.huiji_detect_config.get('video_file') else ""
+        configSetting.data_file_target = "/video_model_output_file" if conf.huiji_detect_config.get('video_model_output_file') else ""
         
 
     if conf.current_mode == 'person_detect':
@@ -107,8 +107,8 @@ async def get_config():
         configSetting.camera_local = conf.person_detect_config["camera_source"]
         configSetting.camera_url = ""
         configSetting.data_type = conf.person_detect_config.get('data_source_type')
-        configSetting.data_file_source = conf.person_detect_config.get('video_file')
-        configSetting.data_file_target  =conf.person_detect_config.get('video_model_output_file')
+        configSetting.data_file_source = "/video_input_file" if conf.person_detect_config.get('video_file') else ""
+        configSetting.data_file_target = "/video_model_output_file" if conf.person_detect_config.get('video_model_output_file') else ""
 
     return {
         "code":0,
