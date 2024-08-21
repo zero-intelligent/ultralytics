@@ -127,19 +127,6 @@ export default {
       optionsCamera: [],
       valueCamera: "",
       options: [
-        //   {
-        //   value: '4',
-        //   label: 'YOLO V4'
-        // }, {
-        //   value: '5',
-        //   label: 'YOLO V5'
-        // }, {
-        //   value: 'YOLO V6',
-        //   label: 'YOLO V6'
-        // }, {
-        //   value: 'YOLO V7',
-        //   label: 'YOLO V7'
-        // }, 
         {
           value: 'YOLO V8',
           label: 'YOLO V8'
@@ -250,19 +237,20 @@ export default {
           this.cardList[0].src = result?.data?.data_file_source
           this.cardList[1].src = result?.data?.data_file_target
 
-
           if (this.configInfo.data_type === 'video_file') {
-            if (!this.configInfo?.data_file_source || this.configInfo?.data_file_source == null) {
+            //if (!this.configInfo?.data_file_source || this.configInfo?.data_file_source == null) {
+              clearInterval(this.timer);
               this.timer = setInterval(() => {
                 setTimeout(async () => {
                   this.getConfigTarget();
                 }, 0);
               }, 3000);
-            }
+            //}
           } else {
             if (this.activeName == 'first') {
               this.list = []
               this.refresh()
+              clearInterval(this.timer);
               this.timer = setInterval(() => {
                 setTimeout(async () => {
                   this.refresh();
@@ -272,6 +260,7 @@ export default {
             } else {
               this.list = []
               this.refreshOther();
+              clearInterval(this.timer);
               this.timer = setInterval(() => {
                 setTimeout(async () => {
                   this.refreshOther();
@@ -296,7 +285,7 @@ export default {
         let result = await getConfig()
         if (result.code === 0) {
           if (this.configInfo?.data_file_target && this.configInfo?.data_file_target.length > 0) {
-            clearInterval(this.timer)
+            //clearInterval(this.timer)
           }
         } else {
           this.configInfo = {}
@@ -403,6 +392,9 @@ export default {
     },
     // 上传(同时选择多个文件时会多次上传该文件)
     async handleFileUpload(item) {
+      //先停掉定时任务
+      clearInterval(this.timer);
+
       await this.switchTypeFun(1)
       let file = item.file
       this.disabled = true;
