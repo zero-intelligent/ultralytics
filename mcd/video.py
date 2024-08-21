@@ -79,7 +79,7 @@ def get_detect_items(detect_result):
             'lack_item': None,
             'lack_count': None,
             'is_in_taocan': False
-        } for name,count in detect_result if name not in [i['name'] for i in taocan['items']]
+        } for name,count in detect_result.items() if name not in [i['name'] for i in taocan['items']]
     ]
     return in_tancan_results + out_tancan_results
 
