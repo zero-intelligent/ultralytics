@@ -275,11 +275,17 @@ async def get_available_cameras():
 
 @app.get("/video_input_file")
 async def get_video_source_file():
-    return response_file(conf.huiji_detect_config.get('video_file'))
+    if conf.current_mode == "huiji_detect":
+        return response_file(conf.huiji_detect_config.get('video_file'))
+    else:
+        return response_file(conf.person_detect_config.get('video_file'))
 
 @app.get("/video_model_output_file")
 async def get_video_model_output_file():
-    return response_file(conf.huiji_detect_config.get('video_model_output_file'))
+    if conf.current_mode == "huiji_detect":
+        return response_file(conf.huiji_detect_config.get('video_model_output_file'))
+    else:
+        return response_file(conf.person_detect_config.get('video_model_output_file'))
 
 @app.get("/do_set_type")
 async def do_set_type():
