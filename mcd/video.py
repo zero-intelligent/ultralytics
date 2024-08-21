@@ -20,11 +20,8 @@ def person_detect_frame(frame):
     return (array2jpg(frame),array2jpg(img))
 
 def person_detect_frames():
-    camera_source = conf.person_detect_config['camera_source']
-    if str(camera_source).isdigit():
-        camera_source = int(camera_source)
     # 打开摄像头
-    cap = cv2.VideoCapture(camera_source)
+    cap = cv2.VideoCapture(normal_camera_source())
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -92,7 +89,7 @@ def combo_meal_detect_frame(frame):
 
 def huiji_detect_frames():
     # 打开摄像头
-    cap = cv2.VideoCapture(conf.huiji_detect_config['camera_source'])
+    cap = cv2.VideoCapture(normal_camera_source())
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -126,14 +123,16 @@ def analysis_video_file():
         model_output_target_file.write_bytes(model_output_file.read_bytes())
         conf.person_detect_config['video_model_output_file'] = str(model_output_target_file)
 
-    
 
-def capture_frames():
-    camera_source = conf.huiji_detect_config['camera_source']
+def normal_camera_source():
+    camera_source = conf.huiji_detect_config['camera_source'] if conf.current_mode == "huiji_detect" else conf.person_detect_config['camera_source']
     if str(camera_source).isdigit():
         camera_source = int(camera_source)
+    return camera_source
+
+def capture_frames():
     # 打开摄像头
-    cap = cv2.VideoCapture(camera_source)
+    cap = cv2.VideoCapture(normal_camera_source())
     while True:
         ret, frame = cap.read()
         if not ret:
