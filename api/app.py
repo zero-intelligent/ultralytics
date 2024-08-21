@@ -218,16 +218,6 @@ def response_file(video_file):
     )
 
 
-@app.get("/capture_addr")
-async def get_capture_addr():
-    capture_addr = conf.huiji_detect_config['camera_source'] \
-                if conf.current_mode == "huiji_detect" \
-                else conf.person_detect_config['camera_source']
-    return {
-        "code":0,
-        "data":capture_addr
-    }
-
 @app.get("/taocans")
 async def get_taocans():
     return {
@@ -311,32 +301,6 @@ async def switch_data_type(type:str):
         "code":0
     }
 
-
-@app.post("/capture_addr")
-async def put_capture_addr(capture_addr:str = Body(..., media_type="text/plain")):
-    if conf.current_mode == "huiji_detect" and conf.huiji_detect_config['camera_source'] == capture_addr \
-    or conf.current_mode == "person_detect" and conf.person_detect_config['camera_source'] == capture_addr:
-        return {
-            "code":0,
-            "data":{
-                "mode":conf.current_mode,
-                "capture_addr": capture_addr
-            },
-            "msg":f'camera has been {capture_addr},not changed'
-        }
-
-    if conf.current_mode == "huiji_detect":
-        conf.huiji_detect_config['camera_source'] = capture_addr
-    else:
-        conf.person_detect_config['camera_source'] = capture_addr
-
-    return {
-        "code":0,
-        "data":{
-            "mode":conf.current_mode,
-            "capture_addr": capture_addr
-        }
-    }
 
 def pad_frame(frame):
     return (b'--frame\r\n Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
