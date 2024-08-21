@@ -328,6 +328,7 @@ async def single_upload_file(file: UploadFile = File(...)):
         return {"filename": file.filename, "file_size": len(file_content)}
     
     except Exception as e:
+        log.error(e)
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
