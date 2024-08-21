@@ -1,5 +1,5 @@
 import pytest
-import httpx
+import os
 from fastapi.testclient import TestClient
 from api.app import app  
 
@@ -87,11 +87,13 @@ def test_huiji_video_taocan_detect_result():
 
 
 
-# def test_upload_file():
-#     response = client.get("/upload")
-#     assert response.status_code == 200
-#     json =  response.json()
-#     assert json['code'] == 1
+def test_upload_file():
+    file_path = "api/demo.mp4"  # 替换为实际文件路径
+    with open(file_path, "rb") as file:
+        response = client.post("/single_upload", files={"file": file})
+    assert response.status_code == 200
+    assert response.json()["filename"] == "demo.mp4"
+    assert os.path.exists("uploads/demo.mp4")
 
 
 
