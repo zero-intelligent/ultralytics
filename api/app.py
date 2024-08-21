@@ -93,7 +93,7 @@ async def demo_person():
 async def get_config():
     configSetting = ConfigSetting()
     configSetting.model = conf.current_mode
-    print(conf.huiji_detect_config)
+    log.info(conf.huiji_detect_config)
     configSetting.taocan_id = conf.huiji_detect_config["current_taocan_id"]
 
     if conf.current_mode == 'huiji_detect':
@@ -378,7 +378,7 @@ async def merge_chunks(identifier, name):
     # for chunk_file in chunk_files:
     #     os.remove(f'{UPLOAD_FILE_PATH}/{chunk_file}')
 
-    print('File saved successfully')
+    log.info('File saved successfully')
 
     # 上传完成后，更新文件信息
     await set_mode_datasource(ModeDataSourceRequest(
