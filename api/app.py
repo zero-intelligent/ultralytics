@@ -36,7 +36,7 @@ class ConfigSetting:
 
 app = FastAPI()
 app.mount("/video_files", StaticFiles(directory="uploads"), name="uploads")
-app.mount("/analysis_video_output", StaticFiles(directory="analysis_video_output"), name="analysis_video_output")
+app.mount("/analysis_video_output", StaticFiles(directory=video_srv.model_result_save_dir), name="analysis_video_output")
 
 app.add_middleware(
     CORSMiddleware,

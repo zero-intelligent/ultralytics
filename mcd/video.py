@@ -1,8 +1,10 @@
 from ultralytics import YOLO
 import cv2
+import os
 import mcd.conf as conf
 from mcd.logger import log
 from pathlib import Path
+
 
 models = {}
 
@@ -96,21 +98,22 @@ def huiji_detect_frames():
 
     cap.release()
 
+model_result_save_dir = "analysis_video_output"
+import os;os.makedirs(model_result_save_dir,exist_ok=True)
 
 def analysis_video_file():
-    save_dir = 'analysis_video_output'
     if conf.current_mode == "huiji_detect":
         conf.huiji_detect_config['video_model_output_file'] = ''
         datasource = conf.huiji_detect_config['video_file']
         model = get_model(conf.huiji_detect_config['model'])
-        results = model.track(datasource,save=True, save_dir=save_dir)
-        conf.huiji_detect_config['video_model_output_file'] = str(Path(save_dir) / Path(datasource).name)
+        results = model.track(datasource,save=True, save_dir=model_result_save_dir)
+        conf.huiji_detect_config['video_model_output_file'] = str(Path(model_result_save_dir) / Path(datasource).name)
     else:
         conf.person_detect_config['video_model_output_file'] = ''
         datasource = conf.person_detect_config['video_file']
         model = get_model(conf.person_detect_config['model'])
-        results = model.track(datasource,classes=[0],save=True, save_dir=save_dir)
-        conf.person_detect_config['video_model_output_file'] = str(Path(save_dir) / Path(datasource).name)
+        results = model.track(datasource,classes=[0],save=True, save_dir=model_result_save_dir)
+        conf.person_detect_config['video_model_output_file'] = str(Path(model_result_save_dir) / Path(datasource).name)
     
 
 def capture_frames():
