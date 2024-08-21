@@ -87,6 +87,7 @@ def combo_meal_detect_frame(frame):
     global current_taocan_check_result,last_taocan_check_result
     last_taocan_check_result = current_taocan_check_result
     current_taocan_check_result = {k:len(v) for k,v in meal_result.items()}
+    log.info(f'camera source:{conf.huiji_detect_config['camera_source']} detect results:{current_taocan_check_result}')
     img = results[0].plot()
 
     return (array2jpg(frame),array2jpg(img),current_taocan_check_result)
