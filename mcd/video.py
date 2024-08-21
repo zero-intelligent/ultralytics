@@ -48,14 +48,20 @@ def get_detect_items(detect_result):
     if not taocan:
         raise Exception(f"can't find taocao with id:{taocan_id}")
     taocan = taocan[0]
+    
+    def full_name(name):
+        full_names = [f'{i[2]} {i[1]}' for i in conf.huiji_detect_config['meals_info'] if i[1] == name]
+        return full_names[0] if full_names else name
+    
     return [
         {
             'id': t[0],
-            'name': t[1],
+            'name': full_name(t[1]),
             'count': t[2],
-            'real_count': detect_result[id] if id in detect_result else 0,
-            'lack_item': id not in detect_result,
-            'lack_count': id in detect_result and  detect_result[id] < t[2]
+            'real_count': detect_result[id] if t[0] in detect_result else 0,
+            'lack_item': t[0] not in detect_result,
+            'lack_count': t[0] in detect_result and  detect_result[t[0]] < t[2],
+            'is_in_taocan': t[0] in detect_result
         } for t in taocan['items']
     ]
 
