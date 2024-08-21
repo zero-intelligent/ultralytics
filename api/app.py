@@ -37,7 +37,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://pinda.cn"],
+    allow_origins=["http://pinda.cn","http://127.0.0.1:8000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -352,10 +352,23 @@ async def person_detect_video_output_feed():
     img_stream = (pad_frame(v[1]) for v in video_srv.person_detect_frames())
     return StreamingResponse(img_stream, media_type="multipart/x-mixed-replace; boundary=frame")
 
+@app.post('/single_upload')
+async def single_upload_file(file: UploadFile = File(...)):
+    try:
+        # 读取文件内容
+        file_content = await file.read()
+        # 处理文件（例如，保存到磁盘）
+        file_path = f"uploads/{file.filename}"
+        with open(file_path, "wb") as f:
+            f.write(file_content)
+        return {"filename": file.filename, "file_size": len(file_content)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-@app.post('/upload')
-async def upload_file(
+
+@app.post('/bunchs_upload')
+async def buncks_upload_file(
         identifier: str = Form(..., description="文件唯一标识符"),
         current: str = Form(..., description="文件分片序号（初值为1）"),
         total: str = Form(..., description="总分片数量"),
@@ -365,7 +378,7 @@ async def upload_file(
     """文件分片上传"""
     UPLOAD_FILE_PATH = "uploads"
     current = current.zfill(3)
-    total   = total.zfill(3)
+    total   = str(total-1).zfill(3)
     path = Path(UPLOAD_FILE_PATH, identifier)
     if not os.path.exists(path):
         os.makedirs(path)
