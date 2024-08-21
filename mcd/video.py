@@ -16,7 +16,7 @@ def get_model(model_path):
 
 def person_detect_frame(frame):
     person_detect_model = get_model(conf.person_detect_config['model'])
-    results = person_detect_model.track(frame,classes=[0])
+    results = person_detect_model.track(frame,classes=[0],verbose=False)
     img = results[0].plot()
     return (array2jpg(frame),array2jpg(img))
 
@@ -92,13 +92,15 @@ def combo_meal_detect_frame(frame):
     meal_result=None
 
     huiji_detect_model = get_model(conf.huiji_detect_config['model'])
-    results = huiji_detect_model(frame) # 需要确保图片尺寸一致
+    results = huiji_detect_model(frame,verbose=False) 
     meal_result = {}
     for result in results:
         # 提取每个检测结果的 id 和 class 信息
         for obj in result.boxes:
             obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else None
-            obj_class = obj.cls.item()
+            if not obj_id:
+                continue
+            obj_class = int(obj.cls.item())
             if obj_class not in meal_result:
                 meal_result[obj_class]=set()
             meal_result[obj_class].add(obj_id)
@@ -106,7 +108,8 @@ def combo_meal_detect_frame(frame):
     global current_taocan_check_result,last_taocan_check_result
     last_taocan_check_result = current_taocan_check_result
     current_taocan_check_result = {k:len(v) for k,v in meal_result.items()}
-    log.info(f'camera source:{conf.huiji_detect_config['camera_source']} detect results:{current_taocan_check_result}')
+    if current_taocan_check_result:
+        log.info(f'camera source:{conf.huiji_detect_config['camera_source']} detect results:{current_taocan_check_result}')
     img = results[0].plot()
 
     return (array2jpg(frame),array2jpg(img),current_taocan_check_result)
@@ -132,10 +135,7 @@ def analysis_video_file():
         detect_config['video_model_output_file'] = ''
         datasource = detect_config['video_file']
         model = get_model(detect_config['model'])
-        
-        logging.getLogger().setLevel(logging.WARNING)
         results = model.track(datasource,save=True)
-        logging.getLogger().setLevel(logging.info)
 
         model_output_file = Path(results[0].save_dir) / Path(datasource).name
         model_output_target_file = Path(model_result_save_dir) / Path(datasource).name
