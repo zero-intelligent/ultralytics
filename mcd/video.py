@@ -20,8 +20,11 @@ def person_detect_frame(frame):
     return (array2jpg(frame),array2jpg(img))
 
 def person_detect_frames():
+    camera_source = conf.person_detect_config['camera_source']
+    if str(camera_source).isdigit():
+        camera_source = int(camera_source)
     # 打开摄像头
-    cap = cv2.VideoCapture(conf.person_detect_config['camera_source'])
+    cap = cv2.VideoCapture(camera_source)
     while True:
         ret, frame = cap.read()
         if not ret:
