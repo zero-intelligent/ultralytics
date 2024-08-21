@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 import aiofiles
-from fastapi import FastAPI, File, Form, HTTPException, Response, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request,Response, UploadFile
 from fastapi import Body,Query
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 from fastapi.middleware.cors import CORSMiddleware
 
-
+from mcd.logger import log
 import mcd.video as video_srv
 from mcd.camera import get_cameras
 import mcd.conf as conf
@@ -431,6 +431,14 @@ async def global_exception_handler(request, exc):
         status_code=500,
         content={"code": 3, "msg": str(exc)}
     )
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    log.info(f"http request: {request.method} {request.url}")
+    response = await call_next(request)
+    respons_text = response.json() if hasattr(response,'json') else ''
+    log.info(f"Response: {response.status_code} {respons_text}")
+    return response
 
 
 @asynccontextmanager
