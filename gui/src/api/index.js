@@ -1,8 +1,10 @@
 import request from '@/utils/request'
-var baseUrl = location.protocol + '//' + window.location.hostname;
+//var baseUrl = location.protocol + '//' + window.location.hostname;
+var baseUrl = 'http://8.140.49.13:6789';
+//var baseUrl = 'http://192.168.31.77:6789';
 export function getDataHuiji(params) {
   return request({
-    url: baseUrl + '/mcd/api.php?a=get_data_huiji',
+    url: baseUrl + '/taocan_analysis',
     method: 'get',
     params: params,
     withCredentials: true
@@ -10,7 +12,7 @@ export function getDataHuiji(params) {
 }
 export function getDataPeople(params) {
   return request({
-    url: baseUrl + '/mcd/api.php?a=get_data_people',
+    url: baseUrl + '/person_analysis',
     method: 'get',
     params: params,
     withCredentials: true
@@ -18,7 +20,7 @@ export function getDataPeople(params) {
 }
 export function changeTaocan(params) {
   return request({
-    url: baseUrl + '/mcd/api.php?a=change_taocan',
+    url: baseUrl + '/switch_taocan',
     method: 'get',
     params: params,
     withCredentials: true
@@ -26,7 +28,7 @@ export function changeTaocan(params) {
 }
 export function getCamraList(params) {
   return request({
-    url: baseUrl + '/mcd/api.php?a=get_camra_list',
+    url: baseUrl + '/available_cameras',
     method: 'get',
     params: params,
     withCredentials: true
@@ -34,12 +36,50 @@ export function getCamraList(params) {
 }
 export function setCamraList(data) {
   return request({
-    url: baseUrl + '/mcd/api.php?a=set_camera',
+    url: baseUrl + '/set_camera',
     method: 'post',
     data,
     withCredentials: true
   })
 }
-// https://pinda.org.cn/mcd/api.php?a=upload_camera
-
-
+export function uploadCamera(data) {
+  console.log(data)
+  return request({
+    url: baseUrl + '/upload',
+    method: 'post',
+    data,
+    withCredentials: true
+  })
+}
+export function getConfig(params) {
+  return request({
+    url: baseUrl + '/get_config',
+    method: 'get',
+    params: params,
+    withCredentials: true
+  })
+}
+export function switchMode(params) {
+  return request({
+    url: baseUrl + '/switch_mode',
+    method: 'get',
+    params: params,
+    withCredentials: true
+  })
+}
+export function switchType(params) {
+  return request({
+    url: baseUrl + '/swith_data_type',
+    method: 'get',
+    params: params,
+    withCredentials: true
+  })
+}
+export function modeDatasource(data) {
+  return request({
+    url: baseUrl + '/mode_datasource',
+    method: 'post',
+    data,
+    withCredentials: true
+  })
+}
