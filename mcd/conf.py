@@ -1,6 +1,6 @@
 import json
 import os
-
+from mcd.logger import log
 
 # 当前的分析模式 套餐汇集分析：huiji_detect, 大厅人员检测分析：person_detect
 current_mode = 'huiji_detect' 
@@ -86,11 +86,9 @@ config_file = 'mcd_conf.json'
 
 def load_config():
     if os.path.exists(config_file):
-        print(config_file)
-        with open(config_file, 'r') as config_file1:
+        with open(config_file, 'r',encoding='utf-8') as config_file1:
             conf = json.load(config_file1)
-        # conf = json.load(config_file)
-        print(conf)
+            log.info(f'load {config_file}, conents:{conf}')
         global current_mode,huiji_detect_config,person_detect_config
         current_mode = conf['current_mode']
         huiji_detect_config = conf['huiji_detect_config']
@@ -102,5 +100,6 @@ def save_config():
         'huiji_detect_config': huiji_detect_config,
         'person_detect_config': person_detect_config
     }
-    with open(config_file, 'w',encoding='utf8') as json_file:
-        json.dump(conf, json_file, indent=4)
+    with open(config_file, 'w',encoding='utf-8') as json_file:
+        json.dump(conf, json_file, indent=4,ensure_ascii=False)
+        log.info(f'save {config_file}, conents:{conf}')
