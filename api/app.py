@@ -196,7 +196,7 @@ async def get_taocans():
 
 @app.get("/switch_taocan")
 async def switch_taocan(taocan_id:int = Query(0, ge=0, le=1)):
-    conf.huiji_detect_config["current_taocan_id"] = conf.huiji_detect_config["taocans"][taocan_id]
+    conf.huiji_detect_config["current_taocan_id"] = taocan_id
     # 此处需要将视频分析的结果和套餐的信息进行合并
     return {
         "code": 0,
