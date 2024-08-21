@@ -1,3 +1,4 @@
+import logging
 from ultralytics import YOLO
 import cv2
 import os
@@ -53,7 +54,7 @@ def get_detect_items(detect_result):
         full_names = [f'{i[2]} {i[1]}' for i in conf.huiji_detect_config['meals_info'] if i[1] == name]
         return full_names[0] if full_names else name
     
-    return [
+    in_tancan_results = [
         {
             'id': t[0],
             'name': full_name(t[1]),
@@ -61,9 +62,27 @@ def get_detect_items(detect_result):
             'real_count': detect_result[id] if t[0] in detect_result else 0,
             'lack_item': t[0] not in detect_result,
             'lack_count': t[0] in detect_result and  detect_result[t[0]] < t[2],
-            'is_in_taocan': t[0] in detect_result
+            'is_in_taocan': True
         } for t in taocan['items']
     ]
+
+    def get_id_by_name(name):
+        ids = [i[0] for i in conf.huiji_detect_config['meals_info'] if i[1] == name]
+        return ids[0] if ids else None
+
+    out_tancan_results = [
+        {
+            'id': get_id_by_name(name),
+            'name': full_name(name),
+            'count': None,
+            'real_count': count,
+            'lack_item': None,
+            'lack_count': None,
+            'is_in_taocan': False
+        } for name,count in detect_result if name not in [i['name'] for i in taocan['items']]
+    ]
+    return in_tancan_results + out_tancan_results
+
 
 last_taocan_check_result = None
 current_taocan_check_result = None
@@ -113,7 +132,10 @@ def analysis_video_file():
         detect_config['video_model_output_file'] = ''
         datasource = detect_config['video_file']
         model = get_model(detect_config['model'])
+        
+        logging.getLogger().setLevel(logging.WARNING)
         results = model.track(datasource,save=True)
+        logging.getLogger().setLevel(logging.info)
 
         model_output_file = Path(results[0].save_dir) / Path(datasource).name
         model_output_target_file = Path(model_result_save_dir) / Path(datasource).name
