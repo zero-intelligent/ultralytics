@@ -1,7 +1,7 @@
 import request from '@/utils/request'
-//var baseUrl = location.protocol + '//' + window.location.hostname;
 var baseUrl = 'http://8.140.49.13:6789';
 //var baseUrl = 'http://192.168.31.77:6789';
+
 export function getDataHuiji(params) {
   return request({
     url: baseUrl + '/taocan_analysis',
@@ -45,7 +45,7 @@ export function setCamraList(data) {
 export function uploadCamera(data) {
   console.log(data)
   return request({
-    url: baseUrl + '/upload',
+    url: baseUrl + '/single_upload',
     method: 'post',
     data,
     withCredentials: true

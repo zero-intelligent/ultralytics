@@ -1,3 +1,4 @@
+/* eslint-disable */
 <template>
   <div class="main">
     <div class="hearder">
@@ -63,7 +64,7 @@
                 帧率：{{ item.num }}
               </div>
             </div>
-            <div class="middle-main-vedio" v-if="isShow && configInfo && configInfo.data_type === 'file'">
+            <div class="middle-main-vedio" v-if="isShow && configInfo && configInfo.data_type === 'video_file'">
               <video-component :videoSrc="getSrc(item.src)"></video-component>
             </div>
             <div class="middle-main-vedio" v-if="isShow && configInfo && configInfo.data_type === 'camera'">
@@ -106,9 +107,9 @@
 
 <script>
 // 
-import { getDataHuiji, getDataPeople, changeTaocan, getCamraList, modeDatasource, uploadCamera, getConfig, switchMode, switchType } from "./../api/index"
+import { getDataHuiji, getDataPeople, changeTaocan, getCamraList, modeDatasource, uploadCamera, getConfig, switchMode } from "./../api/index"
 import videoComponent from './../components/videoComponent.vue'
-import SparkMD5 from "spark-md5";
+// import SparkMD5 from "spark-md5";
 export default {
   name: 'HelloWorld',
   components: {
@@ -165,7 +166,14 @@ export default {
   },
   methods: {
     getSrc(src) {
-      return 'http://8.140.49.13:6789/' + src
+      if(src == "" || src=="null" || src== null){
+        return "";
+      }
+      if(src[0] != "/"){
+        src = "/" + src;
+      }
+      return 'http://8.140.49.13:6789' + src
+      //return 'http://192.168.31.77:6789' + src
     },
     async changeisCameraShow() {
       await this.switchTypeFun("2")
@@ -238,6 +246,11 @@ export default {
           } else {
             this.activeName = 'second'
           }
+
+          this.cardList[0].src = result?.data?.data_file_source
+          this.cardList[1].src = result?.data?.data_file_target
+
+
           if (this.configInfo.data_type === 'video_file') {
             if (!this.configInfo?.data_file_source || this.configInfo?.data_file_source == null) {
               this.timer = setInterval(() => {
@@ -349,20 +362,21 @@ export default {
       }
     },
     async switchTypeFun(type) {
-      try {
-        this.buttonLoading = true
-        let params = {
-          type: type == '1' ? "video_file" : "camera"
-        }
-        let result = await switchType(params)
-        if (result.code === 0) {
-          console.log(result)
-        }
-      } catch (error) {
-        console.log(error)
-      } finally {
-        this.buttonLoading = false
-      }
+      console.log(type);
+      // try {
+      //   this.buttonLoading = true
+      //   let params = {
+      //     type: type == '1' ? "video_file" : "camera"
+      //   }
+      //   let result = await switchType(params)
+      //   if (result.code === 0) {
+      //     console.log(result)
+      //   }
+      // } catch (error) {
+      //   console.log(error)
+      // } finally {
+      //   this.buttonLoading = false
+      // }
     },
     async handleClick() {
       await clearInterval(this.timer)
@@ -396,49 +410,49 @@ export default {
       this.uploadModal = true; // 展示进度弹窗
       // 文件大于50MB时分片上传
       // if (file.size / 1024 / 1024 < 50) {
-      //   const formData = new FormData();
-      //   formData.append("file", file);
-      //   formData.append("name", file.name);
-      //   uploadCamera(formData).then((res) => {
-      //     if (res.error !== "error") {
-      //       this.list.forEach((item) => {
-      //         if (item.name === file.name) {
-      //           item.percent = 100;
-      //         }
-      //       })
-      //       this.$message.success(`${file.name}：上传完成`);
-      //     } else {
-      //       this.list.forEach((item) => {
-      //         if (item.name === file.name) {
-      //           item.typeProgress = 1;
-      //         }
-      //       })
-      //     }
-      //   }).finally(() => {
-      //     this.disabled = false;
-      //   });
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("name", file.name);
+        uploadCamera(formData).then((res) => {
+          if (res.error !== "error") {
+            this.list.forEach((item) => {
+              if (item.name === file.name) {
+                item.percent = 100;
+              }
+            })
+            this.$message.success(`${file.name}：上传完成`);
+          } else {
+            this.list.forEach((item) => {
+              if (item.name === file.name) {
+                item.typeProgress = 1;
+              }
+            })
+          }
+        }).finally(() => {
+          this.disabled = false;
+        });
       // } else {
-      const size = 1 * 1024 * 1024; // 10MB 每个分片大小
-      let current = 0; // 当前分片index(从0开始)
-      let total = Math.ceil(file.size / size); // 分片总数
-      let startByte = 0;
-      // 通过文件获取对应的md5值
-      let dataFileStart = file.slice(0, size); // 第一片文件
-      let dataFileEnd = file.slice(size * (total - 1), file.size) // 最后一片文件
-      var spark = new SparkMD5.ArrayBuffer();
-      //获取文件二进制数据
-      let md5Start = await this.getMd5(dataFileStart, spark); // 第一片的md5值
-      let md5End = await this.getMd5(dataFileEnd, spark); // 最后一片的md5值
-      let md5 = md5Start + md5End;
+      // const size = 1 * 1024 * 1024; // 10MB 每个分片大小
+      // let current = 0; // 当前分片index(从0开始)
+      // let total = Math.ceil(file.size / size); // 分片总数
+      // let startByte = 0;
+      // // 通过文件获取对应的md5值
+      // let dataFileStart = file.slice(0, size); // 第一片文件
+      // let dataFileEnd = file.slice(size * (total - 1), file.size) // 最后一片文件
+      // var spark = new SparkMD5.ArrayBuffer();
+      // //获取文件二进制数据
+      // let md5Start = await this.getMd5(dataFileStart, spark); // 第一片的md5值
+      // let md5End = await this.getMd5(dataFileEnd, spark); // 最后一片的md5值
+      // let md5 = md5Start + md5End;
 
-      let identifier = "file_" + Date.now()
+      // let identifier = "file_" + Date.now()
 
       // 文件完整性检测
       // uploadCamera({ md5: md5, fileName: file.name }).then((res) => {
       //   if (res.error !== "error") {
-      current = 0; //res?.indexOf("0") === -1 ? 0 : res?.indexOf("0"); // 当前服务器应该上传的分片下标
-      startByte = size * current
-      this.uploadChunk(identifier, file, startByte, current, md5);
+      // current = 0; //res?.indexOf("0") === -1 ? 0 : res?.indexOf("0"); // 当前服务器应该上传的分片下标
+      // startByte = size * current
+      // this.uploadChunk(identifier, file, startByte, current, md5);
       //   }
       // }).finally(() => {
       //   this.disabled = false;
