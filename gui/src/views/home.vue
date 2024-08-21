@@ -22,9 +22,10 @@
         <div class="middle-top">
           <el-image style="width: 100%; height: 150px" :src="src" fit="scale-down"></el-image>
         </div>
-        <div class="middle-bottom" v-if="activeName=='first'">
+        <div class="middle-bottom" v-if="activeName == 'first'">
           <div v-for="(item, index) in list" :key="index">
-            <span class="middle-item-error" style="{backgroundColor:item.conBgColor}">{{ item.title }}</span>
+            <span class="middle-item-error" :style='{ backgroundColor: item.count === item.real_count ? "#30FD2E" : "#FF0202" }'>{{
+              item.name }}</span>
           </div>
         </div>
         <div class="middle-bottom" v-else>
@@ -38,9 +39,14 @@
       </div>
       <div class="middle-right">
         <div class="middle-search">
-          <div>
-            <el-button type="info" icon='el-icon-video-camera'>导入视频 <i class="el-icon-right"></i></el-button>
-            <el-button type="info" icon='el-icon-bangzhu' @click="changeisCameraShow">链接摄像头 <i class="el-icon-right"></i></el-button>
+          <div style="display: flex;">
+            <el-upload ref="upload" multiple action="" :show-file-list="false" :http-request="handleFileUpload"
+              :limit="10" :on-exceed="handleExceed" :on-success="handleAvatarSuccess">
+              <el-button type="info" icon='el-icon-video-camera' style="padding: 13px; " :disabled="disabled">导入视频 <i
+                  class="el-icon-right"></i></el-button>
+            </el-upload>
+            <el-button type="info" icon='el-icon-bangzhu' @click="changeisCameraShow" style="margin-left: 20px;">链接摄像头 <i
+                class="el-icon-right"></i></el-button>
           </div>
           <div>
             <el-select v-model="value" placeholder="请选择">
@@ -57,34 +63,41 @@
                 帧率：{{ item.num }}
               </div>
             </div>
-            <div class="middle-main-vedio" v-if="isShow">
-              <video-component :videoSrc="item.src"></video-component>
+            <div class="middle-main-vedio" v-if="isShow && configInfo && configInfo.data_type === 'file'">
+              <video-component :videoSrc="getSrc(item.src)"></video-component>
+            </div>
+            <div class="middle-main-vedio" v-if="isShow && configInfo && configInfo.data_type === 'camera'">
+              <img :src="getSrc(item.src)" width="100%" height="100%" />
             </div>
           </div>
         </div>
         <div class="middle-main-else" v-else>
-          <div >
+          <div>
             配置并链接摄像头
           </div>
           <div>
             <el-radio v-model="radio" label="1">本地摄像头</el-radio>
             <el-select v-model="valueCamera" placeholder="请选择">
-              <el-option v-for="item in optionsCamera" :key="item.value" :label="item.title" :value="item.value">
+              <el-option v-for="(item, index) in optionsCamera" :key="index" :label="item" :value="index">
               </el-option>
             </el-select>
           </div>
           <div>
             <el-radio v-model="radio" label="2">网络摄像头</el-radio>
-            <el-input v-model="input" style="width: 600px;" ></el-input>
+            <el-input v-model="input" style="width: 600px;"></el-input>
           </div>
           <div style="text-align: end;">
-          <el-button type="info"  @click="isCameraShow=true"> 取 消 </el-button>
-          <el-button type="warning" style="margin-left: 20px;"   @click="submit"> 确 定 </el-button>
+            <el-button type="info" @click="isCameraShow = true"> 取 消 </el-button>
+            <el-button type="warning" style="margin-left: 20px;" @click="submit"> 确 定 </el-button>
           </div>
         </div>
-        <div class="middle-footer">
-          <el-button type="warning" @click="changeType('1')"> 套餐A </el-button>
-          <el-button type="warning" style="margin-left: 20px;"  @click="changeType('2')"> 套餐B </el-button>
+        <div class="middle-footer" v-if="activeName != 'second'">
+          <el-button type="warning" @click="changeType(0)"
+            :style="{ color: configInfo.taocan_id === 0 ? '#fff' : '', textDecoration: configInfo.taocan_id === 0 ? 'underline' : '' }">
+            套餐A </el-button>
+          <el-button type="warning" style="margin-left: 20px;" @click="changeType(1)"
+            :style="{ color: configInfo.taocan_id === 1 ? '#fff' : '', textDecoration: configInfo.taocan_id === 1 ? 'underline' : '' }">
+            套餐B </el-button>
         </div>
       </div>
     </div>
@@ -93,8 +106,9 @@
 
 <script>
 // 
-import { getDataHuiji,getDataPeople,changeTaocan,getCamraList,setCamraList} from "./../api/index"
+import { getDataHuiji, getDataPeople, changeTaocan, getCamraList, modeDatasource, uploadCamera, getConfig, switchMode, switchType } from "./../api/index"
 import videoComponent from './../components/videoComponent.vue'
+import SparkMD5 from "spark-md5";
 export default {
   name: 'HelloWorld',
   components: {
@@ -104,29 +118,31 @@ export default {
     return {
       radio: '1',
       activeName: 'first',
-      input:"",
+      input: "",
       loading: false,
-      isCameraShow:true,
-      isShow:true,
+      isCameraShow: true,
+      isShow: true,
       src: require('./../assets/matwo.png'),
-      optionsCamera:[],
-      valueCamera:"",
-      options: [{
-        value: '4',
-        label: 'YOLO V4'
-      }, {
-        value: '5',
-        label: 'YOLO V5'
-      }, {
-        value: 'YOLO V6',
-        label: 'YOLO V6'
-      }, {
-        value: 'YOLO V7',
-        label: 'YOLO V7'
-      }, {
-        value: 'YOLO V8',
-        label: 'YOLO V8'
-      }],
+      optionsCamera: [],
+      valueCamera: "",
+      options: [
+        //   {
+        //   value: '4',
+        //   label: 'YOLO V4'
+        // }, {
+        //   value: '5',
+        //   label: 'YOLO V5'
+        // }, {
+        //   value: 'YOLO V6',
+        //   label: 'YOLO V6'
+        // }, {
+        //   value: 'YOLO V7',
+        //   label: 'YOLO V7'
+        // }, 
+        {
+          value: 'YOLO V8',
+          label: 'YOLO V8'
+        }],
       value: 'YOLO V8',
       list: [],
       cardList: [{
@@ -137,15 +153,23 @@ export default {
         num: 25,
         src: ""
       },
-      ]
+      ],
+      disabled: false,
+      configInfo: {},
+      timer: null
     }
   },
-  mounted() {
-    this.refresh()
+  async mounted() {
+    await this.getConfigInfo()
+
   },
   methods: {
-   async changeisCameraShow(){
-      if(this.isCameraShow){
+    getSrc(src) {
+      return 'http://8.140.49.13:6789/' + src
+    },
+    async changeisCameraShow() {
+      await this.switchTypeFun("2")
+      if (this.isCameraShow) {
         await this.getCamra()
         this.isCameraShow = false
       }
@@ -155,7 +179,7 @@ export default {
         this.loading = true
         let result = await getCamraList()
         if (result.code === 0) {
-          this.optionsCamera= result?.list
+          this.optionsCamera = result?.data
         }
       } catch (error) {
         console.log(error)
@@ -166,14 +190,103 @@ export default {
     async submit() {
       try {
         this.loading = true
-        let params={
-          type:this.radio,
-          local:this.valueCamera,
-          url:this.input
+        let params = {
+          // type: this.radio,
+          data_source: this.radio == '1' ? this.valueCamera : this.input,
+          data_source_type: "camera",
+          mode: this.activeName == 'first' ? "huiji_detect" : "person_detect"
+          // url: this.input
         }
-        let result = await setCamraList(params)
+        let result = await modeDatasource(params)
         if (result.code === 0) {
           this.isCameraShow = true
+          this.getConfigInfo()
+        }
+      } catch (error) {
+        console.log(error)
+      } finally {
+        this.loading = false
+      }
+    },
+    async switchModeFun(modeType) {
+      try {
+        this.list = []
+        let params = {
+          mode: modeType
+        }
+        let result = await switchMode(params)
+        if (result.code === 0) {
+          console.log(result)
+
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    },
+    async getConfigInfo() {
+      try {
+        this.loading = true
+        let result = await getConfig()
+        if (result.code === 0) {
+          console.log(result)
+          this.configInfo = result.data
+          this.radio = this.configInfo.camera_type === 0 ? "1" : "2"
+          this.valueCamera = this.configInfo.camera_local
+          this.input = this.configInfo.camera_url
+          if (this.configInfo.model == 'huiji_detect') {
+            this.activeName = 'first'
+          } else {
+            this.activeName = 'second'
+          }
+          if (this.configInfo.data_type === 'video_file') {
+            if (!this.configInfo?.data_file_source || this.configInfo?.data_file_source == null) {
+              this.timer = setInterval(() => {
+                setTimeout(async () => {
+                  this.getConfigTarget();
+                }, 0);
+              }, 3000);
+            }
+          } else {
+            if (this.activeName == 'first') {
+              this.list = []
+              this.refresh()
+              this.timer = setInterval(() => {
+                setTimeout(async () => {
+                  this.refresh();
+                }, 0);
+              }, 3000);
+              // this.timer = setInterval(this.refresh(), 3000);
+            } else {
+              this.list = []
+              this.refreshOther();
+              this.timer = setInterval(() => {
+                setTimeout(async () => {
+                  this.refreshOther();
+                }, 0);
+              }, 3000);
+              // this.timer = setInterval(this.refreshOther(), 3000);
+            }
+          }
+        } else {
+          this.configInfo = {}
+        }
+      } catch (error) {
+        console.log(error)
+      } finally {
+        this.loading = false
+      }
+    },
+    async getConfigTarget() {
+      try {
+        this.loading = true
+        this.list = []
+        let result = await getConfig()
+        if (result.code === 0) {
+          if (this.configInfo?.data_file_target && this.configInfo?.data_file_target.length > 0) {
+            clearInterval(this.timer)
+          }
+        } else {
+          this.configInfo = {}
         }
       } catch (error) {
         console.log(error)
@@ -184,14 +297,13 @@ export default {
     async refresh() {
       try {
         this.loading = true
-        this.list = []
         let result = await getDataHuiji()
         if (result.code === 0) {
-          this.cardList[0].src = result?.input_video
-          this.cardList[1].src = result?.output_video
-          this.list = result?.list
+          this.cardList[0].src = result?.data?.input_video
+          this.cardList[1].src = result?.data?.output_video
+          this.list = result?.data?.current_taocan_result
           this.isShow = false
-          this.$nextTick(()=>{
+          this.$nextTick(() => {
             this.isShow = true
           })
         }
@@ -204,14 +316,13 @@ export default {
     async refreshOther() {
       try {
         this.loading = true
-        this.list = []
         let result = await getDataPeople()
         if (result.code === 0) {
-          this.cardList[0].src = result?.input_video
-          this.cardList[1].src = result?.output_video
-          this.list = result?.data
+          this.cardList[0].src = result?.data?.input_video
+          this.cardList[1].src = result?.data?.output_video
+          this.list = result?.data?.data
           this.isShow = false
-          this.$nextTick(()=>{
+          this.$nextTick(() => {
             this.isShow = true
           })
         }
@@ -221,11 +332,11 @@ export default {
         this.loading = false
       }
     },
-    async changeType(type){
+    async changeType(type) {
       try {
         this.buttonLoading = true
         let params = {
-          type:type
+          type: type
         }
         let result = await changeTaocan(params)
         if (result.code === 0) {
@@ -237,13 +348,167 @@ export default {
         this.buttonLoading = false
       }
     },
-    handleClick() {
-      if(this.activeName=='first'){
-        this.refresh()
-      }else{
-        this.refreshOther()
+    async switchTypeFun(type) {
+      try {
+        this.buttonLoading = true
+        let params = {
+          type: type == '1' ? "video_file" : "camera"
+        }
+        let result = await switchType(params)
+        if (result.code === 0) {
+          console.log(result)
+        }
+      } catch (error) {
+        console.log(error)
+      } finally {
+        this.buttonLoading = false
       }
-    }
+    },
+    async handleClick() {
+      await clearInterval(this.timer)
+      if (this.activeName == 'first') {
+        // this.refresh()
+        await this.switchModeFun("huiji_detect")
+      } else {
+        // this.refreshOther()
+        await this.switchModeFun("person_detect")
+      }
+      this.getConfigInfo()
+    },
+    getMd5(file, spark) {
+      return new Promise((resolve) => {
+        // 对文件对象的处理
+        var fileReader = new FileReader();
+        fileReader.readAsArrayBuffer(file);
+        // fileReader.onload为异步函数，要放到Promise对象中，等待状态的变更后再返回生成的md5值
+        fileReader.onload = function (e) {
+          spark.append(e.target.result);
+          resolve(spark.end());
+        };
+      });
+    },
+    // 上传(同时选择多个文件时会多次上传该文件)
+    async handleFileUpload(item) {
+      await this.switchTypeFun(1)
+      let file = item.file
+      this.disabled = true;
+      this.list = [...this.list, file]; //用于展示进度
+      this.uploadModal = true; // 展示进度弹窗
+      // 文件大于50MB时分片上传
+      // if (file.size / 1024 / 1024 < 50) {
+      //   const formData = new FormData();
+      //   formData.append("file", file);
+      //   formData.append("name", file.name);
+      //   uploadCamera(formData).then((res) => {
+      //     if (res.error !== "error") {
+      //       this.list.forEach((item) => {
+      //         if (item.name === file.name) {
+      //           item.percent = 100;
+      //         }
+      //       })
+      //       this.$message.success(`${file.name}：上传完成`);
+      //     } else {
+      //       this.list.forEach((item) => {
+      //         if (item.name === file.name) {
+      //           item.typeProgress = 1;
+      //         }
+      //       })
+      //     }
+      //   }).finally(() => {
+      //     this.disabled = false;
+      //   });
+      // } else {
+      const size = 1 * 1024 * 1024; // 10MB 每个分片大小
+      let current = 0; // 当前分片index(从0开始)
+      let total = Math.ceil(file.size / size); // 分片总数
+      let startByte = 0;
+      // 通过文件获取对应的md5值
+      let dataFileStart = file.slice(0, size); // 第一片文件
+      let dataFileEnd = file.slice(size * (total - 1), file.size) // 最后一片文件
+      var spark = new SparkMD5.ArrayBuffer();
+      //获取文件二进制数据
+      let md5Start = await this.getMd5(dataFileStart, spark); // 第一片的md5值
+      let md5End = await this.getMd5(dataFileEnd, spark); // 最后一片的md5值
+      let md5 = md5Start + md5End;
+
+      let identifier = "file_" + Date.now()
+
+      // 文件完整性检测
+      // uploadCamera({ md5: md5, fileName: file.name }).then((res) => {
+      //   if (res.error !== "error") {
+      current = 0; //res?.indexOf("0") === -1 ? 0 : res?.indexOf("0"); // 当前服务器应该上传的分片下标
+      startByte = size * current
+      this.uploadChunk(identifier, file, startByte, current, md5);
+      //   }
+      // }).finally(() => {
+      //   this.disabled = false;
+      // });
+      // }
+      // return false;
+    },
+    uploadChunk(identifier, file, startByte, current, md5) {
+      console.log("uploadChunk")
+      const formData = new FormData();
+      const size = 1 * 1024 * 1024;
+      let total = Math.ceil(file.size / size); // 分片总数
+      const endByte = Math.min(startByte + size, file.size);
+      const chunk = file.slice(startByte, endByte); // 当前分片文件
+      formData.append("identifier", identifier);
+      formData.append("file", chunk);
+      formData.append("name", file.name);
+      formData.append("current", current);
+      formData.append("total", total);
+      formData.append("md5", md5);
+      uploadCamera(formData).then((res) => {
+        if (res.code == 200) {
+          console.log("res", res);
+          this.list.forEach((item) => {
+            if (item.name === file.name) {
+              item.percent = Math.floor(((Number(current) + 1) * 100) / total);
+            }
+          })
+          this.list = [...this.list]
+          startByte = endByte;
+          if (startByte < file.size) {
+            current++;
+            this.uploadChunk(file, startByte, current, md5);
+          } else {
+            this.$message.success(`${file.name}：上传完成`);
+          }
+        } else {
+          this.list.forEach((item) => {
+            if (item.name === file.name) {
+              item.typeProgress = 1;
+            }
+          })
+        }
+      }).finally(() => {
+        this.disabled = false;
+        this.getConfigInfo()
+      });
+    },
+    // 文件超出个数限制时的钩子
+    handleExceed(files) {
+      this.$message.warning(`最多同时上传 10 个文件，本次选择了 ${files.length} 个文件`);
+    },
+    // 文件上传成功时的钩子(清除上传历史记录，防止文件限制超出)
+    handleAvatarSuccess() {
+      this.$refs.upload.clearFiles();
+    },
+    // refreshFirst() {
+    //   this.timer = setInterval(this.fetchData, 3000);
+    // },
+    // async fetchData() {
+    //   try {
+    //     const response = await this.$http.get('/api/data'); // 假设使用axios
+    //     this.data = response.data;
+    //     if (data) {
+    //       clearInterval(this.timer)
+    //     }
+    //   } catch (error) {
+    //     console.error('Error fetching data:', error);
+    //   }
+    // }
   }
 }
 </script>
@@ -330,15 +595,18 @@ export default {
   margin: 10px 0;
   padding: 1px 5px;
 }
-.middle-item-first{
+
+.middle-item-first {
   color: #30FD2E;
   margin: 20px 0;
 }
-.middle-item-itm{
+
+.middle-item-itm {
   color: #30FD2E;
   margin: 10px 0;
   padding: 1px 5px;
 }
+
 .middle-right {
   width: calc(100% - 330px);
   height: 100%;
@@ -346,6 +614,7 @@ export default {
   box-sizing: border-box;
   padding: 20px;
 }
+
 .middle-search {
   margin-top: 20px;
   display: flex;
@@ -356,7 +625,8 @@ export default {
   display: flex;
   flex-wrap: wrap;
 }
-.middle-main-else{
+
+.middle-main-else {
   margin-top: 40px;
   height: 420px;
   background: #444;
@@ -367,6 +637,7 @@ export default {
   box-sizing: border-box;
   padding: 20px;
 }
+
 .middle-main-item {
   width: 48%;
   margin-right: 2%;
@@ -446,19 +717,23 @@ export default {
 .el-select .el-input.is-focus .el-input__inner {
   border-color: #FFBC0D;
 }
-.el-radio__input.is-checked+.el-radio__label{
+
+.el-radio__input.is-checked+.el-radio__label {
   color: #FFBC0D
 }
+
 .el-input__inner {
   background: #333;
   color: #EEE;
   border: 0;
 }
-.el-radio__inner{
+
+.el-radio__inner {
   background: #333;
   color: #EEE;
   border: 0;
 }
+
 .el-select-dropdown {
   background: #333;
   color: #EEE;
@@ -473,9 +748,11 @@ export default {
 .el-select-dropdown__item:hover {
   background-color: #FFBC0D;
 }
-.el-radio__input.is-checked .el-radio__inner{
+
+.el-radio__input.is-checked .el-radio__inner {
   background-color: #FFBC0D;
 }
+
 .el-button--warning:focus,
 .el-button--warning:hover {
   background-color: #FFBC0D;
