@@ -126,8 +126,11 @@ def analysis_video_file():
     
 
 def capture_frames():
+    camera_source = conf.huiji_detect_config['camera_source']
+    if str(camera_source).isdigit():
+        camera_source = int(camera_source)
     # 打开摄像头
-    cap = cv2.VideoCapture(conf.huiji_detect_config['camera_source'])
+    cap = cv2.VideoCapture(camera_source)
     while True:
         ret, frame = cap.read()
         if not ret:
