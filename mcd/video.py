@@ -106,14 +106,23 @@ def analysis_video_file():
         conf.huiji_detect_config['video_model_output_file'] = ''
         datasource = conf.huiji_detect_config['video_file']
         model = get_model(conf.huiji_detect_config['model'])
-        results = model.track(datasource,save=True, save_dir=model_result_save_dir)
-        conf.huiji_detect_config['video_model_output_file'] = str(Path(model_result_save_dir) / Path(datasource).name)
+        results = model.track(datasource,save=True)
+
+        model_output_file = Path(results[0].save_dir) / Path(datasource).name
+        model_output_target_file = Path(model_result_save_dir) / Path(datasource).name
+        model_output_target_file.write_bytes(model_output_file.read_bytes())
+        conf.huiji_detect_config['video_model_output_file'] = str(model_output_target_file)
     else:
         conf.person_detect_config['video_model_output_file'] = ''
         datasource = conf.person_detect_config['video_file']
         model = get_model(conf.person_detect_config['model'])
-        results = model.track(datasource,classes=[0],save=True, save_dir=model_result_save_dir)
-        conf.person_detect_config['video_model_output_file'] = str(Path(model_result_save_dir) / Path(datasource).name)
+        results = model.track(datasource,classes=[0],save=True)
+
+        model_output_file = Path(results[0].save_dir) / Path(datasource).name
+        model_output_target_file = Path(model_result_save_dir) / Path(datasource).name
+        model_output_target_file.write_bytes(model_output_file.read_bytes())
+        conf.person_detect_config['video_model_output_file'] = str(model_output_target_file)
+
     
 
 def capture_frames():

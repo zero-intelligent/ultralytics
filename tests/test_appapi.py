@@ -100,7 +100,20 @@ def test_upload_file():
     json =  response.json()
     assert json['code'] == 0
     assert json['data']['data_source_type'] == 'video_file'
-    assert json['data']['data_source'] == file_path
+    assert json['data']['data_source'] == 'uploads/demo.mp4'
+
+    response = client.get("/get_config")
+    assert response.status_code == 200
+    json =  response.json()
+
+    result_file = json['data']['data_file_target']
+    assert result_file == '/analysis_video_output/demo.mp4'
+
+    response = client.get(json['data']['data_file_source'])
+    assert response.status_code == 200
+    response = client.get(json['data']['data_file_target'])
+    assert response.status_code == 200
+
 
 
 

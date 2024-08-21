@@ -7,6 +7,7 @@ __pycache__/
 *.so
 
 uploads
+analysis_video_output
 mcd_conf.json
 # Distribution / packaging
 .Python
