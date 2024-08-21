@@ -3,6 +3,7 @@ from pathlib import Path
 import aiofiles
 from fastapi import FastAPI, File, Form, HTTPException, Request,Response, UploadFile
 from fastapi import Body,Query
+from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -34,6 +35,7 @@ class ConfigSetting:
 
 
 app = FastAPI()
+app.mount("/video_files", StaticFiles(directory="uploads"), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,
@@ -98,8 +100,8 @@ async def get_config():
         configSetting.camera_local = conf.huiji_detect_config["camera_source"]
         configSetting.camera_url = ""
         configSetting.data_type = conf.huiji_detect_config.get('data_source_type')
-        configSetting.data_file_source = "/video_input_file" if conf.huiji_detect_config.get('video_file') else ""
-        configSetting.data_file_target = "/video_model_output_file" if conf.huiji_detect_config.get('video_model_output_file') else ""
+        configSetting.data_file_source = "/video_files/" + os.path.basename(conf.huiji_detect_config.get('video_file')) if conf.huiji_detect_config.get('video_file') else ''
+        configSetting.data_file_target = "/analysis_video_output/" + os.path.basename(conf.huiji_detect_config.get('video_model_output_file')) if conf.huiji_detect_config.get('video_model_output_file') else ''
         
 
     if conf.current_mode == 'person_detect':
@@ -107,8 +109,8 @@ async def get_config():
         configSetting.camera_local = conf.person_detect_config["camera_source"]
         configSetting.camera_url = ""
         configSetting.data_type = conf.person_detect_config.get('data_source_type')
-        configSetting.data_file_source = "/video_input_file" if conf.person_detect_config.get('video_file') else ""
-        configSetting.data_file_target = "/video_model_output_file" if conf.person_detect_config.get('video_model_output_file') else ""
+        configSetting.data_file_source = "/video_files/" + os.path.basename(conf.person_detect_config.get('video_file')) if conf.person_detect_config.get('video_file') else ''
+        configSetting.data_file_target = "/analysis_video_output/" + os.path.basename(conf.person_detect_config.get('video_model_output_file')) if conf.person_detect_config.get('video_model_output_file') else ''
 
     return {
         "code":0,
@@ -186,37 +188,6 @@ async def get_mode_datasource():
         },
     }
 
-# 扩展名到 MIME 类型的映射
-MIME_TYPES = {
-    ".mp4": "video/mp4",
-    ".avi": "video/x-msvideo",
-    ".webm": "video/webm",
-    ".mkv": "video/x-matroska",
-}
-
-def response_file(video_file):
-    if not video_file or not os.path.exists(video_file):
-        raise HTTPException(status_code=404, detail="File not found")
-    
-    file_name, file_extension = os.path.splitext(os.path.basename(video_file))
-    # 获取文件扩展名
-    file_extension = os.path.splitext(video_file)[1].lower()
-
-    # 获取对应的 MIME 类型
-    media_type = MIME_TYPES.get(file_extension)
-
-    if not media_type:
-        raise HTTPException(status_code=400, detail="Unsupported video format")
-
-    if not os.path.exists(video_file):
-        raise HTTPException(status_code=404, detail="File not found")
-
-    return FileResponse(
-        path=video_file,
-        media_type=media_type,
-        filename=os.path.basename(video_file)
-    )
-
 
 @app.get("/taocans")
 async def get_taocans():
@@ -272,20 +243,6 @@ async def get_available_cameras():
         "code":0,
         "data":{id:name for id,name in get_cameras()}
     }
-
-@app.get("/video_input_file")
-async def get_video_source_file():
-    if conf.current_mode == "huiji_detect":
-        return response_file(conf.huiji_detect_config.get('video_file'))
-    else:
-        return response_file(conf.person_detect_config.get('video_file'))
-
-@app.get("/video_model_output_file")
-async def get_video_model_output_file():
-    if conf.current_mode == "huiji_detect":
-        return response_file(conf.huiji_detect_config.get('video_model_output_file'))
-    else:
-        return response_file(conf.person_detect_config.get('video_model_output_file'))
 
 @app.get("/do_set_type")
 async def do_set_type():
