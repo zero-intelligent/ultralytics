@@ -20,19 +20,23 @@ def test_available_cameras():
     assert json['code'] == 0
     assert len(json['data']) > 0
 
-def test_capture_addr():
-    response = client.get("/capture_addr")
+def test_mode_datasource():
+    response = client.post("/mode_datasource",json={
+        'mode':'huiji_detect',
+        'data_source_type':'camera',
+        'data_source':'0'
+    })
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
-    assert json['data'] == 0
 
-    response = client.post("/capture_addr",json="0")
+    response = client.get("/mode_datasource")
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
-    assert json['data']['capture_addr'] == "0"
-
+    assert json['data']['mode'] == 'huiji_detect'
+    assert json['data']['data_source_type'] == 'camera'
+    assert json['data']['data_source'] == '0'
 
 def test_taocans():
     response = client.get("/taocans")
