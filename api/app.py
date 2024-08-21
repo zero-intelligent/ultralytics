@@ -5,12 +5,12 @@ from fastapi import FastAPI, File, Form, HTTPException, Request,Response, Upload
 from fastapi import Body,Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
+
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from contextlib import asynccontextmanager
 from pydantic import BaseModel, Field
-
-from fastapi.middleware.cors import CORSMiddleware
 
 from mcd.logger import log
 import mcd.video as video_srv
@@ -141,27 +141,21 @@ class ModeDataSourceRequest(BaseModel):
 @app.post("/mode_datasource")
 async def set_mode_datasource(request: ModeDataSourceRequest):
     conf.current_mode = request.mode
-    if request.mode == "huiji_detect":
-        conf.huiji_detect_config['data_source_type'] = request.data_source_type
+    def update_datasource(detect_config):
+        detect_config['data_source_type'] = request.data_source_type
         if request.data_source_type == 'camera':
-            if conf.huiji_detect_config['camera_source'] != request.data_source:
-                conf.huiji_detect_config['camera_source'] = request.data_source
+            if detect_config['camera_source'] != request.data_source:
+                detect_config['camera_source'] = request.data_source
                 video_srv.huiji_detect_frames()
         else:
-            if conf.huiji_detect_config['video_file'] != request.data_source:
-                conf.huiji_detect_config['video_file'] = request.data_source
+            if detect_config['video_file'] != request.data_source:
+                detect_config['video_file'] = request.data_source
                 video_srv.analysis_video_file()
-            
+
+    if request.mode == "huiji_detect":
+        update_datasource(conf.huiji_detect_config)
     else:
-        conf.person_detect_config['data_source_type'] = request.data_source_type
-        if request.data_source_type == 'camera':
-            if conf.person_detect_config['camera_source'] != request.data_source:
-                conf.person_detect_config['camera_source'] = request.data_source
-                video_srv.person_detect_frames()
-        else:
-            if conf.person_detect_config['video_file'] != request.data_source:
-                conf.person_detect_config['video_file'] = request.data_source
-                video_srv.analysis_video_file()
+        update_datasource(conf.person_detect_config)
 
     return {
         "code": 0,
