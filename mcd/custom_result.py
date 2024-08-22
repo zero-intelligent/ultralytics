@@ -13,7 +13,17 @@ from ultralytics.utils.torch_utils import smart_inference_mode
 
 class PersonResults(Results):
     id_info = {}
-        
+
+    # 覆盖基类的方法，否则复制对象时，类型信息又回去了
+
+    def __init__(
+        self, **kwargs
+    ) -> None:
+        super().__init__(**kwargs)
+
+    def new(self):
+        return PersonResults(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)
+    
     def plot(self,
             conf=True,
             line_width=None,

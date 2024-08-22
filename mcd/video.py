@@ -136,7 +136,7 @@ def analysis_huiji_video_file():
     conf.huiji_detect_config['video_model_output_file'] = ''
     datasource = conf.huiji_detect_config['video_file']
     model = get_model(conf.huiji_detect_config['model'])
-    results = model.track(datasource,save=True, verbose=False)
+    results = model.track(datasource, save=True, verbose=False)
 
     model_output_file = Path(results[0].save_dir) / Path(datasource).name
     model_output_target_file = Path(model_result_save_dir) / Path(datasource).name
@@ -148,30 +148,21 @@ def analysis_person_video_file():
     conf.person_detect_config['video_model_output_file'] = ''
     datasource = conf.person_detect_config['video_file']
     model = get_model(conf.person_detect_config['model'])
-    results = model.track(datasource, verbose=True)
 
-    # 获取输入视频的帧率和尺寸
-    input_video = cv2.VideoCapture(datasource)
-    fps = input_video.get(cv2.CAP_PROP_FPS)
-    width = int(input_video.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(input_video.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    def on_predict_postprocess_end(predictor):
+        for result in predictor.results:
+            result.__class__ = PersonResults
 
-    # 定义输出视频文件路径和编码器
-    output_file = Path(model_result_save_dir) / Path(datasource).name
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-    out = cv2.VideoWriter(str(output_file), fourcc, fps, (width, height))
+    model.add_callback("on_predict_postprocess_end", on_predict_postprocess_end)
 
-    # 遍历结果并保存每帧图像
-    for result in results:
-        result.__class__ = PersonResults
-        img = result.plot()
-        out.write(img)
 
-    # 释放资源
-    out.release()
-    input_video.release()
+    results = model.track(datasource, save=True, verbose=True)
 
-    conf.person_detect_config['video_model_output_file'] = str(output_file)
+    model_output_file = Path(results[0].save_dir) / Path(datasource).name
+    model_output_target_file = Path(model_result_save_dir) / Path(datasource).name
+    model_output_target_file.write_bytes(model_output_file.read_bytes())  # 复制文件
+
+    conf.person_detect_config['video_model_output_file'] = str(model_output_target_file)
 
 
 def analysis_video_file():
