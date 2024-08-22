@@ -9876,7 +9876,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def analysis_huiji_video_file():\n    conf.huiji_detect_config['video_model_output_file'] = ''\n    datasource = conf.huiji_detect_config['video_file']\n    model = get_model(conf.huiji_detect_config['model'])\n    results = model.track(datasource, save=True, verbose=False, save_dir=model_result_save_dir)\n    conf.huiji_detect_config['video_model_output_file'] = str(model_output_target_file)\ndef analysis_person_video_file():\n    conf.person_detect_config['video_model_output_file'] = ''\n    datasource = conf.person_detect_config['video_file']\n    model = get_model(conf.person_detect_config['model'])",
+        "peekOfCode": "def analysis_huiji_video_file():\n    conf.huiji_detect_config['video_model_output_file'] = ''\n    datasource = conf.huiji_detect_config['video_file']\n    model = get_model(conf.huiji_detect_config['model'])\n    results = model.track(datasource, save=True, verbose=False, save_dir=model_result_save_dir)\n    conf.huiji_detect_config['video_model_output_file'] = str(Path(model_result_save_dir) / Path(datasource).name)\ndef analysis_person_video_file():\n    conf.person_detect_config['video_model_output_file'] = ''\n    datasource = conf.person_detect_config['video_file']\n    model = get_model(conf.person_detect_config['model'])",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9948,7 +9948,7 @@
         "kind": 5,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "model_result_save_dir = \"analysis_video_output\"\nimport os;os.makedirs(model_result_save_dir,exist_ok=True)\ndef analysis_huiji_video_file():\n    conf.huiji_detect_config['video_model_output_file'] = ''\n    datasource = conf.huiji_detect_config['video_file']\n    model = get_model(conf.huiji_detect_config['model'])\n    results = model.track(datasource, save=True, verbose=False, save_dir=model_result_save_dir)\n    conf.huiji_detect_config['video_model_output_file'] = str(model_output_target_file)\ndef analysis_person_video_file():\n    conf.person_detect_config['video_model_output_file'] = ''",
+        "peekOfCode": "model_result_save_dir = \"analysis_video_output\"\nimport os;os.makedirs(model_result_save_dir,exist_ok=True)\ndef analysis_huiji_video_file():\n    conf.huiji_detect_config['video_model_output_file'] = ''\n    datasource = conf.huiji_detect_config['video_file']\n    model = get_model(conf.huiji_detect_config['model'])\n    results = model.track(datasource, save=True, verbose=False, save_dir=model_result_save_dir)\n    conf.huiji_detect_config['video_model_output_file'] = str(Path(model_result_save_dir) / Path(datasource).name)\ndef analysis_person_video_file():\n    conf.person_detect_config['video_model_output_file'] = ''",
         "detail": "mcd.video",
         "documentation": {}
     },

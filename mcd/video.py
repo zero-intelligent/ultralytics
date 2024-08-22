@@ -1,4 +1,3 @@
-import logging
 from ultralytics import YOLO
 import cv2
 import os
@@ -137,7 +136,7 @@ def analysis_huiji_video_file():
     datasource = conf.huiji_detect_config['video_file']
     model = get_model(conf.huiji_detect_config['model'])
     results = model.track(datasource, save=True, verbose=False, save_dir=model_result_save_dir)
-    conf.huiji_detect_config['video_model_output_file'] = str(model_output_target_file)
+    conf.huiji_detect_config['video_model_output_file'] = str(Path(model_result_save_dir) / Path(datasource).name)
         
 def analysis_person_video_file():
     conf.person_detect_config['video_model_output_file'] = ''
