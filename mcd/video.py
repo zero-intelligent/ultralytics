@@ -136,14 +136,9 @@ def analysis_huiji_video_file():
     conf.huiji_detect_config['video_model_output_file'] = ''
     datasource = conf.huiji_detect_config['video_file']
     model = get_model(conf.huiji_detect_config['model'])
-    results = model.track(datasource, save=True, verbose=False)
-
-    model_output_file = Path(results[0].save_dir) / Path(datasource).name
-    model_output_target_file = Path(model_result_save_dir) / Path(datasource).name
-    model_output_target_file.write_bytes(model_output_file.read_bytes())  # 复制文件
+    results = model.track(datasource, save=True, verbose=False, save_dir=model_result_save_dir)
     conf.huiji_detect_config['video_model_output_file'] = str(model_output_target_file)
         
-
 def analysis_person_video_file():
     conf.person_detect_config['video_model_output_file'] = ''
     datasource = conf.person_detect_config['video_file']
@@ -154,15 +149,8 @@ def analysis_person_video_file():
             result.__class__ = PersonResults
 
     model.add_callback("on_predict_postprocess_end", on_predict_postprocess_end)
-
-
-    results = model.track(datasource, save=True, verbose=True)
-
-    model_output_file = Path(results[0].save_dir) / Path(datasource).name
-    model_output_target_file = Path(model_result_save_dir) / Path(datasource).name
-    model_output_target_file.write_bytes(model_output_file.read_bytes())  # 复制文件
-
-    conf.person_detect_config['video_model_output_file'] = str(model_output_target_file)
+    results = model.track(datasource, save=True, verbose=False, save_dir=model_result_save_dir)
+    conf.person_detect_config['video_model_output_file'] = str(Path(model_result_save_dir) / Path(datasource).name)
 
 
 def analysis_video_file():
