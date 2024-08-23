@@ -60,8 +60,8 @@
           <div v-for="(item, index) in cardList" :key="index" class="middle-main-item">
             <div class="middle-main-hearder">
               <div>{{ item.label }}</div>
-              <div v-if='item.num > 0'>
-                帧率：{{ item.num }}
+              <div v-if='frame_rate > 0'>
+                帧率：{{ frame_rate }}
               </div>
             </div>
             <div class="middle-main-vedio" v-if="isShow && configInfo && configInfo.data_type === 'video_file'">
@@ -119,6 +119,7 @@ export default {
     return {
       radio: '1',
       activeName: 'first',
+      frame_rate:0,
       input: "",
       loading: false,
       isCameraShow: true,
@@ -234,41 +235,65 @@ export default {
             this.activeName = 'second'
           }
 
-          this.cardList[0].src = result?.data?.data_file_source
-          this.cardList[1].src = result?.data?.data_file_target
+          this.cardList[0].src = result?.data?.video_source
+          this.cardList[1].src = result?.data?.video_target
+          this.frame_rate = this.configInfo.frame_rate
 
-          if (this.configInfo.data_type === 'video_file') {
-            //if (!this.configInfo?.data_file_source || this.configInfo?.data_file_source == null) {
-              clearInterval(this.timer);
-              this.timer = setInterval(() => {
+          if(this.configInfo.model == "person_detect"){
+            this.list = result?.data?.current_person_result
+              this.isShow = false
+              this.$nextTick(() => {
+                this.isShow = true
+              })              
+          } else {
+            this.list = result?.data?.current_taocan_result
+              this.isShow = false
+              this.$nextTick(() => {
+                this.isShow = true
+              })
+          }
+
+
+
+          clearInterval(this.timer);
+          this.timer = setInterval(() => {
                 setTimeout(async () => {
                   this.getConfigTarget();
                 }, 0);
               }, 3000);
-            //}
-          } else {
-            if (this.activeName == 'first') {
-              this.list = []
-              this.refresh()
-              clearInterval(this.timer);
-              this.timer = setInterval(() => {
-                setTimeout(async () => {
-                  this.refresh();
-                }, 0);
-              }, 3000);
-              // this.timer = setInterval(this.refresh(), 3000);
-            } else {
-              this.list = []
-              this.refreshOther();
-              clearInterval(this.timer);
-              this.timer = setInterval(() => {
-                setTimeout(async () => {
-                  this.refreshOther();
-                }, 0);
-              }, 3000);
-              // this.timer = setInterval(this.refreshOther(), 3000);
-            }
-          }
+
+          // if (this.configInfo.data_type === 'video_file') {
+          //   //if (!this.configInfo?.data_file_source || this.configInfo?.data_file_source == null) {
+          //     clearInterval(this.timer);
+          //     this.timer = setInterval(() => {
+          //       setTimeout(async () => {
+          //         this.getConfigTarget();
+          //       }, 0);
+          //     }, 3000);
+          //   //}
+          // } else {
+          //   if (this.activeName == 'first') {
+          //     this.list = []
+          //     this.refresh()
+          //     clearInterval(this.timer);
+          //     this.timer = setInterval(() => {
+          //       setTimeout(async () => {
+          //         this.refresh();
+          //       }, 0);
+          //     }, 3000);
+          //     // this.timer = setInterval(this.refresh(), 3000);
+          //   } else {
+          //     this.list = []
+          //     this.refreshOther();
+          //     clearInterval(this.timer);
+          //     this.timer = setInterval(() => {
+          //       setTimeout(async () => {
+          //         this.refreshOther();
+          //       }, 0);
+          //     }, 3000);
+          //     // this.timer = setInterval(this.refreshOther(), 3000);
+          //   }
+          // }
         } else {
           this.configInfo = {}
         }
