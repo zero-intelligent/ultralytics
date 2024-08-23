@@ -119,7 +119,15 @@ def test_video_source_feed():
     assert conf.huiji_detect_config['video_file'] == 'assets/demo.mp4'
     
     response = client.get("/video_source_feed")
-    assert response.status_code == 200    
+    assert response.status_code == 200 
+    
+    response = client.get("/get_config")
+    assert response.status_code == 200 
+    json =  response.json()
+    assert json['code'] == 0
+    assert json['data']['frame_rate'] > 1
+       
+    
     
     response = client.get("/video_output_feed")
     assert response.status_code == 200

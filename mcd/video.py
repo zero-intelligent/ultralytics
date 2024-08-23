@@ -133,10 +133,7 @@ def huiji_detect_results(results):
         log.info(f'camera source:{conf.huiji_detect_config['camera_source']} detect results:{current_taocan_check_result}')
     img = results.plot()
 
-    return (array2jpg(img),current_taocan_check_result)
-
-
-
+    return array2jpg(img)
 
 def data_source():
     def get_ds(detect_config):
