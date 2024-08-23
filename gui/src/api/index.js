@@ -44,6 +44,7 @@ export function setCamraList(data) {
 }
 export function uploadCamera(data) {
   console.log(data)
+  console.log("upload");
   return request({
     url: baseUrl + '/single_upload',
     method: 'post',

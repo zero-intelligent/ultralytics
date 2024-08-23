@@ -393,18 +393,27 @@ export default {
     // 上传(同时选择多个文件时会多次上传该文件)
     async handleFileUpload(item) {
       //先停掉定时任务
+      console.log("handleFileUpload");
       clearInterval(this.timer);
+      console.log("clear end");
 
       await this.switchTypeFun(1)
-      let file = item.file
+      console.log("sefdsafadsf");
+      let file      = item.file
       this.disabled = true;
-      this.list = [...this.list, file]; //用于展示进度
+      console.log("start to upload33");
+      console.log(this.list)
+      //this.list = [...this.list, file]; //用于展示进度
+      this.list = [file]; //用于展示进度
+      console.log("start to upload222");
       this.uploadModal = true; // 展示进度弹窗
+      console.log("start to upload111");
       // 文件大于50MB时分片上传
       // if (file.size / 1024 / 1024 < 50) {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("name", file.name);
+        console.log("start to upload");
         uploadCamera(formData).then((res) => {
           if (res.error !== "error") {
             this.list.forEach((item) => {
@@ -413,6 +422,7 @@ export default {
               }
             })
             this.$message.success(`${file.name}：上传完成`);
+            this.getConfigInfo();
           } else {
             this.list.forEach((item) => {
               if (item.name === file.name) {
