@@ -153,6 +153,20 @@ def data_source():
         
 
 
+def capture_frames():
+    # 打开摄像头
+    cap = cv2.VideoCapture(data_source())
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        ret, buffer = cv2.imencode('.jpg', frame)
+        frame = buffer.tobytes()
+        # yield frame
+
+    cap.release()
+    
+
 models = {}
 
 def get_model(model_path):
