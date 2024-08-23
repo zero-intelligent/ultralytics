@@ -385,14 +385,6 @@
         "documentation": {}
     },
     {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
         "label": "aiofiles",
         "kind": 6,
         "isExtraImport": true,
@@ -5644,23 +5636,6 @@
         "documentation": {}
     },
     {
-        "label": "os;os.makedirs(model_result_save_dir,exist_ok=True)",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "os;os.makedirs(model_result_save_dir.exist_ok=True)",
-        "description": "os;os.makedirs(model_result_save_dir.exist_ok=True)",
-        "detail": "os;os.makedirs(model_result_save_dir.exist_ok=True)",
-        "documentation": {}
-    },
-    {
-        "label": "test_nn_modules_block",
-        "importPath": "tests.test_python",
-        "description": "tests.test_python",
-        "isExtraImport": true,
-        "detail": "tests.test_python",
-        "documentation": {}
-    },
-    {
         "label": "TMP",
         "importPath": "tests",
         "description": "tests",
@@ -8986,7 +8961,7 @@
         "kind": 6,
         "importPath": "api.app",
         "description": "api.app",
-        "peekOfCode": "class ConfigSetting:\n    model:str\n    camera_type: str\n    camera_local: str\n    camera_url: str\n    taocan_id: int\n    data_type: str\n    video_source :str\n    video_target :str\napp = FastAPI()",
+        "peekOfCode": "class ConfigSetting:\n    model:str\n    camera_type: str\n    camera_local: str\n    camera_url: str\n    taocan_id: int\n    data_type: str\n    video_source :str\n    video_target :str\n    current_taocan_result:str",
         "detail": "api.app",
         "documentation": {}
     },
@@ -9796,7 +9771,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def get_current_person_detect_result():\n    return {id:v['time_s'] for id,v in PersonResults.id_info.items()}\ndef person_detect_frames():\n    model = get_model(conf.person_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        orig_frame = result.orig_img  # 获取原始帧\n        # 编码原始帧为 JPEG\n        ret, orig_buffer = cv2.imencode('.jpg', orig_frame)\n        if not ret:\n            continue",
+        "peekOfCode": "def get_current_person_detect_result():\n    return {id:v['time_s'] for id,v in PersonResults.id_info.items()}\nperson_detect_frame_rates = 0\ndef person_detect_frames():\n    model = get_model(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    frame_count = 0\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        #计算帧率",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9805,7 +9780,16 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def person_detect_frames():\n    model = get_model(conf.person_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        orig_frame = result.orig_img  # 获取原始帧\n        # 编码原始帧为 JPEG\n        ret, orig_buffer = cv2.imencode('.jpg', orig_frame)\n        if not ret:\n            continue\n        orig_frame = orig_buffer.tobytes()\n        result.__class__ = PersonResults",
+        "peekOfCode": "def person_detect_frames():\n    model = get_model(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    frame_count = 0\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        #计算帧率\n        frame_count += 1\n        global person_detect_frame_rates\n        person_detect_frame_rates = frame_count / (time.time() - start_time)",
+        "detail": "mcd.video",
+        "documentation": {}
+    },
+    {
+        "label": "huiji_detect_frames",
+        "kind": 2,
+        "importPath": "mcd.video",
+        "description": "mcd.video",
+        "peekOfCode": "def huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    frame_count = 0\n    model = get_model(conf.huiji_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False):\n        #计算帧率\n        frame_count += 1\n        global huiji_detect_frame_rates\n        huiji_detect_frame_rates = frame_count / (time.time() - start_time)",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9824,15 +9808,6 @@
         "importPath": "mcd.video",
         "description": "mcd.video",
         "peekOfCode": "def huiji_detect_results(results):\n    img=None\n    meal_result=None\n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息\n        for obj in result.boxes:\n            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else None\n            if not obj_id:\n                continue",
-        "detail": "mcd.video",
-        "documentation": {}
-    },
-    {
-        "label": "huiji_detect_frames",
-        "kind": 2,
-        "importPath": "mcd.video",
-        "description": "mcd.video",
-        "peekOfCode": "def huiji_detect_frames():\n    model = get_model(conf.huiji_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False):\n        orig_frame = result.orig_img  # 获取原始帧\n        # 编码原始帧为 JPEG\n        ret, orig_buffer = cv2.imencode('.jpg', orig_frame)\n        if not ret:\n            continue\n        orig_frame = orig_buffer.tobytes()\n        # 使用生成器同时返回两个流",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9873,6 +9848,24 @@
         "documentation": {}
     },
     {
+        "label": "person_detect_frame_rates",
+        "kind": 5,
+        "importPath": "mcd.video",
+        "description": "mcd.video",
+        "peekOfCode": "person_detect_frame_rates = 0\ndef person_detect_frames():\n    model = get_model(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    frame_count = 0\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        #计算帧率\n        frame_count += 1\n        global person_detect_frame_rates",
+        "detail": "mcd.video",
+        "documentation": {}
+    },
+    {
+        "label": "huiji_detect_frame_rates",
+        "kind": 5,
+        "importPath": "mcd.video",
+        "description": "mcd.video",
+        "peekOfCode": "huiji_detect_frame_rates = 0\ndef huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    frame_count = 0\n    model = get_model(conf.huiji_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False):\n        #计算帧率\n        frame_count += 1\n        global huiji_detect_frame_rates",
+        "detail": "mcd.video",
+        "documentation": {}
+    },
+    {
         "label": "last_taocan_check_result",
         "kind": 5,
         "importPath": "mcd.video",
@@ -9887,15 +9880,6 @@
         "importPath": "mcd.video",
         "description": "mcd.video",
         "peekOfCode": "current_taocan_check_result = None\ndef huiji_detect_results(results):\n    img=None\n    meal_result=None\n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息\n        for obj in result.boxes:\n            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else None\n            if not obj_id:",
-        "detail": "mcd.video",
-        "documentation": {}
-    },
-    {
-        "label": "model_result_save_dir",
-        "kind": 5,
-        "importPath": "mcd.video",
-        "description": "mcd.video",
-        "peekOfCode": "model_result_save_dir = \"analysis_video_output\"\nimport os;os.makedirs(model_result_save_dir,exist_ok=True)\nfrom tests.test_python import test_nn_modules_block\ndef huiji_detect_frames():\n    model = get_model(conf.huiji_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False):\n        orig_frame = result.orig_img  # 获取原始帧\n        # 编码原始帧为 JPEG\n        ret, orig_buffer = cv2.imencode('.jpg', orig_frame)\n        if not ret:",
         "detail": "mcd.video",
         "documentation": {}
     },

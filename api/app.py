@@ -31,7 +31,9 @@ class ConfigSetting:
     data_type: str
     video_source :str
     video_target :str
-
+    current_taocan_result:str
+    current_person_result:str
+    frame_rate:int
 
 
 app = FastAPI()
@@ -86,29 +88,40 @@ async def demo_person():
 
     return Response(content=html_content, media_type="text/html")
 
-
+    
 @app.get("/get_config")
 async def get_config():
+    
     configSetting = ConfigSetting()
     configSetting.model = conf.current_mode
     log.info(conf.huiji_detect_config)
-    configSetting.taocan_id = conf.huiji_detect_config["current_taocan_id"]
 
     if conf.current_mode == 'huiji_detect':
+        # 先启动视频捕获
+        if not video_srv.current_taocan_check_result:
+            next(video_srv.huiji_detect_frames())
+        if video_srv.current_taocan_check_result is None:
+            raise Exception('启动huji检测失败！')
+        
+        configSetting.frame_rate = video_srv.huiji_detect_frame_rates
+        configSetting.taocan_id = conf.huiji_detect_config["current_taocan_id"]
         configSetting.camera_type=0
         configSetting.camera_local = conf.huiji_detect_config["camera_source"]
         configSetting.camera_url = ""
         configSetting.data_type = conf.huiji_detect_config.get('data_source_type')
         configSetting.video_source = "video_source_feed"
         configSetting.video_target = "video_output_feed" 
+        configSetting.current_taocan_result = video_srv.get_huiji_detect_items(video_srv.current_taocan_check_result)
 
     if conf.current_mode == 'person_detect':
+        configSetting.frame_rate = video_srv.person_detect_frame_rates
         configSetting.camera_type = 0
         configSetting.camera_local = conf.person_detect_config["camera_source"]
         configSetting.camera_url = ""
         configSetting.data_type = conf.person_detect_config.get('data_source_type')
         configSetting.video_source = "video_source_feed"
         configSetting.video_target = "video_output_feed"
+        configSetting.current_person_result = video_srv.get_current_person_detect_result()
         
     return {
         "code":0,
@@ -193,34 +206,6 @@ async def switch_taocan(taocan_id:int = Query(0, ge=0, le=1)):
     }
 
 
-@app.get("/taocan_analysis")
-async def start_taocan_analysis():
-    # 先启动视频捕获
-    if not video_srv.current_taocan_check_result:
-        next(video_srv.huiji_detect_frames())
-    if video_srv.current_taocan_check_result is None:
-        raise Exception('启动huji检测失败！')
-    result = video_srv.get_huiji_detect_items(video_srv.current_taocan_check_result)
-
-    return {
-        "code":0,
-        "data":{
-            "current_taocan_result": result,
-            "input_video":"video_source_feed",
-            "output_video":"video_output_feed"
-        }
-    }
-
-@app.get("/person_analysis")
-async def get_person_analysis():
-    return {
-        "code":0,
-        "data":{
-            "current_person_result":video_srv.get_current_person_detect_result(),
-            "input_video":"video_source_feed",
-            "output_video":"video_output_feed"
-        }
-    }
 
 @app.get("/available_cameras")
 async def get_available_cameras():

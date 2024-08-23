@@ -1,20 +1,31 @@
-from ultralytics import YOLO
-import cv2
 import os
+import time
+import cv2
+from ultralytics import YOLO
 import mcd.conf as conf
 from mcd.logger import log
-from pathlib import Path
 from mcd.custom_result import PersonResults
 
 
 def get_current_person_detect_result():
     return {id:v['time_s'] for id,v in PersonResults.id_info.items()}
 
+person_detect_frame_rates = 0
 
 def person_detect_frames():
     model = get_model(conf.person_detect_config['model'])
     
+    # 开始时间
+    start_time = time.time()
+    frame_count = 0
+
     for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):
+        
+        #计算帧率
+        frame_count += 1
+        global person_detect_frame_rates
+        person_detect_frame_rates = frame_count / (time.time() - start_time)
+        
         orig_frame = result.orig_img  # 获取原始帧
         # 编码原始帧为 JPEG
         ret, orig_buffer = cv2.imencode('.jpg', orig_frame)
@@ -36,7 +47,34 @@ def person_detect_frames():
             "tracked_frame": tracked_frame
         }
 
+huiji_detect_frame_rates = 0
 
+def huiji_detect_frames():
+     # 开始时间
+    start_time = time.time()
+    frame_count = 0
+    
+    model = get_model(conf.huiji_detect_config['model'])
+    for result in model.track(source=data_source(), stream=True,verbose=False):
+        #计算帧率
+        frame_count += 1
+        global huiji_detect_frame_rates
+        huiji_detect_frame_rates = frame_count / (time.time() - start_time)
+        
+        orig_frame = result.orig_img  # 获取原始帧
+
+        # 编码原始帧为 JPEG
+        ret, orig_buffer = cv2.imencode('.jpg', orig_frame)
+        if not ret:
+            continue
+        orig_frame = orig_buffer.tobytes()
+
+        # 使用生成器同时返回两个流
+        yield {
+            "orig_frame": orig_frame,
+            "tracked_frame": huiji_detect_results(result)
+        }
+        
 def get_huiji_detect_items(detect_result):
     taocan_id = conf.huiji_detect_config['current_taocan_id']
     taocan =  [t for t in conf.huiji_detect_config['taocans'] if t['id'] == taocan_id]
@@ -98,26 +136,6 @@ def huiji_detect_results(results):
     return (array2jpg(img),current_taocan_check_result)
 
 
-model_result_save_dir = "analysis_video_output"
-import os;os.makedirs(model_result_save_dir,exist_ok=True)
-from tests.test_python import test_nn_modules_block
-
-def huiji_detect_frames():
-    model = get_model(conf.huiji_detect_config['model'])
-    for result in model.track(source=data_source(), stream=True,verbose=False):
-        orig_frame = result.orig_img  # 获取原始帧
-
-        # 编码原始帧为 JPEG
-        ret, orig_buffer = cv2.imencode('.jpg', orig_frame)
-        if not ret:
-            continue
-        orig_frame = orig_buffer.tobytes()
-
-        # 使用生成器同时返回两个流
-        yield {
-            "orig_frame": orig_frame,
-            "tracked_frame": huiji_detect_results(result)
-        }
 
 
 def data_source():
