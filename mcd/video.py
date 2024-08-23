@@ -14,23 +14,31 @@ def get_model(model_path):
         models[model_path] = YOLO(model_path)
     return models[model_path]
 
-def person_detect_frame(frame):
-    person_detect_model = get_model(conf.person_detect_config['model'])
-    results = person_detect_model.track(frame,classes=[0],verbose=False)
-    results[0].__class__ = PersonResults
-    img = results[0].plot()
-    return (array2jpg(frame),array2jpg(img))
 
 def person_detect_frames():
-    # 打开摄像头
-    cap = cv2.VideoCapture(normal_camera_source())
-    while True:
-        ret, frame = cap.read()
+    model = get_model(conf.person_detect_config['model'])
+    
+    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):
+        orig_frame = result.orig_img  # 获取原始帧
+        # 编码原始帧为 JPEG
+        ret, orig_buffer = cv2.imencode('.jpg', orig_frame)
         if not ret:
-            break
-        yield person_detect_frame(frame)
+            continue
+        orig_frame = orig_buffer.tobytes()
+        
+        result.__class__ = PersonResults
+        tracked_frame = result.plot()  # 获取带检测结果的帧
+        # 编码带检测结果的帧为 JPEG
+        ret, tracked_buffer = cv2.imencode('.jpg', tracked_frame)
+        if not ret:
+            continue
+        tracked_frame = tracked_buffer.tobytes()
 
-    cap.release()
+        # 使用生成器同时返回两个流
+        yield {
+            "orig_frame": orig_frame,
+            "tracked_frame": tracked_frame
+        }
 
 
 get_model(conf.huiji_detect_config['model'])
@@ -38,7 +46,6 @@ get_model(conf.huiji_detect_config['model'])
 def array2jpg(frame):
     ret, buffer = cv2.imencode('.jpg', frame)
     return buffer.tobytes()
-
 
 
 def changed(detect_result):
@@ -51,36 +58,28 @@ def get_detect_items(detect_result):
         raise Exception(f"can't find taocao with id:{taocan_id}")
     taocan = taocan[0]
     
-    def full_name(name):
-        full_names = [f'{i[2]} {i[1]}' for i in conf.huiji_detect_config['meals_info'] if i[1] == name]
-        return full_names[0] if full_names else name
-    
     in_tancan_results = [
         {
-            'id': t[0],
-            'name': full_name(t[1]),
-            'count': t[2],
-            'real_count': detect_result[id] if t[0] in detect_result else 0,
-            'lack_item': t[0] not in detect_result,
-            'lack_count': t[0] in detect_result and  detect_result[t[0]] < t[2],
+            'id': id,
+            'name': next((f'{cn_name} {en_name}' for m_id,en_name,cn_name in conf.huiji_detect_config['meals_info'] if m_id == id),None),
+            'count': count,
+            'real_count': detect_result[id] if id in detect_result else 0,
+            'lack_item': id not in detect_result,
+            'lack_count': id in detect_result and  detect_result[id] < count,
             'is_in_taocan': True
-        } for t in taocan['items']
+        } for id,name,count in taocan['items']
     ]
-
-    def get_id_by_name(name):
-        ids = [i[0] for i in conf.huiji_detect_config['meals_info'] if i[1] == name]
-        return ids[0] if ids else None
 
     out_tancan_results = [
         {
-            'id': get_id_by_name(name),
-            'name': full_name(name),
+            'id': id,
+            'name': next((f'{cn_name} {en_name}' for m_id,en_name,cn_name in conf.huiji_detect_config['meals_info'] if m_id == id),None),
             'count': None,
             'real_count': count,
             'lack_item': None,
             'lack_count': None,
             'is_in_taocan': False
-        } for name,count in detect_result.items() if name not in [i['name'] for i in taocan['items']]
+        } for id,count in detect_result.items() if id not in [i[0] for i in taocan['items']]
     ]
     return in_tancan_results + out_tancan_results
 
@@ -88,12 +87,9 @@ def get_detect_items(detect_result):
 last_taocan_check_result = None
 current_taocan_check_result = None
 
-def huiji_detect_frame(frame):
+def huiji_detect_results(results):
     img=None
     meal_result=None
-
-    huiji_detect_model = get_model(conf.huiji_detect_config['model'])
-    results = huiji_detect_model(frame,verbose=False) 
     meal_result = {}
     for result in results:
         # 提取每个检测结果的 id 和 class 信息
@@ -111,69 +107,46 @@ def huiji_detect_frame(frame):
     current_taocan_check_result = {k:len(v) for k,v in meal_result.items()}
     if current_taocan_check_result:
         log.info(f'camera source:{conf.huiji_detect_config['camera_source']} detect results:{current_taocan_check_result}')
-    img = results[0].plot()
+    img = results.plot()
 
-    return (array2jpg(frame),array2jpg(img),current_taocan_check_result)
+    return (array2jpg(img),current_taocan_check_result)
 
-
-
-def huiji_detect_frames():
-    # 打开摄像头
-    cap = cv2.VideoCapture(normal_camera_source())
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
-        yield huiji_detect_frame(frame)
-
-    cap.release()
 
 model_result_save_dir = "analysis_video_output"
 import os;os.makedirs(model_result_save_dir,exist_ok=True)
+from tests.test_python import test_nn_modules_block
 
-def analysis_huiji_video_file():
-    conf.huiji_detect_config['video_model_output_file'] = ''
-    datasource = conf.huiji_detect_config['video_file']
+def huiji_detect_frames():
     model = get_model(conf.huiji_detect_config['model'])
-    results = model.track(datasource, save=True, verbose=False, save_dir=model_result_save_dir)
-    conf.huiji_detect_config['video_model_output_file'] = str(Path(model_result_save_dir) / Path(datasource).name)
-        
-def analysis_person_video_file():
-    conf.person_detect_config['video_model_output_file'] = ''
-    datasource = conf.person_detect_config['video_file']
-    model = get_model(conf.person_detect_config['model'])
+    for result in model.track(source=data_source(), stream=True,verbose=False):
+        orig_frame = result.orig_img  # 获取原始帧
 
-    def on_predict_postprocess_end(predictor):
-        for result in predictor.results:
-            result.__class__ = PersonResults
-
-    model.add_callback("on_predict_postprocess_end", on_predict_postprocess_end)
-    results = model.track(datasource, save=True, verbose=False, save_dir=model_result_save_dir)
-    conf.person_detect_config['video_model_output_file'] = str(Path(model_result_save_dir) / Path(datasource).name)
-
-
-def analysis_video_file():
-    if conf.current_mode == "huiji_detect":
-        analysis_huiji_video_file()
-    else:
-        analysis_person_video_file()
-
-
-def normal_camera_source():
-    camera_source = conf.huiji_detect_config['camera_source'] if conf.current_mode == "huiji_detect" else conf.person_detect_config['camera_source']
-    if str(camera_source).isdigit():
-        camera_source = int(camera_source)
-    return camera_source
-
-def capture_frames():
-    # 打开摄像头
-    cap = cv2.VideoCapture(normal_camera_source())
-    while True:
-        ret, frame = cap.read()
+        # 编码原始帧为 JPEG
+        ret, orig_buffer = cv2.imencode('.jpg', orig_frame)
         if not ret:
-            break
-        ret, buffer = cv2.imencode('.jpg', frame)
-        frame = buffer.tobytes()
-        yield frame
+            continue
+        orig_frame = orig_buffer.tobytes()
 
-    cap.release()
+        # 使用生成器同时返回两个流
+        yield {
+            "orig_frame": orig_frame,
+            "tracked_frame": huiji_detect_results(result)
+        }
+
+
+def data_source():
+    def get_ds(detect_config):
+        data_source_type = detect_config['data_source_type']
+        if data_source_type == 'camera':
+            data_source = detect_config['camera_source']
+            if str(data_source).isdigit():
+                data_source = int(data_source)
+            return data_source
+        else:
+            return detect_config['video_file']
+        
+    if conf.current_mode == "huiji_detect":
+        return get_ds(conf.huiji_detect_config)
+    else:
+        return get_ds(conf.person_detect_config)
+        

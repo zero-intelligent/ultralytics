@@ -2,7 +2,6 @@ import pytest
 import os
 from fastapi.testclient import TestClient
 from api.app import app  
-from mcd.video import analysis_person_video_file
 from mcd import conf
 
 client = TestClient(app)
@@ -38,7 +37,7 @@ def test_mode_datasource():
     assert json['code'] == 0
     assert json['data']['mode'] == 'huiji_detect'
     assert json['data']['data_source_type'] == 'camera'
-    assert json['data']['data_source'] == '0'
+    assert int(json['data']['data_source']) == 0
 
 def test_taocans():
     response = client.get("/taocans")
@@ -90,7 +89,7 @@ def test_huiji_video_taocan_detect_result():
 
 
 def test_upload_file():
-    file_path = "api/demo.mp4"  # 替换为实际文件路径
+    file_path = "assets/demo.mp4"  # 替换为实际文件路径
     with open(file_path, "rb") as file:
         response = client.post("/single_upload", files={"file": file})
     assert response.status_code == 200
@@ -104,31 +103,26 @@ def test_upload_file():
     assert json['data']['data_source_type'] == 'video_file'
     assert json['data']['data_source'] == 'uploads/demo.mp4'
 
-    response = client.get("/get_config")
+
+
+def test_video_source_feed():
+    
+    response = client.post("/mode_datasource",json={
+        'mode':'huiji_detect',
+        'data_source_type':'video_file',
+        'data_source':'assets/demo.mp4'
+    })
     assert response.status_code == 200
     json =  response.json()
+    assert json['code'] == 0
 
-    result_file = json['data']['data_file_target']
-    assert result_file == '/analysis_video_output/demo.mp4'
-
-    response = client.get(json['data']['data_file_source'])
+    assert conf.huiji_detect_config['video_file'] == 'assets/demo.mp4'
+    
+    response = client.get("/video_source_feed")
+    assert response.status_code == 200    
+    
+    response = client.get("/video_output_feed")
     assert response.status_code == 200
-    response = client.get(json['data']['data_file_target'])
-    assert response.status_code == 200
-
-
-
-def test_analysis_video_file():
-    conf.current_mode = 'person_detect'
-    conf.person_detect_config['data_source_type'] = 'video_file'
-    conf.person_detect_config['video_file'] = 'uploads/demo.mp4'
-    analysis_person_video_file()
-
-    assert conf.person_detect_config['video_model_output_file'] == 'analysis_video_output/demo.mp4'
     
 
-def test_get_video_model_output_file():
-    response = client.get("/video_model_output_file")
-    assert response.status_code == 404
-    assert response.json() == {"code":2,"msg": "File not found"}
 
