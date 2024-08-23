@@ -101,7 +101,7 @@ async def get_config():
         if video_srv.current_taocan_check_result is None:
             raise Exception('启动huji检测失败！')
         
-        configSetting.frame_rate = video_srv.huiji_detect_frame_rates
+        configSetting.frame_rate = int(video_srv.huiji_detect_frame_rates)
         configSetting.taocan_id = conf.huiji_detect_config["current_taocan_id"]
         configSetting.camera_type=0
         configSetting.camera_local = conf.huiji_detect_config["camera_source"]
@@ -112,7 +112,7 @@ async def get_config():
         configSetting.current_taocan_result = video_srv.get_huiji_detect_items(video_srv.current_taocan_check_result)
 
     if conf.current_mode == 'person_detect':
-        configSetting.frame_rate = video_srv.person_detect_frame_rates
+        configSetting.frame_rate = int(video_srv.person_detect_frame_rates)
         configSetting.camera_type = 0
         configSetting.camera_local = conf.person_detect_config["camera_source"]
         configSetting.camera_url = ""
