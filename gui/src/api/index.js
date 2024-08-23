@@ -1,6 +1,6 @@
 import request from '@/utils/request'
-//var baseUrl = 'http://8.140.49.13:6789';
-var baseUrl = 'http://192.168.31.77:6789';
+var baseUrl = 'http://8.140.49.13:6789';
+//var baseUrl = 'http://192.168.31.77:6789';
 
 export function getDataHuiji(params) {
   return request({

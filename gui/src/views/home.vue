@@ -64,10 +64,11 @@
                 帧率：{{ frame_rate }}
               </div>
             </div>
-            <div class="middle-main-vedio" v-if="isShow && configInfo && configInfo.data_type === 'video_file'">
+            <!-- <div class="middle-main-vedio" v-if="isShow && configInfo && configInfo.data_type === 'video_file'">
               <video-component :videoSrc="getSrc(item.src)"></video-component>
-            </div>
-            <div class="middle-main-vedio" v-if="isShow && configInfo && configInfo.data_type === 'camera'">
+            </div> -->
+            <!-- <div class="middle-main-vedio" v-if="isShow && configInfo && configInfo.data_type === 'camera'"> -->
+            <div class="middle-main-vedio" >
               <img :src="getSrc(item.src)" width="100%" height="100%" />
             </div>
           </div>
@@ -108,12 +109,12 @@
 <script>
 // 
 import { getDataHuiji, getDataPeople, changeTaocan, getCamraList, modeDatasource, uploadCamera, getConfig, switchMode } from "./../api/index"
-import videoComponent from './../components/videoComponent.vue'
+// import videoComponent from './../components/videoComponent.vue'
 // import SparkMD5 from "spark-md5";
 export default {
   name: 'HelloWorld',
   components: {
-    videoComponent
+    // videoComponent
   },
   data() {
     return {
@@ -196,6 +197,11 @@ export default {
         let result = await modeDatasource(params)
         if (result.code === 0) {
           this.isCameraShow = true
+          
+          this.cardList[0].src = ""
+          this.cardList[1].src = ""
+
+
           this.getConfigInfo()
         }
       } catch (error) {
