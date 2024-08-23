@@ -9792,11 +9792,11 @@
         "documentation": {}
     },
     {
-        "label": "get_model",
+        "label": "get_current_person_detect_result",
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def get_model(model_path):\n    if not models.get(model_path):\n        models[model_path] = YOLO(model_path)\n    return models[model_path]\ndef person_detect_frames():\n    model = get_model(conf.person_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        orig_frame = result.orig_img  # 获取原始帧\n        # 编码原始帧为 JPEG\n        ret, orig_buffer = cv2.imencode('.jpg', orig_frame)",
+        "peekOfCode": "def get_current_person_detect_result():\n    return {id:v['time_s'] for id,v in PersonResults.id_info.items()}\ndef person_detect_frames():\n    model = get_model(conf.person_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        orig_frame = result.orig_img  # 获取原始帧\n        # 编码原始帧为 JPEG\n        ret, orig_buffer = cv2.imencode('.jpg', orig_frame)\n        if not ret:\n            continue",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9810,29 +9810,11 @@
         "documentation": {}
     },
     {
-        "label": "array2jpg",
+        "label": "get_huiji_detect_items",
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def array2jpg(frame):\n    ret, buffer = cv2.imencode('.jpg', frame)\n    return buffer.tobytes()\ndef changed(detect_result):\n    return detect_result != last_taocan_check_result\ndef get_detect_items(detect_result):\n    taocan_id = conf.huiji_detect_config['current_taocan_id']\n    taocan =  [t for t in conf.huiji_detect_config['taocans'] if t['id'] == taocan_id]\n    if not taocan:\n        raise Exception(f\"can't find taocao with id:{taocan_id}\")",
-        "detail": "mcd.video",
-        "documentation": {}
-    },
-    {
-        "label": "changed",
-        "kind": 2,
-        "importPath": "mcd.video",
-        "description": "mcd.video",
-        "peekOfCode": "def changed(detect_result):\n    return detect_result != last_taocan_check_result\ndef get_detect_items(detect_result):\n    taocan_id = conf.huiji_detect_config['current_taocan_id']\n    taocan =  [t for t in conf.huiji_detect_config['taocans'] if t['id'] == taocan_id]\n    if not taocan:\n        raise Exception(f\"can't find taocao with id:{taocan_id}\")\n    taocan = taocan[0]\n    in_tancan_results = [\n        {",
-        "detail": "mcd.video",
-        "documentation": {}
-    },
-    {
-        "label": "get_detect_items",
-        "kind": 2,
-        "importPath": "mcd.video",
-        "description": "mcd.video",
-        "peekOfCode": "def get_detect_items(detect_result):\n    taocan_id = conf.huiji_detect_config['current_taocan_id']\n    taocan =  [t for t in conf.huiji_detect_config['taocans'] if t['id'] == taocan_id]\n    if not taocan:\n        raise Exception(f\"can't find taocao with id:{taocan_id}\")\n    taocan = taocan[0]\n    in_tancan_results = [\n        {\n            'id': id,\n            'name': next((f'{cn_name} {en_name}' for m_id,en_name,cn_name in conf.huiji_detect_config['meals_info'] if m_id == id),None),",
+        "peekOfCode": "def get_huiji_detect_items(detect_result):\n    taocan_id = conf.huiji_detect_config['current_taocan_id']\n    taocan =  [t for t in conf.huiji_detect_config['taocans'] if t['id'] == taocan_id]\n    if not taocan:\n        raise Exception(f\"can't find taocao with id:{taocan_id}\")\n    taocan = taocan[0]\n    in_tancan_results = [\n        {\n            'id': id,\n            'name': next((f'{cn_name} {en_name}' for m_id,en_name,cn_name in conf.huiji_detect_config['meals_info'] if m_id == id),None),",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9864,11 +9846,29 @@
         "documentation": {}
     },
     {
-        "label": "models",
-        "kind": 5,
+        "label": "get_model",
+        "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "models = {}\ndef get_model(model_path):\n    if not models.get(model_path):\n        models[model_path] = YOLO(model_path)\n    return models[model_path]\ndef person_detect_frames():\n    model = get_model(conf.person_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        orig_frame = result.orig_img  # 获取原始帧\n        # 编码原始帧为 JPEG",
+        "peekOfCode": "def get_model(model_path):\n    if not models.get(model_path):\n        models[model_path] = YOLO(model_path)\n    return models[model_path]\nget_model(conf.huiji_detect_config['model'])\ndef array2jpg(frame):\n    ret, buffer = cv2.imencode('.jpg', frame)\n    return buffer.tobytes()\ndef changed(detect_result):\n    return detect_result != last_taocan_check_result",
+        "detail": "mcd.video",
+        "documentation": {}
+    },
+    {
+        "label": "array2jpg",
+        "kind": 2,
+        "importPath": "mcd.video",
+        "description": "mcd.video",
+        "peekOfCode": "def array2jpg(frame):\n    ret, buffer = cv2.imencode('.jpg', frame)\n    return buffer.tobytes()\ndef changed(detect_result):\n    return detect_result != last_taocan_check_result",
+        "detail": "mcd.video",
+        "documentation": {}
+    },
+    {
+        "label": "changed",
+        "kind": 2,
+        "importPath": "mcd.video",
+        "description": "mcd.video",
+        "peekOfCode": "def changed(detect_result):\n    return detect_result != last_taocan_check_result",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9896,6 +9896,15 @@
         "importPath": "mcd.video",
         "description": "mcd.video",
         "peekOfCode": "model_result_save_dir = \"analysis_video_output\"\nimport os;os.makedirs(model_result_save_dir,exist_ok=True)\nfrom tests.test_python import test_nn_modules_block\ndef huiji_detect_frames():\n    model = get_model(conf.huiji_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False):\n        orig_frame = result.orig_img  # 获取原始帧\n        # 编码原始帧为 JPEG\n        ret, orig_buffer = cv2.imencode('.jpg', orig_frame)\n        if not ret:",
+        "detail": "mcd.video",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "kind": 5,
+        "importPath": "mcd.video",
+        "description": "mcd.video",
+        "peekOfCode": "models = {}\ndef get_model(model_path):\n    if not models.get(model_path):\n        models[model_path] = YOLO(model_path)\n    return models[model_path]\nget_model(conf.huiji_detect_config['model'])\ndef array2jpg(frame):\n    ret, buffer = cv2.imencode('.jpg', frame)\n    return buffer.tobytes()\ndef changed(detect_result):",
         "detail": "mcd.video",
         "documentation": {}
     },

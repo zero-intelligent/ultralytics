@@ -7,12 +7,8 @@ from pathlib import Path
 from mcd.custom_result import PersonResults
 
 
-models = {}
-
-def get_model(model_path):
-    if not models.get(model_path):
-        models[model_path] = YOLO(model_path)
-    return models[model_path]
+def get_current_person_detect_result():
+    return {id:v['time_s'] for id,v in PersonResults.id_info.items()}
 
 
 def person_detect_frames():
@@ -41,17 +37,7 @@ def person_detect_frames():
         }
 
 
-get_model(conf.huiji_detect_config['model'])
-
-def array2jpg(frame):
-    ret, buffer = cv2.imencode('.jpg', frame)
-    return buffer.tobytes()
-
-
-def changed(detect_result):
-    return detect_result != last_taocan_check_result
-
-def get_detect_items(detect_result):
+def get_huiji_detect_items(detect_result):
     taocan_id = conf.huiji_detect_config['current_taocan_id']
     taocan =  [t for t in conf.huiji_detect_config['taocans'] if t['id'] == taocan_id]
     if not taocan:
@@ -150,3 +136,25 @@ def data_source():
     else:
         return get_ds(conf.person_detect_config)
         
+
+
+models = {}
+
+def get_model(model_path):
+    if not models.get(model_path):
+        models[model_path] = YOLO(model_path)
+    return models[model_path]
+
+
+
+get_model(conf.huiji_detect_config['model'])
+
+def array2jpg(frame):
+    ret, buffer = cv2.imencode('.jpg', frame)
+    return buffer.tobytes()
+
+
+def changed(detect_result):
+    return detect_result != last_taocan_check_result
+
+

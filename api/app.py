@@ -200,14 +200,14 @@ async def start_taocan_analysis():
         next(video_srv.huiji_detect_frames())
     if video_srv.current_taocan_check_result is None:
         raise Exception('启动huji检测失败！')
-    result = video_srv.get_detect_items(video_srv.current_taocan_check_result)
+    result = video_srv.get_huiji_detect_items(video_srv.current_taocan_check_result)
 
     return {
         "code":0,
         "data":{
             "current_taocan_result": result,
-            "input_video":"huiji_video_source_feed",
-            "output_video":"huiji_video_output_feed"
+            "input_video":"video_source_feed",
+            "output_video":"video_output_feed"
         }
     }
 
@@ -216,8 +216,9 @@ async def get_person_analysis():
     return {
         "code":0,
         "data":{
-            "input_video":"person_video_source_feed",
-            "output_video":"person_video_output_feed"
+            "current_person_result":video_srv.get_current_person_detect_result(),
+            "input_video":"video_source_feed",
+            "output_video":"video_output_feed"
         }
     }
 
