@@ -2,6 +2,8 @@ import pytest
 import os
 from fastapi.testclient import TestClient
 from api.app import app  
+from mcd.video import analysis_person_video_file
+from mcd import conf
 
 client = TestClient(app)
 
@@ -116,7 +118,14 @@ def test_upload_file():
 
 
 
+def test_analysis_video_file():
+    conf.current_mode = 'person_detect'
+    conf.person_detect_config['data_source_type'] = 'video_file'
+    conf.person_detect_config['video_file'] = 'uploads/demo.mp4'
+    analysis_person_video_file()
 
+    assert conf.person_detect_config['video_model_output_file'] == 'analysis_video_output/demo.mp4'
+    
 
 def test_get_video_model_output_file():
     response = client.get("/video_model_output_file")

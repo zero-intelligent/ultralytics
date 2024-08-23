@@ -93,7 +93,7 @@ async def demo_person():
 async def get_config():
     configSetting = ConfigSetting()
     configSetting.model = conf.current_mode
-    print(conf.huiji_detect_config)
+    log.info(conf.huiji_detect_config)
     configSetting.taocan_id = conf.huiji_detect_config["current_taocan_id"]
 
     if conf.current_mode == 'huiji_detect':
@@ -196,7 +196,7 @@ async def get_taocans():
 
 @app.get("/switch_taocan")
 async def switch_taocan(taocan_id:int = Query(0, ge=0, le=1)):
-    conf.huiji_detect_config["current_taocan_id"] = conf.huiji_detect_config["taocans"][taocan_id]
+    conf.huiji_detect_config["current_taocan_id"] = taocan_id
     # 此处需要将视频分析的结果和套餐的信息进行合并
     return {
         "code": 0,
@@ -328,6 +328,7 @@ async def single_upload_file(file: UploadFile = File(...)):
         return {"filename": file.filename, "file_size": len(file_content)}
     
     except Exception as e:
+        log.error(e)
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
@@ -378,7 +379,7 @@ async def merge_chunks(identifier, name):
     # for chunk_file in chunk_files:
     #     os.remove(f'{UPLOAD_FILE_PATH}/{chunk_file}')
 
-    print('File saved successfully')
+    log.info('File saved successfully')
 
     # 上传完成后，更新文件信息
     await set_mode_datasource(ModeDataSourceRequest(

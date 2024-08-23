@@ -526,23 +526,10 @@ class Results(SimpleClass):
         if pred_boxes is not None and show_boxes:
             for d in reversed(pred_boxes):
                 c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
-                if not id:
-                    continue
-                if id not in Results.id_info:
-                    Results.id_info[id] = {
-                        "time_s": 0.0,
-                        "path": [[int((float(d.xyxy[0][0]) + float(d.xyxy[0][2]))/2),
-                                  int((float(d.xyxy[0][1]) + float(d.xyxy[0][3]))/2)]]
-                    }
-                else:
-                    Results.id_info[id]['time_s'] += 1.0/20  # 每发现一帧，积累每帧的时间
-                    Results.id_info[id]['path'] += [[int((float(d.xyxy[0][0]) + float(d.xyxy[0][2]))/2),
-                                                     int((float(d.xyxy[0][1]) + float(d.xyxy[0][3]))/2)]] # 添加路径坐标
-                    
-                label = f"id:{id},{int(Results.id_info[id]['time_s'])}s"
-                xy = [int((float(d.xyxy[0][0]) + float(d.xyxy[0][2]))/2)-8,int(d.xyxy[0][1])]
-                annotator.text(xy, label, txt_color=(48,128,20),box_style=True)
-                annotator.routing_path(Results.id_info[id]['path'],color=(48,128,20))
+                name = ("" if id is None else f"id:{id} ") + names[c]
+                label = (f"{name} {conf:.2f}" if conf else name) if labels else None
+                box = d.xyxyxyxy.reshape(-1, 4, 2).squeeze() if is_obb else d.xyxy.squeeze()
+                annotator.box_label(box, label, color=colors(c, True), rotated=is_obb)
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
@@ -565,7 +552,6 @@ class Results(SimpleClass):
 
         return annotator.result()
 
-    id_info = {}
     def show(self, *args, **kwargs):
         """
         Display the image with annotated inference results.
