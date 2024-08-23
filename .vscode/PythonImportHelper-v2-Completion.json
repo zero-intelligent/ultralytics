@@ -474,14 +474,6 @@
         "documentation": {}
     },
     {
-        "label": "StaticFiles",
-        "importPath": "fastapi.staticfiles",
-        "description": "fastapi.staticfiles",
-        "isExtraImport": true,
-        "detail": "fastapi.staticfiles",
-        "documentation": {}
-    },
-    {
         "label": "RequestValidationError",
         "importPath": "fastapi.exceptions",
         "description": "fastapi.exceptions",
@@ -608,14 +600,6 @@
         "isExtraImport": true,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "detail": "mcd.video",
-        "documentation": {}
-    },
-    {
-        "label": "analysis_person_video_file",
-        "importPath": "mcd.video",
-        "description": "mcd.video",
-        "isExtraImport": true,
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -5669,6 +5653,14 @@
         "documentation": {}
     },
     {
+        "label": "test_nn_modules_block",
+        "importPath": "tests.test_python",
+        "description": "tests.test_python",
+        "isExtraImport": true,
+        "detail": "tests.test_python",
+        "documentation": {}
+    },
+    {
         "label": "TMP",
         "importPath": "tests",
         "description": "tests",
@@ -8994,7 +8986,7 @@
         "kind": 6,
         "importPath": "api.app",
         "description": "api.app",
-        "peekOfCode": "class ConfigSetting:\n    model:str\n    camera_type: str\n    camera_local: str\n    camera_url: str\n    taocan_id: int\n    data_file_source:str\n    data_file_target:str\napp = FastAPI()\napp.mount(\"/video_files\", StaticFiles(directory=\"uploads\"), name=\"uploads\")",
+        "peekOfCode": "class ConfigSetting:\n    model:str\n    camera_type: str\n    camera_local: str\n    camera_url: str\n    taocan_id: int\n    data_type: str\n    video_source :str\n    video_target :str\napp = FastAPI()",
         "detail": "api.app",
         "documentation": {}
     },
@@ -9012,7 +9004,7 @@
         "kind": 2,
         "importPath": "api.app",
         "description": "api.app",
-        "peekOfCode": "def pad_frame(frame):\n    return (b'--frame\\r\\n Content-Type: image/jpeg\\r\\n\\r\\n' + frame + b'\\r\\n')\n@app.get('/huiji_video_source_feed')\nasync def huiji_video_source_feed():\n    img_stream = (pad_frame(r[0]) for r in video_srv.huiji_detect_frames())\n    return StreamingResponse(img_stream, media_type=\"multipart/x-mixed-replace; boundary=frame\")\n@app.get('/huiji_video_taocan_detect_result')\nasync def sync_huiji_video_events():\n    if not video_srv.current_taocan_check_result:\n        return {",
+        "peekOfCode": "def pad_frame(frame):\n    return (b'--frame\\r\\n Content-Type: image/jpeg\\r\\n\\r\\n' + frame + b'\\r\\n')\n@app.get('/video_source_feed')\nasync def video_source_feed():\n    if conf.current_mode == 'huiji_detect':\n        img_stream = (pad_frame(r['orig_frame']) for r in video_srv.huiji_detect_frames())\n        return StreamingResponse(img_stream, media_type=\"multipart/x-mixed-replace; boundary=frame\")\n    else:\n        img_stream = (pad_frame(r['tracked_frame']) for r in video_srv.person_detect_frames())\n        return StreamingResponse(img_stream, media_type=\"multipart/x-mixed-replace; boundary=frame\")",
         "detail": "api.app",
         "documentation": {}
     },
@@ -9021,7 +9013,7 @@
         "kind": 5,
         "importPath": "api.app",
         "description": "api.app",
-        "peekOfCode": "app = FastAPI()\napp.mount(\"/video_files\", StaticFiles(directory=\"uploads\"), name=\"uploads\")\napp.mount(\"/analysis_video_output\", StaticFiles(directory=video_srv.model_result_save_dir), name=\"analysis_video_output\")\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=[\"http://pinda.cn\",\"http://127.0.0.1:8000\"],\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],\n)",
+        "peekOfCode": "app = FastAPI()\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=[\"http://pinda.cn\",\"http://127.0.0.1:8000\"],\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],\n)\n@app.get(\"/demo_huiji\")\nasync def demo_huiji():",
         "detail": "api.app",
         "documentation": {}
     },
@@ -9804,16 +9796,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def get_model(model_path):\n    if not models.get(model_path):\n        models[model_path] = YOLO(model_path)\n    return models[model_path]\ndef person_detect_frame(frame):\n    person_detect_model = get_model(conf.person_detect_config['model'])\n    results = person_detect_model.track(frame,classes=[0],verbose=False)\n    results[0].__class__ = PersonResults\n    img = results[0].plot()\n    return (array2jpg(frame),array2jpg(img))",
-        "detail": "mcd.video",
-        "documentation": {}
-    },
-    {
-        "label": "person_detect_frame",
-        "kind": 2,
-        "importPath": "mcd.video",
-        "description": "mcd.video",
-        "peekOfCode": "def person_detect_frame(frame):\n    person_detect_model = get_model(conf.person_detect_config['model'])\n    results = person_detect_model.track(frame,classes=[0],verbose=False)\n    results[0].__class__ = PersonResults\n    img = results[0].plot()\n    return (array2jpg(frame),array2jpg(img))\ndef person_detect_frames():\n    # 打开摄像头\n    cap = cv2.VideoCapture(normal_camera_source())\n    while True:",
+        "peekOfCode": "def get_model(model_path):\n    if not models.get(model_path):\n        models[model_path] = YOLO(model_path)\n    return models[model_path]\ndef person_detect_frames():\n    model = get_model(conf.person_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        orig_frame = result.orig_img  # 获取原始帧\n        # 编码原始帧为 JPEG\n        ret, orig_buffer = cv2.imencode('.jpg', orig_frame)",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9822,7 +9805,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def person_detect_frames():\n    # 打开摄像头\n    cap = cv2.VideoCapture(normal_camera_source())\n    while True:\n        ret, frame = cap.read()\n        if not ret:\n            break\n        yield person_detect_frame(frame)\n    cap.release()\nget_model(conf.huiji_detect_config['model'])",
+        "peekOfCode": "def person_detect_frames():\n    model = get_model(conf.person_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        orig_frame = result.orig_img  # 获取原始帧\n        # 编码原始帧为 JPEG\n        ret, orig_buffer = cv2.imencode('.jpg', orig_frame)\n        if not ret:\n            continue\n        orig_frame = orig_buffer.tobytes()\n        result.__class__ = PersonResults",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9840,7 +9823,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def changed(detect_result):\n    return detect_result != last_taocan_check_result\ndef get_detect_items(detect_result):\n    taocan_id = conf.huiji_detect_config['current_taocan_id']\n    taocan =  [t for t in conf.huiji_detect_config['taocans'] if t['id'] == taocan_id]\n    if not taocan:\n        raise Exception(f\"can't find taocao with id:{taocan_id}\")\n    taocan = taocan[0]\n    def full_name(name):\n        full_names = [f'{i[2]} {i[1]}' for i in conf.huiji_detect_config['meals_info'] if i[1] == name]",
+        "peekOfCode": "def changed(detect_result):\n    return detect_result != last_taocan_check_result\ndef get_detect_items(detect_result):\n    taocan_id = conf.huiji_detect_config['current_taocan_id']\n    taocan =  [t for t in conf.huiji_detect_config['taocans'] if t['id'] == taocan_id]\n    if not taocan:\n        raise Exception(f\"can't find taocao with id:{taocan_id}\")\n    taocan = taocan[0]\n    in_tancan_results = [\n        {",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9849,16 +9832,16 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def get_detect_items(detect_result):\n    taocan_id = conf.huiji_detect_config['current_taocan_id']\n    taocan =  [t for t in conf.huiji_detect_config['taocans'] if t['id'] == taocan_id]\n    if not taocan:\n        raise Exception(f\"can't find taocao with id:{taocan_id}\")\n    taocan = taocan[0]\n    def full_name(name):\n        full_names = [f'{i[2]} {i[1]}' for i in conf.huiji_detect_config['meals_info'] if i[1] == name]\n        return full_names[0] if full_names else name\n    in_tancan_results = [",
+        "peekOfCode": "def get_detect_items(detect_result):\n    taocan_id = conf.huiji_detect_config['current_taocan_id']\n    taocan =  [t for t in conf.huiji_detect_config['taocans'] if t['id'] == taocan_id]\n    if not taocan:\n        raise Exception(f\"can't find taocao with id:{taocan_id}\")\n    taocan = taocan[0]\n    in_tancan_results = [\n        {\n            'id': id,\n            'name': next((f'{cn_name} {en_name}' for m_id,en_name,cn_name in conf.huiji_detect_config['meals_info'] if m_id == id),None),",
         "detail": "mcd.video",
         "documentation": {}
     },
     {
-        "label": "huiji_detect_frame",
+        "label": "huiji_detect_results",
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def huiji_detect_frame(frame):\n    img=None\n    meal_result=None\n    huiji_detect_model = get_model(conf.huiji_detect_config['model'])\n    results = huiji_detect_model(frame,verbose=False) \n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息\n        for obj in result.boxes:\n            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else None",
+        "peekOfCode": "def huiji_detect_results(results):\n    img=None\n    meal_result=None\n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息\n        for obj in result.boxes:\n            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else None\n            if not obj_id:\n                continue",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9867,52 +9850,16 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def huiji_detect_frames():\n    # 打开摄像头\n    cap = cv2.VideoCapture(normal_camera_source())\n    while True:\n        ret, frame = cap.read()\n        if not ret:\n            break\n        yield huiji_detect_frame(frame)\n    cap.release()\nmodel_result_save_dir = \"analysis_video_output\"",
+        "peekOfCode": "def huiji_detect_frames():\n    model = get_model(conf.huiji_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False):\n        orig_frame = result.orig_img  # 获取原始帧\n        # 编码原始帧为 JPEG\n        ret, orig_buffer = cv2.imencode('.jpg', orig_frame)\n        if not ret:\n            continue\n        orig_frame = orig_buffer.tobytes()\n        # 使用生成器同时返回两个流",
         "detail": "mcd.video",
         "documentation": {}
     },
     {
-        "label": "analysis_huiji_video_file",
+        "label": "data_source",
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def analysis_huiji_video_file():\n    conf.huiji_detect_config['video_model_output_file'] = ''\n    datasource = conf.huiji_detect_config['video_file']\n    model = get_model(conf.huiji_detect_config['model'])\n    results = model.track(datasource, save=True, verbose=False, save_dir=model_result_save_dir)\n    conf.huiji_detect_config['video_model_output_file'] = str(Path(model_result_save_dir) / Path(datasource).name)\ndef analysis_person_video_file():\n    conf.person_detect_config['video_model_output_file'] = ''\n    datasource = conf.person_detect_config['video_file']\n    model = get_model(conf.person_detect_config['model'])",
-        "detail": "mcd.video",
-        "documentation": {}
-    },
-    {
-        "label": "analysis_person_video_file",
-        "kind": 2,
-        "importPath": "mcd.video",
-        "description": "mcd.video",
-        "peekOfCode": "def analysis_person_video_file():\n    conf.person_detect_config['video_model_output_file'] = ''\n    datasource = conf.person_detect_config['video_file']\n    model = get_model(conf.person_detect_config['model'])\n    def on_predict_postprocess_end(predictor):\n        for result in predictor.results:\n            result.__class__ = PersonResults\n    model.add_callback(\"on_predict_postprocess_end\", on_predict_postprocess_end)\n    results = model.track(datasource, save=True, verbose=False, save_dir=model_result_save_dir)\n    conf.person_detect_config['video_model_output_file'] = str(Path(model_result_save_dir) / Path(datasource).name)",
-        "detail": "mcd.video",
-        "documentation": {}
-    },
-    {
-        "label": "analysis_video_file",
-        "kind": 2,
-        "importPath": "mcd.video",
-        "description": "mcd.video",
-        "peekOfCode": "def analysis_video_file():\n    if conf.current_mode == \"huiji_detect\":\n        analysis_huiji_video_file()\n    else:\n        analysis_person_video_file()\ndef normal_camera_source():\n    camera_source = conf.huiji_detect_config['camera_source'] if conf.current_mode == \"huiji_detect\" else conf.person_detect_config['camera_source']\n    if str(camera_source).isdigit():\n        camera_source = int(camera_source)\n    return camera_source",
-        "detail": "mcd.video",
-        "documentation": {}
-    },
-    {
-        "label": "normal_camera_source",
-        "kind": 2,
-        "importPath": "mcd.video",
-        "description": "mcd.video",
-        "peekOfCode": "def normal_camera_source():\n    camera_source = conf.huiji_detect_config['camera_source'] if conf.current_mode == \"huiji_detect\" else conf.person_detect_config['camera_source']\n    if str(camera_source).isdigit():\n        camera_source = int(camera_source)\n    return camera_source\ndef capture_frames():\n    # 打开摄像头\n    cap = cv2.VideoCapture(normal_camera_source())\n    while True:\n        ret, frame = cap.read()",
-        "detail": "mcd.video",
-        "documentation": {}
-    },
-    {
-        "label": "capture_frames",
-        "kind": 2,
-        "importPath": "mcd.video",
-        "description": "mcd.video",
-        "peekOfCode": "def capture_frames():\n    # 打开摄像头\n    cap = cv2.VideoCapture(normal_camera_source())\n    while True:\n        ret, frame = cap.read()\n        if not ret:\n            break\n        ret, buffer = cv2.imencode('.jpg', frame)\n        frame = buffer.tobytes()\n        yield frame",
+        "peekOfCode": "def data_source():\n    def get_ds(detect_config):\n        data_source_type = detect_config['data_source_type']\n        if data_source_type == 'camera':\n            data_source = detect_config['camera_source']\n            if str(data_source).isdigit():\n                data_source = int(data_source)\n            return data_source\n        else:\n            return detect_config['video_file']",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9921,7 +9868,7 @@
         "kind": 5,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "models = {}\ndef get_model(model_path):\n    if not models.get(model_path):\n        models[model_path] = YOLO(model_path)\n    return models[model_path]\ndef person_detect_frame(frame):\n    person_detect_model = get_model(conf.person_detect_config['model'])\n    results = person_detect_model.track(frame,classes=[0],verbose=False)\n    results[0].__class__ = PersonResults\n    img = results[0].plot()",
+        "peekOfCode": "models = {}\ndef get_model(model_path):\n    if not models.get(model_path):\n        models[model_path] = YOLO(model_path)\n    return models[model_path]\ndef person_detect_frames():\n    model = get_model(conf.person_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        orig_frame = result.orig_img  # 获取原始帧\n        # 编码原始帧为 JPEG",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9930,7 +9877,7 @@
         "kind": 5,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "last_taocan_check_result = None\ncurrent_taocan_check_result = None\ndef huiji_detect_frame(frame):\n    img=None\n    meal_result=None\n    huiji_detect_model = get_model(conf.huiji_detect_config['model'])\n    results = huiji_detect_model(frame,verbose=False) \n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息",
+        "peekOfCode": "last_taocan_check_result = None\ncurrent_taocan_check_result = None\ndef huiji_detect_results(results):\n    img=None\n    meal_result=None\n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息\n        for obj in result.boxes:\n            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else None",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9939,7 +9886,7 @@
         "kind": 5,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "current_taocan_check_result = None\ndef huiji_detect_frame(frame):\n    img=None\n    meal_result=None\n    huiji_detect_model = get_model(conf.huiji_detect_config['model'])\n    results = huiji_detect_model(frame,verbose=False) \n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息\n        for obj in result.boxes:",
+        "peekOfCode": "current_taocan_check_result = None\ndef huiji_detect_results(results):\n    img=None\n    meal_result=None\n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息\n        for obj in result.boxes:\n            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else None\n            if not obj_id:",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9948,7 +9895,7 @@
         "kind": 5,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "model_result_save_dir = \"analysis_video_output\"\nimport os;os.makedirs(model_result_save_dir,exist_ok=True)\ndef analysis_huiji_video_file():\n    conf.huiji_detect_config['video_model_output_file'] = ''\n    datasource = conf.huiji_detect_config['video_file']\n    model = get_model(conf.huiji_detect_config['model'])\n    results = model.track(datasource, save=True, verbose=False, save_dir=model_result_save_dir)\n    conf.huiji_detect_config['video_model_output_file'] = str(Path(model_result_save_dir) / Path(datasource).name)\ndef analysis_person_video_file():\n    conf.person_detect_config['video_model_output_file'] = ''",
+        "peekOfCode": "model_result_save_dir = \"analysis_video_output\"\nimport os;os.makedirs(model_result_save_dir,exist_ok=True)\nfrom tests.test_python import test_nn_modules_block\ndef huiji_detect_frames():\n    model = get_model(conf.huiji_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False):\n        orig_frame = result.orig_img  # 获取原始帧\n        # 编码原始帧为 JPEG\n        ret, orig_buffer = cv2.imencode('.jpg', orig_frame)\n        if not ret:",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -10056,7 +10003,7 @@
         "kind": 2,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "def test_huiji_video_taocan_detect_result():\n    response = client.get(\"/huiji_video_taocan_detect_result\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 1\ndef test_upload_file():\n    file_path = \"api/demo.mp4\"  # 替换为实际文件路径\n    with open(file_path, \"rb\") as file:\n        response = client.post(\"/single_upload\", files={\"file\": file})\n    assert response.status_code == 200",
+        "peekOfCode": "def test_huiji_video_taocan_detect_result():\n    response = client.get(\"/huiji_video_taocan_detect_result\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 1\ndef test_upload_file():\n    file_path = \"assets/demo.mp4\"  # 替换为实际文件路径\n    with open(file_path, \"rb\") as file:\n        response = client.post(\"/single_upload\", files={\"file\": file})\n    assert response.status_code == 200",
         "detail": "tests.test_appapi",
         "documentation": {}
     },
@@ -10065,25 +10012,16 @@
         "kind": 2,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "def test_upload_file():\n    file_path = \"api/demo.mp4\"  # 替换为实际文件路径\n    with open(file_path, \"rb\") as file:\n        response = client.post(\"/single_upload\", files={\"file\": file})\n    assert response.status_code == 200\n    assert response.json()[\"filename\"] == \"demo.mp4\"\n    assert os.path.exists(\"uploads/demo.mp4\")\n    response = client.get(\"/mode_datasource\")\n    assert response.status_code == 200\n    json =  response.json()",
+        "peekOfCode": "def test_upload_file():\n    file_path = \"assets/demo.mp4\"  # 替换为实际文件路径\n    with open(file_path, \"rb\") as file:\n        response = client.post(\"/single_upload\", files={\"file\": file})\n    assert response.status_code == 200\n    assert response.json()[\"filename\"] == \"demo.mp4\"\n    assert os.path.exists(\"uploads/demo.mp4\")\n    response = client.get(\"/mode_datasource\")\n    assert response.status_code == 200\n    json =  response.json()",
         "detail": "tests.test_appapi",
         "documentation": {}
     },
     {
-        "label": "test_analysis_video_file",
+        "label": "test_video_source_feed",
         "kind": 2,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "def test_analysis_video_file():\n    conf.current_mode = 'person_detect'\n    conf.person_detect_config['data_source_type'] = 'video_file'\n    conf.person_detect_config['video_file'] = 'uploads/demo.mp4'\n    analysis_person_video_file()\n    assert conf.person_detect_config['video_model_output_file'] == 'analysis_video_output/demo.mp4'\ndef test_get_video_model_output_file():\n    response = client.get(\"/video_model_output_file\")\n    assert response.status_code == 404\n    assert response.json() == {\"code\":2,\"msg\": \"File not found\"}",
-        "detail": "tests.test_appapi",
-        "documentation": {}
-    },
-    {
-        "label": "test_get_video_model_output_file",
-        "kind": 2,
-        "importPath": "tests.test_appapi",
-        "description": "tests.test_appapi",
-        "peekOfCode": "def test_get_video_model_output_file():\n    response = client.get(\"/video_model_output_file\")\n    assert response.status_code == 404\n    assert response.json() == {\"code\":2,\"msg\": \"File not found\"}",
+        "peekOfCode": "def test_video_source_feed():\n    response = client.post(\"/mode_datasource\",json={\n        'mode':'huiji_detect',\n        'data_source_type':'video_file',\n        'data_source':'assets/demo.mp4'\n    })\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0\n    assert conf.huiji_detect_config['video_file'] == 'assets/demo.mp4'",
         "detail": "tests.test_appapi",
         "documentation": {}
     },
