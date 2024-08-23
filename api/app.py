@@ -257,7 +257,7 @@ async def video_output_feed():
             event.clear()  # 清除事件，等待下次设置
             yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + latest_frame + b'\r\n')
     
-    return StreamingResponse(generator, media_type="multipart/x-mixed-replace; boundary=frame")
+    return StreamingResponse(generator(), media_type="multipart/x-mixed-replace; boundary=frame")
         
 
 @app.post('/single_upload')
