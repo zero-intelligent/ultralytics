@@ -1,4 +1,5 @@
 import os
+import random
 import time
 import cv2
 from ultralytics import YOLO
@@ -25,6 +26,9 @@ def person_detect_frames():
         frame_count += 1
         global person_detect_frame_rates
         person_detect_frame_rates = frame_count / (time.time() - start_time)
+        
+        if random.random() < conf.drop_rate:  # 按照一定的比率丢侦
+            continue  # 跳过这一帧
         
         orig_frame = result.orig_img  # 获取原始帧
         # 编码原始帧为 JPEG
@@ -56,10 +60,14 @@ def huiji_detect_frames():
     
     model = get_model(conf.huiji_detect_config['model'])
     for result in model.track(source=data_source(), stream=True,verbose=False):
+        
         #计算帧率
         frame_count += 1
         global huiji_detect_frame_rates
         huiji_detect_frame_rates = frame_count / (time.time() - start_time)
+        
+        if random.random() < conf.drop_rate:  # 按照一定的比率丢侦
+            continue  # 跳过这一帧
         
         orig_frame = result.orig_img  # 获取原始帧
 

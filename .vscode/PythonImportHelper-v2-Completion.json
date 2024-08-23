@@ -5620,6 +5620,15 @@
         "documentation": {}
     },
     {
+        "label": "random",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "random",
+        "description": "random",
+        "detail": "random",
+        "documentation": {}
+    },
+    {
         "label": "PersonResults",
         "importPath": "mcd.custom_result",
         "description": "mcd.custom_result",
@@ -6973,15 +6982,6 @@
         "description": "math",
         "isExtraImport": true,
         "detail": "math",
-        "documentation": {}
-    },
-    {
-        "label": "random",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "random",
-        "description": "random",
-        "detail": "random",
         "documentation": {}
     },
     {
@@ -9699,7 +9699,16 @@
         "kind": 5,
         "importPath": "mcd.conf",
         "description": "mcd.conf",
-        "peekOfCode": "current_mode = 'huiji_detect' \nhuiji_detect_config = {\n    # 数据源类型，只可以是: 摄像头(camera)/视频文件(video_file)\n    \"data_source_type\": \"camera\",\n    # 当前摄像头地址，本地为 0,1,2， 网络是 uri 地址\n    \"camera_source\": 0,\n    \"video_file\": \"\",\n    # 当前选中的套餐id\n    \"current_taocan_id\": 0,\n    #当前使用的模型",
+        "peekOfCode": "current_mode = 'huiji_detect' \ndrop_rate = 0.15\nhuiji_detect_config = {\n    # 数据源类型，只可以是: 摄像头(camera)/视频文件(video_file)\n    \"data_source_type\": \"camera\",\n    # 当前摄像头地址，本地为 0,1,2， 网络是 uri 地址\n    \"camera_source\": 0,\n    \"video_file\": \"\",\n    # 当前选中的套餐id\n    \"current_taocan_id\": 0,",
+        "detail": "mcd.conf",
+        "documentation": {}
+    },
+    {
+        "label": "drop_rate",
+        "kind": 5,
+        "importPath": "mcd.conf",
+        "description": "mcd.conf",
+        "peekOfCode": "drop_rate = 0.15\nhuiji_detect_config = {\n    # 数据源类型，只可以是: 摄像头(camera)/视频文件(video_file)\n    \"data_source_type\": \"camera\",\n    # 当前摄像头地址，本地为 0,1,2， 网络是 uri 地址\n    \"camera_source\": 0,\n    \"video_file\": \"\",\n    # 当前选中的套餐id\n    \"current_taocan_id\": 0,\n    #当前使用的模型",
         "detail": "mcd.conf",
         "documentation": {}
     },
