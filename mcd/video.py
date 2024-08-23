@@ -1,4 +1,5 @@
 import os
+import random
 import time
 import cv2
 from ultralytics import YOLO
@@ -25,6 +26,9 @@ def person_detect_frames():
         frame_count += 1
         global person_detect_frame_rates
         person_detect_frame_rates = frame_count / (time.time() - start_time)
+        
+        if random.random() < conf.drop_rate:  # 按照一定的比率丢侦
+            continue  # 跳过这一帧
         
         orig_frame = result.orig_img  # 获取原始帧
         # 编码原始帧为 JPEG
@@ -56,10 +60,14 @@ def huiji_detect_frames():
     
     model = get_model(conf.huiji_detect_config['model'])
     for result in model.track(source=data_source(), stream=True,verbose=False):
+        
         #计算帧率
         frame_count += 1
         global huiji_detect_frame_rates
         huiji_detect_frame_rates = frame_count / (time.time() - start_time)
+        
+        if random.random() < conf.drop_rate:  # 按照一定的比率丢侦
+            continue  # 跳过这一帧
         
         orig_frame = result.orig_img  # 获取原始帧
 
@@ -130,7 +138,7 @@ def huiji_detect_results(results):
     last_taocan_check_result = current_taocan_check_result
     current_taocan_check_result = {k:len(v) for k,v in meal_result.items()}
     if current_taocan_check_result:
-        log.info(f'camera source:{conf.huiji_detect_config['camera_source']} detect results:{current_taocan_check_result}')
+        log.info(f'huiji_detect camera source:{conf.huiji_detect_config['camera_source']} detect results:{current_taocan_check_result}')
     img = results.plot()
 
     return array2jpg(img)
@@ -152,6 +160,20 @@ def data_source():
         return get_ds(conf.person_detect_config)
         
 
+
+def capture_frames():
+    # 打开摄像头
+    cap = cv2.VideoCapture(data_source())
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        ret, buffer = cv2.imencode('.jpg', frame)
+        frame = buffer.tobytes()
+        # yield frame
+
+    cap.release()
+    
 
 models = {}
 

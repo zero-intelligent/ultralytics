@@ -1,8 +1,11 @@
 import pytest
 import os
+import time
 from fastapi.testclient import TestClient
 from api.app import app  
 from mcd import conf
+import mcd.video as video_srv
+from mcd.util import get_video_time
 
 client = TestClient(app)
 
@@ -106,20 +109,42 @@ def test_upload_file():
 
 
 def test_video_source_feed():
+    video_file = 'assets/demo.mp4'
     
     response = client.post("/mode_datasource",json={
         'mode':'huiji_detect',
         'data_source_type':'video_file',
-        'data_source':'assets/demo.mp4'
+        'data_source':video_file
     })
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
 
-    assert conf.huiji_detect_config['video_file'] == 'assets/demo.mp4'
+    assert conf.huiji_detect_config['video_file'] == video_file
     
+    time_s = get_video_time(video_file)
+    
+    print(f'{video_file} time {time_s}s')
+    
+    
+    
+    start = time.time()
+    video_srv.capture_frames()
+    stream_time = time.time() - start
+    
+    print(f'{video_file} capture_frames time {stream_time}s')
+    
+
+    start = time.time()
     response = client.get("/video_source_feed")
     assert response.status_code == 200 
+    
+    stream_time = time.time() - start
+    
+    print(f'{video_file} stream time {stream_time}s')
+    
+    assert time_s * 1.2 > stream_time >= time_s
+    
     
     response = client.get("/get_config")
     assert response.status_code == 200 
