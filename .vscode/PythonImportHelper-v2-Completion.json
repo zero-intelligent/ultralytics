@@ -202,6 +202,14 @@
         "documentation": {}
     },
     {
+        "label": "log",
+        "importPath": "mcd.logger",
+        "description": "mcd.logger",
+        "isExtraImport": true,
+        "detail": "mcd.logger",
+        "documentation": {}
+    },
+    {
         "label": "mcd.video",
         "kind": 6,
         "isExtraImport": true,
@@ -1242,6 +1250,14 @@
         "description": "transformers",
         "isExtraImport": true,
         "detail": "transformers",
+        "documentation": {}
+    },
+    {
+        "label": "YOLO",
+        "importPath": "ultralytics",
+        "description": "ultralytics",
+        "isExtraImport": true,
+        "detail": "ultralytics",
         "documentation": {}
     },
     {
@@ -5781,6 +5797,15 @@
         "documentation": {}
     },
     {
+        "label": "multiprocessing",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "multiprocessing",
+        "description": "multiprocessing",
+        "detail": "multiprocessing",
+        "documentation": {}
+    },
+    {
         "label": "pytest",
         "kind": 6,
         "isExtraImport": true,
@@ -8970,7 +8995,7 @@
         "kind": 6,
         "importPath": "api.app",
         "description": "api.app",
-        "peekOfCode": "class ModeDataSourceRequest(BaseModel):\n    mode: str = Field(default=\"huiji_detect\", enum=[\"huiji_detect\", \"person_detect\"])\n    data_source_type: str = Field(default=\"camera\", enum=[\"camera\", \"video_file\"])\n    data_source: str = Field(..., min_length=1, description=\"数据源不能为空\")\n@app.post(\"/mode_datasource\")\nasync def set_mode_datasource(request: ModeDataSourceRequest):\n    conf.current_mode = request.mode\n    def update_datasource(detect_config):\n        detect_config['data_source_type'] = request.data_source_type\n        if request.data_source_type == 'camera':",
+        "peekOfCode": "class ModeDataSourceRequest(BaseModel):\n    mode: str = Field(default=\"huiji_detect\", enum=[\"huiji_detect\", \"person_detect\"])\n    data_source_type: str = Field(default=\"camera\", enum=[\"camera\", \"video_file\"])\n    data_source: str = Field(..., min_length=1, description=\"数据源不能为空\")\n@app.post(\"/mode_datasource\")\nasync def set_mode_datasource(request: ModeDataSourceRequest):\n    conf.current_mode = request.mode\n    detect_config = conf.current_detect_config()\n    detect_config['data_source_type'] = request.data_source_type\n    if request.data_source_type == 'camera':",
         "detail": "api.app",
         "documentation": {}
     },
@@ -8979,7 +9004,7 @@
         "kind": 2,
         "importPath": "api.app",
         "description": "api.app",
-        "peekOfCode": "def pub_and_pad(event,r):\n    latest_frame[conf.current_mode] = r['tracked_frame']\n    event.set()  # 设置事件，通知订阅者\n    return (b'--frame\\r\\n Content-Type: image/jpeg\\r\\n\\r\\n' + r['orig_frame'] + b'\\r\\n')\n@app.get('/video_source_feed')\nasync def video_source_feed(mode:str = Query(default='huiji_detect',enum=['huiji_detect','person_detect'])):\n    if conf.current_mode != mode:\n        log.error(f\"conf.current_mode != '{mode}\")\n        raise HTTPException(500,f\"conf.current_mode != '{mode}\")\n    if mode == 'huiji_detect':",
+        "peekOfCode": "def pub_and_pad(event,r):\n    latest_frame[conf.current_mode] = r['tracked_frame']\n    event.set()  # 设置事件，通知订阅者\n    return (b'--frame\\r\\n Content-Type: image/jpeg\\r\\n\\r\\n' + r['orig_frame'] + b'\\r\\n')\n@app.get('/video_source_feed')\nasync def video_source_feed(mode:str             = Query(default='huiji_detect',enum=['huiji_detect','person_detect']),\n                            data_source_type:str = Query(default='camera',enum=['camera','video_file'])):\n    if conf.current_mode != mode:\n        log.error(f\"conf.current_mode != '{mode}'\")\n        raise HTTPException(500,f\"conf.current_mode != '{mode}'\")",
         "detail": "api.app",
         "documentation": {}
     },
@@ -9686,6 +9711,15 @@
         "documentation": {}
     },
     {
+        "label": "current_detect_config",
+        "kind": 2,
+        "importPath": "mcd.conf",
+        "description": "mcd.conf",
+        "peekOfCode": "def current_detect_config():\n    if current_mode == 'huiji_detect':\n        return huiji_detect_config\n    else:\n        return person_detect_config\nconfig_file = 'mcd_conf.json'\ndef load_config():\n    if os.path.exists(config_file):\n        with open(config_file, 'r',encoding='utf-8') as config_file1:\n            conf = json.load(config_file1)",
+        "detail": "mcd.conf",
+        "documentation": {}
+    },
+    {
         "label": "load_config",
         "kind": 2,
         "importPath": "mcd.conf",
@@ -9708,7 +9742,7 @@
         "kind": 5,
         "importPath": "mcd.conf",
         "description": "mcd.conf",
-        "peekOfCode": "current_mode = 'huiji_detect' \ndrop_rate = 0.15\nhuiji_detect_config = {\n    # 数据源类型，只可以是: 摄像头(camera)/视频文件(video_file)\n    \"data_source_type\": \"camera\",\n    # 当前摄像头地址，本地为 0,1,2， 网络是 uri 地址\n    \"camera_source\": 0,\n    \"video_file\": \"\",\n    # 当前选中的套餐id\n    \"current_taocan_id\": 0,",
+        "peekOfCode": "current_mode = 'huiji_detect' \ndrop_rate = 0.01\nhuiji_detect_config = {\n    # 数据源类型，只可以是: 摄像头(camera)/视频文件(video_file)\n    \"data_source_type\": \"camera\",\n    # 当前摄像头地址，本地为 0,1,2， 网络是 uri 地址\n    \"camera_source\": 0,\n    \"video_file\": \"\",\n    # 当前选中的套餐id\n    \"current_taocan_id\": 0,",
         "detail": "mcd.conf",
         "documentation": {}
     },
@@ -9717,7 +9751,7 @@
         "kind": 5,
         "importPath": "mcd.conf",
         "description": "mcd.conf",
-        "peekOfCode": "drop_rate = 0.15\nhuiji_detect_config = {\n    # 数据源类型，只可以是: 摄像头(camera)/视频文件(video_file)\n    \"data_source_type\": \"camera\",\n    # 当前摄像头地址，本地为 0,1,2， 网络是 uri 地址\n    \"camera_source\": 0,\n    \"video_file\": \"\",\n    # 当前选中的套餐id\n    \"current_taocan_id\": 0,\n    #当前使用的模型",
+        "peekOfCode": "drop_rate = 0.01\nhuiji_detect_config = {\n    # 数据源类型，只可以是: 摄像头(camera)/视频文件(video_file)\n    \"data_source_type\": \"camera\",\n    # 当前摄像头地址，本地为 0,1,2， 网络是 uri 地址\n    \"camera_source\": 0,\n    \"video_file\": \"\",\n    # 当前选中的套餐id\n    \"current_taocan_id\": 0,\n    #当前使用的模型",
         "detail": "mcd.conf",
         "documentation": {}
     },
@@ -9735,7 +9769,7 @@
         "kind": 5,
         "importPath": "mcd.conf",
         "description": "mcd.conf",
-        "peekOfCode": "person_detect_config = {\n    # 数据源类型，只可以是: 摄像头(camera)/视频文件(video_file)\n    \"data_source_type\": \"camera\",\n    # 当前摄像头地址，本地为 0,1,2， 网络是 uri 地址\n    \"camera_source\": 0,\n    \"video_file\": \"\",\n    \"model\": \"yolov8n.pt\"\n}\nconfig_file = 'mcd_conf.json'\ndef load_config():",
+        "peekOfCode": "person_detect_config = {\n    # 数据源类型，只可以是: 摄像头(camera)/视频文件(video_file)\n    \"data_source_type\": \"camera\",\n    # 当前摄像头地址，本地为 0,1,2， 网络是 uri 地址\n    \"camera_source\": 0,\n    \"video_file\": \"\",\n    \"model\": \"yolov8n.pt\"\n}\ndef current_detect_config():\n    if current_mode == 'huiji_detect':",
         "detail": "mcd.conf",
         "documentation": {}
     },
@@ -9816,7 +9850,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def get_current_person_detect_result():\n    return {id:v['time_s'] for id,v in PersonResults.id_info.items()}\ndef person_detect_frames():\n    model = get_model(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        #计算帧率\n        frames_info[conf.current_mode]['frame_count'] += 1\n        frames_info[conf.current_mode]['frame_rate'] = frames_info[conf.current_mode]['frame_count'] / (time.time() - start_time)",
+        "peekOfCode": "def get_current_person_detect_result():\n    return {id:int(v['time_s']) for id,v in PersonResults.id_info.items()}\ndef person_detect_frames():\n    global running_state\n    running_state = 'loading'\n    model = YOLO(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False, classes=[0]):",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9825,7 +9859,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def person_detect_frames():\n    model = get_model(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        #计算帧率\n        frames_info[conf.current_mode]['frame_count'] += 1\n        frames_info[conf.current_mode]['frame_rate'] = frames_info[conf.current_mode]['frame_count'] / (time.time() - start_time)\n        if random.random() < conf.drop_rate:  # 按照一定的比率丢侦\n            continue  # 跳过这一帧",
+        "peekOfCode": "def person_detect_frames():\n    global running_state\n    running_state = 'loading'\n    model = YOLO(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False, classes=[0]):\n        running_state = 'running'\n        #计算帧率",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9834,7 +9868,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    model = get_model(conf.huiji_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False):\n        #计算帧率\n        frames_info[conf.current_mode]['frame_count'] += 1\n        frames_info[conf.current_mode]['frame_rate'] = frames_info[conf.current_mode]['frame_count'] / (time.time() - start_time)\n        if random.random() < conf.drop_rate:  # 按照一定的比率丢侦\n            continue  # 跳过这一帧",
+        "peekOfCode": "def huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    global running_state\n    running_state = 'loading'\n    model = YOLO(conf.huiji_detect_config['model'])\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False):\n        running_state = 'running'\n        #计算帧率",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9843,7 +9877,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def get_huiji_detect_items(detect_result):\n    if not detect_result:\n        return []\n    taocan_id = conf.huiji_detect_config['current_taocan_id']\n    taocan =  [t for t in conf.huiji_detect_config['taocans'] if t['id'] == taocan_id]\n    if not taocan:\n        raise Exception(f\"can't find taocao with id:{taocan_id}\")\n    taocan = taocan[0]\n    in_tancan_results = [\n        {",
+        "peekOfCode": "def get_huiji_detect_items(detect_result):\n    if not detect_result:\n        detect_result = {}\n    taocan_id = conf.huiji_detect_config['current_taocan_id']\n    taocan =  [t for t in conf.huiji_detect_config['taocans'] if t['id'] == taocan_id]\n    if not taocan:\n        raise Exception(f\"can't find taocao with id:{taocan_id}\")\n    taocan = taocan[0]\n    in_tancan_results = [\n        {",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9852,7 +9886,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def huiji_detect_results(results):\n    img=None\n    meal_result=None\n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息\n        for obj in result.boxes:\n            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else None\n            if not obj_id:\n                continue",
+        "peekOfCode": "def huiji_detect_results(results):\n    img=None\n    meal_result=None\n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息\n        for obj in result.boxes:\n            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else 0\n            obj_class = int(obj.cls.item())\n            if obj_class not in meal_result:",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9861,7 +9895,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def data_source():\n    def get_ds(detect_config):\n        data_source_type = detect_config['data_source_type']\n        if data_source_type == 'camera':\n            data_source = detect_config['camera_source']\n            if str(data_source).isdigit():\n                data_source = int(data_source)\n            return data_source\n        else:\n            return detect_config['video_file']",
+        "peekOfCode": "def data_source():\n    detect_config = conf.current_detect_config()\n    data_source_type = detect_config['data_source_type']\n    if data_source_type == 'camera':\n        data_source = detect_config['camera_source']\n        if str(data_source).isdigit():\n            data_source = int(data_source)\n        return data_source\n    else:\n        return detect_config['video_file']",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9879,7 +9913,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def get_model(model_path):\n    if not models.get(model_path):\n        models[model_path] = YOLO(model_path)\n    return models[model_path]\nget_model(conf.huiji_detect_config['model'])\ndef array2jpg(frame):\n    ret, buffer = cv2.imencode('.jpg', frame)\n    return buffer.tobytes()\ndef changed(detect_result):\n    return detect_result != last_taocan_check_result",
+        "peekOfCode": "def get_model(model_path):\n    if not models.get(model_path):\n        models[model_path] = YOLO(model_path)\n    return models[model_path]\ndef array2jpg(frame):\n    ret, buffer = cv2.imencode('.jpg', frame)\n    return buffer.tobytes()\ndef changed(detect_result):\n    return detect_result != last_taocan_check_result",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9911,11 +9945,20 @@
         "documentation": {}
     },
     {
+        "label": "running_state",
+        "kind": 5,
+        "importPath": "mcd.video",
+        "description": "mcd.video",
+        "peekOfCode": "running_state = 'ready'  #运行状态：准备（ready), 装载中(loading), 运行中(running), 结束（finished)\ndef huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    global running_state\n    running_state = 'loading'\n    model = YOLO(conf.huiji_detect_config['model'])\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False):\n        running_state = 'running'",
+        "detail": "mcd.video",
+        "documentation": {}
+    },
+    {
         "label": "last_taocan_check_result",
         "kind": 5,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "last_taocan_check_result = None\ncurrent_taocan_check_result = None\ndef huiji_detect_results(results):\n    img=None\n    meal_result=None\n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息\n        for obj in result.boxes:\n            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else None",
+        "peekOfCode": "last_taocan_check_result = None\ncurrent_taocan_check_result = None\ndef huiji_detect_results(results):\n    img=None\n    meal_result=None\n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息\n        for obj in result.boxes:\n            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else 0",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9924,7 +9967,7 @@
         "kind": 5,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "current_taocan_check_result = None\ndef huiji_detect_results(results):\n    img=None\n    meal_result=None\n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息\n        for obj in result.boxes:\n            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else None\n            if not obj_id:",
+        "peekOfCode": "current_taocan_check_result = None\ndef huiji_detect_results(results):\n    img=None\n    meal_result=None\n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息\n        for obj in result.boxes:\n            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else 0\n            obj_class = int(obj.cls.item())",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9933,7 +9976,7 @@
         "kind": 5,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "models = {}\ndef get_model(model_path):\n    if not models.get(model_path):\n        models[model_path] = YOLO(model_path)\n    return models[model_path]\nget_model(conf.huiji_detect_config['model'])\ndef array2jpg(frame):\n    ret, buffer = cv2.imencode('.jpg', frame)\n    return buffer.tobytes()\ndef changed(detect_result):",
+        "peekOfCode": "models = {}\ndef get_model(model_path):\n    if not models.get(model_path):\n        models[model_path] = YOLO(model_path)\n    return models[model_path]\ndef array2jpg(frame):\n    ret, buffer = cv2.imencode('.jpg', frame)\n    return buffer.tobytes()\ndef changed(detect_result):\n    return detect_result != last_taocan_check_result",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9974,6 +10017,15 @@
         "documentation": {}
     },
     {
+        "label": "test_yolo",
+        "kind": 2,
+        "importPath": "tests.test_appapi",
+        "description": "tests.test_appapi",
+        "peekOfCode": "def test_yolo():\n    model = YOLO(\"yolov8n.pt\")\n    results = model.track(source=0, stream=True,verbose=False)\n    results = model.track(source='uploads/demo.mp4', stream=True,verbose=False)\n    log.info(\"end.\")\ndef test_switch_mode():\n    response = client.get(\"/switch_mode?mode=huiji_detect\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0",
+        "detail": "tests.test_appapi",
+        "documentation": {}
+    },
+    {
         "label": "test_switch_mode",
         "kind": 2,
         "importPath": "tests.test_appapi",
@@ -10005,7 +10057,7 @@
         "kind": 2,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "def test_taocans():\n    response = client.get(\"/taocans\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0\n    assert len(json['data']['taocans']) == 2\n    assert json['data']['current_taocan_id'] == 0\ndef test_switch_taocan():\n    response = client.get(\"/switch_taocan?taocan_id=1\")\n    assert response.status_code == 200",
+        "peekOfCode": "def test_taocans():\n    response = client.get(\"/taocans\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0\n    assert len(json['data']['taocans']) == 2\n    assert json['data']['current_taocan_id'] == 0\ndef test_switch_taocan():\n    response = client.post(\"/mode_datasource\",json={\n        'mode':'huiji_detect',",
         "detail": "tests.test_appapi",
         "documentation": {}
     },
@@ -10014,25 +10066,25 @@
         "kind": 2,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "def test_switch_taocan():\n    response = client.get(\"/switch_taocan?taocan_id=1\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0\ndef test_taocan_analysis():\n    response = client.get(\"/taocan_analysis\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0",
+        "peekOfCode": "def test_switch_taocan():\n    response = client.post(\"/mode_datasource\",json={\n        'mode':'huiji_detect',\n        'data_source_type':'camera',\n        'data_source':'0'\n    })\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0\n    response = client.get(\"/switch_taocan?taocan_id=1\")",
         "detail": "tests.test_appapi",
         "documentation": {}
     },
     {
-        "label": "test_taocan_analysis",
+        "label": "http_get",
         "kind": 2,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "def test_taocan_analysis():\n    response = client.get(\"/taocan_analysis\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0\n    results = json['data']['current_taocan_result']\n    print(results)\n    assert len(results) > 0\n    assert 'id' in results[0].keys()\n    assert 'name' in results[0].keys()",
+        "peekOfCode": "def http_get(url):\n    response = client.get(url)\n    assert response.status_code == 200\ndef test_get_config():\n    response = client.post(\"/mode_datasource\",json={\n        'mode':'huiji_detect',\n        'data_source_type':'video_file',\n        'data_source':'assets/demo_short.mp4'\n    })\n    assert response.status_code == 200",
         "detail": "tests.test_appapi",
         "documentation": {}
     },
     {
-        "label": "test_person_analysis",
+        "label": "test_get_config",
         "kind": 2,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "def test_person_analysis():\n    response = client.get(\"/person_analysis\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0\ndef test_huiji_video_taocan_detect_result():\n    response = client.get(\"/huiji_video_taocan_detect_result\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 1",
+        "peekOfCode": "def test_get_config():\n    response = client.post(\"/mode_datasource\",json={\n        'mode':'huiji_detect',\n        'data_source_type':'video_file',\n        'data_source':'assets/demo_short.mp4'\n    })\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0\n    response = client.get(\"/get_config\")",
         "detail": "tests.test_appapi",
         "documentation": {}
     },
@@ -10041,7 +10093,7 @@
         "kind": 2,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "def test_huiji_video_taocan_detect_result():\n    response = client.get(\"/huiji_video_taocan_detect_result\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 1\ndef test_upload_file():\n    file_path = \"assets/demo.mp4\"  # 替换为实际文件路径\n    with open(file_path, \"rb\") as file:\n        response = client.post(\"/single_upload\", files={\"file\": file})\n    assert response.status_code == 200",
+        "peekOfCode": "def test_huiji_video_taocan_detect_result():\n    response = client.get(\"/huiji_video_taocan_detect_result\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 1\ndef test_upload_file():\n    file_path = \"assets/demo_short.mp4\"  # 替换为实际文件路径\n    with open(file_path, \"rb\") as file:\n        response = client.post(\"/single_upload\", files={\"file\": file})\n    assert response.status_code == 200",
         "detail": "tests.test_appapi",
         "documentation": {}
     },
@@ -10050,7 +10102,7 @@
         "kind": 2,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "def test_upload_file():\n    file_path = \"assets/demo.mp4\"  # 替换为实际文件路径\n    with open(file_path, \"rb\") as file:\n        response = client.post(\"/single_upload\", files={\"file\": file})\n    assert response.status_code == 200\n    assert response.json()[\"filename\"] == \"demo.mp4\"\n    assert os.path.exists(\"uploads/demo.mp4\")\n    response = client.get(\"/mode_datasource\")\n    assert response.status_code == 200\n    json =  response.json()",
+        "peekOfCode": "def test_upload_file():\n    file_path = \"assets/demo_short.mp4\"  # 替换为实际文件路径\n    with open(file_path, \"rb\") as file:\n        response = client.post(\"/single_upload\", files={\"file\": file})\n    assert response.status_code == 200\n    assert response.json()[\"filename\"] == \"demo_short.mp4\"\n    assert os.path.exists(\"uploads/demo_short.mp4\")\n    response = client.get(\"/mode_datasource\")\n    assert response.status_code == 200\n    json =  response.json()",
         "detail": "tests.test_appapi",
         "documentation": {}
     },
@@ -10059,7 +10111,7 @@
         "kind": 2,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "def test_video_source_feed():\n    video_file = 'assets/demo.mp4'\n    response = client.post(\"/mode_datasource\",json={\n        'mode':'huiji_detect',\n        'data_source_type':'video_file',\n        'data_source':video_file\n    })\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0",
+        "peekOfCode": "def test_video_source_feed():\n    # from pyinstrument import Profiler\n    # profiler = Profiler()\n    # profiler.start()\n    video_file = 'assets/demo_short.mp4'\n    response = client.post(\"/mode_datasource\",json={\n        'mode':'huiji_detect',\n        'data_source_type':'video_file',\n        'data_source':video_file\n    })",
         "detail": "tests.test_appapi",
         "documentation": {}
     },
@@ -10068,7 +10120,7 @@
         "kind": 5,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "client = TestClient(app)\ndef test_switch_mode():\n    response = client.get(\"/switch_mode?mode=huiji_detect\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0\ndef test_available_cameras():\n    response = client.get(\"/available_cameras\")\n    assert response.status_code == 200\n    json =  response.json()",
+        "peekOfCode": "client = TestClient(app)\ndef test_yolo():\n    model = YOLO(\"yolov8n.pt\")\n    results = model.track(source=0, stream=True,verbose=False)\n    results = model.track(source='uploads/demo.mp4', stream=True,verbose=False)\n    log.info(\"end.\")\ndef test_switch_mode():\n    response = client.get(\"/switch_mode?mode=huiji_detect\")\n    assert response.status_code == 200\n    json =  response.json()",
         "detail": "tests.test_appapi",
         "documentation": {}
     },
