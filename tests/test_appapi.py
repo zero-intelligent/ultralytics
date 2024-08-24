@@ -1,11 +1,12 @@
 import asyncio
-import threading
+import multiprocessing
 import pytest
 import os
 import time
 from fastapi.testclient import TestClient
 from api.app import app  
 from mcd import conf
+from mcd.logger import log
 import mcd.video as video_srv
 from mcd.util import get_video_time
 
@@ -73,13 +74,15 @@ def test_switch_taocan():
     assert json['code'] == 0
     assert json['data']['taocan_id'] == 1
     
-    
+def http_get(url):
+    response = client.get(url)
+    assert response.status_code == 200
     
 def test_get_config():
     response = client.post("/mode_datasource",json={
         'mode':'huiji_detect',
-        'data_source_type':'camera',
-        'data_source':'0'
+        'data_source_type':'video_file',
+        'data_source':'assets/demo_short.mp4'
     })
     assert response.status_code == 200
     json =  response.json()
@@ -90,25 +93,28 @@ def test_get_config():
     json =  response.json()
     assert json['code'] == 0
     
-    thread1 = threading.Thread(target=lambda: client.get(json['data']['video_source']))
-    thread2 = threading.Thread(target=lambda: client.get(json['data']['video_target']))
+    process1 = multiprocessing.Process(name="video_source",target=http_get,args=(json['data']['video_source'],),daemon=True)
+    process2 = multiprocessing.Process(name="video_target",target=http_get,args=(json['data']['video_target'],),daemon=True)
     
-    thread1.start()
-    thread2.start()
+    process1.start()
+    process2.start()
     
-    # 休息10秒，等到摄像头启动, 获取到套餐检测结果
+    # 休息10秒，等待yolo启动, 获取到套餐检测结果
+    total_seconds = 0
     while True:
-        print(f"wait 5s to 等到摄像头启动, 获取到套餐检测结果.")
-        time.sleep(5)
+        log.info(f"wait 2s to 等到摄像头启动, 获取到套餐检测结果.")
+        time.sleep(2)
+        total_seconds += 2
         response = client.get("/get_config")
         assert response.status_code == 200
         json =  response.json()
         assert json['code'] == 0
-        if len(json['data']['current_taocan_result']) > 0:
+        if len(json['data']['current_taocan_result']) > 0 and total_seconds < 60:
             break
+        assert total_seconds < 60000 or len(json['data']['current_taocan_result']) > 0, f"超过 {total_seconds}s 依然未获取到检测结果，测试失败!"
     
     results = json['data']['current_taocan_result']
-    print(results)
+    log.info(results)
     assert len(results) > 0
     assert 'id' in results[0].keys()
     assert 'name' in results[0].keys()
@@ -121,6 +127,9 @@ def test_get_config():
     else:
         assert results[0]['real_count'] >= 1
         
+    process1.terminate()
+    process2.terminate()
+        
 
 def test_huiji_video_taocan_detect_result():
     response = client.get("/huiji_video_taocan_detect_result")
@@ -131,19 +140,19 @@ def test_huiji_video_taocan_detect_result():
 
 
 def test_upload_file():
-    file_path = "assets/demo.mp4"  # 替换为实际文件路径
+    file_path = "assets/demo_short.mp4"  # 替换为实际文件路径
     with open(file_path, "rb") as file:
         response = client.post("/single_upload", files={"file": file})
     assert response.status_code == 200
-    assert response.json()["filename"] == "demo.mp4"
-    assert os.path.exists("uploads/demo.mp4")
+    assert response.json()["filename"] == "demo_short.mp4"
+    assert os.path.exists("uploads/demo_short.mp4")
 
     response = client.get("/mode_datasource")
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
     assert json['data']['data_source_type'] == 'video_file'
-    assert json['data']['data_source'] == 'uploads/demo.mp4'
+    assert json['data']['data_source'] == 'uploads/demo_short.mp4'
 
 
 
@@ -152,7 +161,7 @@ def test_video_source_feed():
     # profiler = Profiler()
     # profiler.start()
     
-    video_file = 'assets/demo.mp4'
+    video_file = 'assets/demo_short.mp4'
     
     response = client.post("/mode_datasource",json={
         'mode':'huiji_detect',
@@ -167,7 +176,7 @@ def test_video_source_feed():
     
     time_s = get_video_time(video_file)
     
-    print(f'{video_file} time {time_s}s')
+    log.info(f'{video_file} time {time_s}s')
     
     
     
@@ -175,7 +184,7 @@ def test_video_source_feed():
     # video_srv.capture_frames()
     stream_time = time.time() - start
     
-    print(f'{video_file} capture_frames time {stream_time}s')
+    log.info(f'{video_file} capture_frames time {stream_time}s')
     
 
     for f in video_srv.huiji_detect_frames():

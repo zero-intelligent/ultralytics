@@ -5,7 +5,7 @@ from mcd.logger import log
 # 当前的分析模式 套餐汇集分析：huiji_detect, 大厅人员检测分析：person_detect
 current_mode = 'huiji_detect' 
 
-drop_rate = 0.15
+drop_rate = 0.01
 
 huiji_detect_config = {
 
@@ -81,8 +81,12 @@ person_detect_config = {
 
 }
 
-
-
+def current_detect_config():
+    if current_mode == 'huiji_detect':
+        return huiji_detect_config
+    else:
+        return person_detect_config
+    
 config_file = 'mcd_conf.json'
 
 def load_config():

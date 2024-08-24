@@ -13,12 +13,16 @@ def get_current_person_detect_result():
 
 
 def person_detect_frames():
+    global running_state
+    running_state = 'loading'
+    
     model = get_model(conf.person_detect_config['model'])
     
     # 开始时间
     start_time = time.time()
 
     for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):
+        running_state = 'running'
         #计算帧率
         frames_info[conf.current_mode]['frame_count'] += 1
         frames_info[conf.current_mode]['frame_rate'] = frames_info[conf.current_mode]['frame_count'] / (time.time() - start_time)
@@ -46,6 +50,7 @@ def person_detect_frames():
             "orig_frame": orig_frame,
             "tracked_frame": tracked_frame
         }
+    running_state = 'finished'
 
 frames_info = {
     "huiji_detect": {
@@ -57,14 +62,18 @@ frames_info = {
         "frame_rate": 0
     }
 }
+running_state = 'ready'  #运行状态：准备（ready), 装载中(loading), 运行中(running), 结束（finished)
 
 def huiji_detect_frames():
      # 开始时间
     start_time = time.time()
+    global running_state
+    running_state = 'loading'
     
     model = get_model(conf.huiji_detect_config['model'])
     for result in model.track(source=data_source(), stream=True,verbose=False):
         
+        running_state = 'running'
         #计算帧率
         frames_info[conf.current_mode]['frame_count'] += 1
         frames_info[conf.current_mode]['frame_rate'] = frames_info[conf.current_mode]['frame_count'] / (time.time() - start_time)
@@ -85,10 +94,11 @@ def huiji_detect_frames():
             "orig_frame": orig_frame,
             "tracked_frame": huiji_detect_results(result)
         }
+    running_state = 'finished'
         
 def get_huiji_detect_items(detect_result):
     if not detect_result:
-        return []
+        detect_result = {}
     taocan_id = conf.huiji_detect_config['current_taocan_id']
     taocan =  [t for t in conf.huiji_detect_config['taocans'] if t['id'] == taocan_id]
     if not taocan:
@@ -118,7 +128,10 @@ def get_huiji_detect_items(detect_result):
             'is_in_taocan': False
         } for id,count in detect_result.items() if id not in [i[0] for i in taocan['items']]
     ]
-    return in_tancan_results + out_tancan_results
+    has_incorrect = any([r['lack_item'] or r['lack_count'] for r in in_tancan_results]) or len(out_tancan_results) > 0
+    result_state = 'incorrect' if has_incorrect else 'correct'
+    results = in_tancan_results + out_tancan_results
+    return result_state,results
 
 
 last_taocan_check_result = None
@@ -131,9 +144,7 @@ def huiji_detect_results(results):
     for result in results:
         # 提取每个检测结果的 id 和 class 信息
         for obj in result.boxes:
-            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else None
-            if not obj_id:
-                continue
+            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else 0
             obj_class = int(obj.cls.item())
             if obj_class not in meal_result:
                 meal_result[obj_class]=set()
@@ -144,6 +155,8 @@ def huiji_detect_results(results):
     current_taocan_check_result = {k:len(v) for k,v in meal_result.items()}
     # if current_taocan_check_result:
     #     log.info(f'huiji_detect camera source:{conf.huiji_detect_config['camera_source']} detect results:{current_taocan_check_result}')
+    # else:
+    #     pass
     img = results.plot()
 
     return array2jpg(img)
@@ -186,10 +199,6 @@ def get_model(model_path):
     if not models.get(model_path):
         models[model_path] = YOLO(model_path)
     return models[model_path]
-
-
-
-get_model(conf.huiji_detect_config['model'])
 
 def array2jpg(frame):
     ret, buffer = cv2.imencode('.jpg', frame)
