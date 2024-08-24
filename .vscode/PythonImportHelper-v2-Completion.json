@@ -1301,6 +1301,14 @@
         "documentation": {}
     },
     {
+        "label": "YOLO",
+        "importPath": "ultralytics",
+        "description": "ultralytics",
+        "isExtraImport": true,
+        "detail": "ultralytics",
+        "documentation": {}
+    },
+    {
         "label": "Explorer",
         "importPath": "ultralytics",
         "description": "ultralytics",
@@ -8996,7 +9004,7 @@
         "kind": 2,
         "importPath": "api.app",
         "description": "api.app",
-        "peekOfCode": "def pub_and_pad(event,r):\n    latest_frame[conf.current_mode] = r['tracked_frame']\n    event.set()  # 设置事件，通知订阅者\n    return (b'--frame\\r\\n Content-Type: image/jpeg\\r\\n\\r\\n' + r['orig_frame'] + b'\\r\\n')\n@app.get('/video_source_feed')\nasync def video_source_feed(mode:str             = Query(default='huiji_detect',enum=['huiji_detect','person_detect']),\n                            data_source_type:str = Query(default='camera',enum=['camera','video_file'])):\n    if conf.current_mode != mode:\n        log.error(f\"conf.current_mode != '{mode}\")\n        raise HTTPException(500,f\"conf.current_mode != '{mode}\")",
+        "peekOfCode": "def pub_and_pad(event,r):\n    latest_frame[conf.current_mode] = r['tracked_frame']\n    event.set()  # 设置事件，通知订阅者\n    return (b'--frame\\r\\n Content-Type: image/jpeg\\r\\n\\r\\n' + r['orig_frame'] + b'\\r\\n')\n@app.get('/video_source_feed')\nasync def video_source_feed(mode:str             = Query(default='huiji_detect',enum=['huiji_detect','person_detect']),\n                            data_source_type:str = Query(default='camera',enum=['camera','video_file'])):\n    if conf.current_mode != mode:\n        log.error(f\"conf.current_mode != '{mode}'\")\n        raise HTTPException(500,f\"conf.current_mode != '{mode}'\")",
         "detail": "api.app",
         "documentation": {}
     },
@@ -9842,7 +9850,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def get_current_person_detect_result():\n    return {id:v['time_s'] for id,v in PersonResults.id_info.items()}\ndef person_detect_frames():\n    global running_state\n    running_state = 'loading'\n    model = get_model(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False, classes=[0]):",
+        "peekOfCode": "def get_current_person_detect_result():\n    return {id:int(v['time_s']) for id,v in PersonResults.id_info.items()}\ndef person_detect_frames():\n    global running_state\n    running_state = 'loading'\n    model = YOLO(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False, classes=[0]):",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9851,7 +9859,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def person_detect_frames():\n    global running_state\n    running_state = 'loading'\n    model = get_model(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False, classes=[0]):\n        running_state = 'running'\n        #计算帧率",
+        "peekOfCode": "def person_detect_frames():\n    global running_state\n    running_state = 'loading'\n    model = YOLO(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False, classes=[0]):\n        running_state = 'running'\n        #计算帧率",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9860,7 +9868,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    global running_state\n    running_state = 'loading'\n    model = get_model(conf.huiji_detect_config['model'])\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False):\n        running_state = 'running'\n        #计算帧率",
+        "peekOfCode": "def huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    global running_state\n    running_state = 'loading'\n    model = YOLO(conf.huiji_detect_config['model'])\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False):\n        running_state = 'running'\n        #计算帧率",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9941,7 +9949,7 @@
         "kind": 5,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "running_state = 'ready'  #运行状态：准备（ready), 装载中(loading), 运行中(running), 结束（finished)\ndef huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    global running_state\n    running_state = 'loading'\n    model = get_model(conf.huiji_detect_config['model'])\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False):\n        running_state = 'running'",
+        "peekOfCode": "running_state = 'ready'  #运行状态：准备（ready), 装载中(loading), 运行中(running), 结束（finished)\ndef huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    global running_state\n    running_state = 'loading'\n    model = YOLO(conf.huiji_detect_config['model'])\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False):\n        running_state = 'running'",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -10006,6 +10014,15 @@
         "description": "tests.conftest",
         "peekOfCode": "def pytest_terminal_summary(terminalreporter, exitstatus, config):\n    \"\"\"\n    Cleanup operations after pytest session.\n    This function is automatically called by pytest at the end of the entire test session. It removes certain files\n    and directories used during testing.\n    Args:\n        terminalreporter (pytest.terminal.TerminalReporter): The terminal reporter object used for terminal output.\n        exitstatus (int): The exit status of the test run.\n        config (pytest.config.Config): The pytest config object.\n    Returns:",
         "detail": "tests.conftest",
+        "documentation": {}
+    },
+    {
+        "label": "test_yolo",
+        "kind": 2,
+        "importPath": "tests.test_appapi",
+        "description": "tests.test_appapi",
+        "peekOfCode": "def test_yolo():\n    model = YOLO(\"yolov8n.pt\")\n    results = model.track(source=0, stream=True,verbose=False)\n    results = model.track(source='uploads/demo.mp4', stream=True,verbose=False)\n    log.info(\"end.\")\ndef test_switch_mode():\n    response = client.get(\"/switch_mode?mode=huiji_detect\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0",
+        "detail": "tests.test_appapi",
         "documentation": {}
     },
     {
@@ -10103,7 +10120,7 @@
         "kind": 5,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "client = TestClient(app)\ndef test_switch_mode():\n    response = client.get(\"/switch_mode?mode=huiji_detect\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0\ndef test_available_cameras():\n    response = client.get(\"/available_cameras\")\n    assert response.status_code == 200\n    json =  response.json()",
+        "peekOfCode": "client = TestClient(app)\ndef test_yolo():\n    model = YOLO(\"yolov8n.pt\")\n    results = model.track(source=0, stream=True,verbose=False)\n    results = model.track(source='uploads/demo.mp4', stream=True,verbose=False)\n    log.info(\"end.\")\ndef test_switch_mode():\n    response = client.get(\"/switch_mode?mode=huiji_detect\")\n    assert response.status_code == 200\n    json =  response.json()",
         "detail": "tests.test_appapi",
         "documentation": {}
     },

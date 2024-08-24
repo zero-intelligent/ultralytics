@@ -243,11 +243,11 @@ def pub_and_pad(event,r):
 async def video_source_feed(mode:str             = Query(default='huiji_detect',enum=['huiji_detect','person_detect']),
                             data_source_type:str = Query(default='camera',enum=['camera','video_file'])):
     if conf.current_mode != mode:
-        log.error(f"conf.current_mode != '{mode}")
-        raise HTTPException(500,f"conf.current_mode != '{mode}")
+        log.error(f"conf.current_mode != '{mode}'")
+        raise HTTPException(500,f"conf.current_mode != '{mode}'")
     if conf.current_detect_config()['data_source_type'] != data_source_type:
-        log.error(f"conf.data_source_type != '{data_source_type}")
-        raise HTTPException(500,f"conf.data_source_type != '{data_source_type}")
+        log.error(f"conf.data_source_type != '{data_source_type}'")
+        raise HTTPException(500,f"conf.data_source_type != '{data_source_type}'")
     
     if mode == 'huiji_detect':
         img_stream = (pub_and_pad(huiji_event,r) for r in video_srv.huiji_detect_frames())
@@ -260,11 +260,11 @@ async def video_source_feed(mode:str             = Query(default='huiji_detect',
 async def video_output_feed(mode:str             = Query(default='huiji_detect',enum=['huiji_detect','person_detect']),
                             data_source_type:str = Query(default='camera',enum=['camera','video_file'])):
     if conf.current_mode != mode:
-        log.error(f"conf.current_mode != '{mode}")
-        raise HTTPException(500,f"conf.current_mode != '{mode}")
+        log.error(f"conf.current_mode != '{mode}'")
+        raise HTTPException(500,f"conf.current_mode != '{mode}'")
     if conf.current_detect_config()['data_source_type'] != data_source_type:
-        log.error(f"conf.data_source_type != '{data_source_type}")
-        raise HTTPException(500,f"conf.data_source_type != '{data_source_type}")
+        log.error(f"conf.data_source_type != '{data_source_type}'")
+        raise HTTPException(500,f"conf.data_source_type != '{data_source_type}'")
     
     if mode == 'huiji_detect':
         generator = output_generator(huiji_event)

@@ -9,7 +9,7 @@ from mcd.custom_result import PersonResults
 
 
 def get_current_person_detect_result():
-    return {id:v['time_s'] for id,v in PersonResults.id_info.items()}
+    return {id:int(v['time_s']) for id,v in PersonResults.id_info.items()}
 
 
 def person_detect_frames():
