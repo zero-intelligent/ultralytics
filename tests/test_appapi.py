@@ -136,7 +136,7 @@ def test_video_source_feed():
     
 
     start = time.time()
-    response = client.get("/video_source_feed")
+    response = client.get("/huiji_video_source_feed")
     assert response.status_code == 200 
     
     stream_time = time.time() - start

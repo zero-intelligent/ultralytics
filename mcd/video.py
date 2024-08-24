@@ -11,21 +11,17 @@ from mcd.custom_result import PersonResults
 def get_current_person_detect_result():
     return {id:v['time_s'] for id,v in PersonResults.id_info.items()}
 
-person_detect_frame_rates = 0
 
 def person_detect_frames():
     model = get_model(conf.person_detect_config['model'])
     
     # 开始时间
     start_time = time.time()
-    frame_count = 0
 
     for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):
-        
         #计算帧率
-        frame_count += 1
-        global person_detect_frame_rates
-        person_detect_frame_rates = frame_count / (time.time() - start_time)
+        frames_info[conf.current_mode]['frame_count'] += 1
+        frames_info[conf.current_mode]['frame_rate'] = frames_info[conf.current_mode]['frame_count'] / (time.time() - start_time)
         
         if random.random() < conf.drop_rate:  # 按照一定的比率丢侦
             continue  # 跳过这一帧
@@ -51,20 +47,27 @@ def person_detect_frames():
             "tracked_frame": tracked_frame
         }
 
-huiji_detect_frame_rates = 0
+frames_info = {
+    "huiji_detect": {
+        "frame_count": 0,
+        "frame_rate": 0
+    },
+     "person_detect": {
+        "frame_count": 0,
+        "frame_rate": 0
+    }
+}
 
 def huiji_detect_frames():
      # 开始时间
     start_time = time.time()
-    frame_count = 0
     
     model = get_model(conf.huiji_detect_config['model'])
     for result in model.track(source=data_source(), stream=True,verbose=False):
         
         #计算帧率
-        frame_count += 1
-        global huiji_detect_frame_rates
-        huiji_detect_frame_rates = frame_count / (time.time() - start_time)
+        frames_info[conf.current_mode]['frame_count'] += 1
+        frames_info[conf.current_mode]['frame_rate'] = frames_info[conf.current_mode]['frame_count'] / (time.time() - start_time)
         
         if random.random() < conf.drop_rate:  # 按照一定的比率丢侦
             continue  # 跳过这一帧
@@ -84,6 +87,8 @@ def huiji_detect_frames():
         }
         
 def get_huiji_detect_items(detect_result):
+    if not detect_result:
+        return []
     taocan_id = conf.huiji_detect_config['current_taocan_id']
     taocan =  [t for t in conf.huiji_detect_config['taocans'] if t['id'] == taocan_id]
     if not taocan:
