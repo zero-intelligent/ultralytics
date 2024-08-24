@@ -161,8 +161,8 @@ export default {
       if(src[0] != "/"){
         src = "/" + src;
       }
-      //return 'http://8.140.49.13:6789' + src
-      return 'http://192.168.31.77:6789' + src
+      return 'http://8.140.49.13:6789' + src
+      //return 'http://192.168.31.77:6789' + src
     },
     async changeisCameraShow() {
       await this.switchTypeFun("2")
@@ -369,7 +369,7 @@ export default {
       try {
         this.buttonLoading = true
         let params = {
-          type: type
+          taocan_id: type
         }
         let result = await changeTaocan(params)
         if (result.code === 0) {
