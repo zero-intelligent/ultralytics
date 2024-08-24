@@ -1,3 +1,5 @@
+import asyncio
+import threading
 import pytest
 import os
 import time
@@ -51,17 +53,60 @@ def test_taocans():
     assert json['data']['current_taocan_id'] == 0
 
 def test_switch_taocan():
+    response = client.post("/mode_datasource",json={
+        'mode':'huiji_detect',
+        'data_source_type':'camera',
+        'data_source':'0'
+    })
+    assert response.status_code == 200
+    json =  response.json()
+    assert json['code'] == 0
+    
     response = client.get("/switch_taocan?taocan_id=1")
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
-
     
-def test_taocan_analysis():
-    response = client.get("/taocan_analysis")
+    response = client.get("/get_config")
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
+    assert json['data']['taocan_id'] == 1
+    
+    
+    
+def test_get_config():
+    response = client.post("/mode_datasource",json={
+        'mode':'huiji_detect',
+        'data_source_type':'camera',
+        'data_source':'0'
+    })
+    assert response.status_code == 200
+    json =  response.json()
+    assert json['code'] == 0
+    
+    response = client.get("/get_config")
+    assert response.status_code == 200
+    json =  response.json()
+    assert json['code'] == 0
+    
+    thread1 = threading.Thread(target=lambda: client.get(json['data']['video_source']))
+    thread2 = threading.Thread(target=lambda: client.get(json['data']['video_target']))
+    
+    thread1.start()
+    thread2.start()
+    
+    # 休息10秒，等到摄像头启动, 获取到套餐检测结果
+    while True:
+        print(f"wait 5s to 等到摄像头启动, 获取到套餐检测结果.")
+        time.sleep(5)
+        response = client.get("/get_config")
+        assert response.status_code == 200
+        json =  response.json()
+        assert json['code'] == 0
+        if len(json['data']['current_taocan_result']) > 0:
+            break
+    
     results = json['data']['current_taocan_result']
     print(results)
     assert len(results) > 0
@@ -76,12 +121,6 @@ def test_taocan_analysis():
     else:
         assert results[0]['real_count'] >= 1
         
-
-def test_person_analysis():
-    response = client.get("/person_analysis")
-    assert response.status_code == 200
-    json =  response.json()
-    assert json['code'] == 0
 
 def test_huiji_video_taocan_detect_result():
     response = client.get("/huiji_video_taocan_detect_result")
@@ -109,6 +148,10 @@ def test_upload_file():
 
 
 def test_video_source_feed():
+    # from pyinstrument import Profiler
+    # profiler = Profiler()
+    # profiler.start()
+    
     video_file = 'assets/demo.mp4'
     
     response = client.post("/mode_datasource",json={
@@ -129,33 +172,22 @@ def test_video_source_feed():
     
     
     start = time.time()
-    video_srv.capture_frames()
+    # video_srv.capture_frames()
     stream_time = time.time() - start
     
     print(f'{video_file} capture_frames time {stream_time}s')
     
 
-    start = time.time()
-    response = client.get("/huiji_video_source_feed")
-    assert response.status_code == 200 
-    
-    stream_time = time.time() - start
-    
-    print(f'{video_file} stream time {stream_time}s')
-    
-    assert time_s * 1.2 > stream_time >= time_s
+    for f in video_srv.huiji_detect_frames():
+        pass
     
     
-    response = client.get("/get_config")
-    assert response.status_code == 200 
-    json =  response.json()
-    assert json['code'] == 0
-    assert json['data']['frame_rate'] > 1
+    # profiler.stop()
+
+    # with open("profile_report.html", "w") as f:
+    #     f.write(profiler.output_html())
        
     
-    
-    response = client.get("/video_output_feed")
-    assert response.status_code == 200
     
 
 

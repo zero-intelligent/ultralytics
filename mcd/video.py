@@ -142,8 +142,8 @@ def huiji_detect_results(results):
     global current_taocan_check_result,last_taocan_check_result
     last_taocan_check_result = current_taocan_check_result
     current_taocan_check_result = {k:len(v) for k,v in meal_result.items()}
-    if current_taocan_check_result:
-        log.info(f'huiji_detect camera source:{conf.huiji_detect_config['camera_source']} detect results:{current_taocan_check_result}')
+    # if current_taocan_check_result:
+    #     log.info(f'huiji_detect camera source:{conf.huiji_detect_config['camera_source']} detect results:{current_taocan_check_result}')
     img = results.plot()
 
     return array2jpg(img)

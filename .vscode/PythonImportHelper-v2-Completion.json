@@ -5781,6 +5781,31 @@
         "documentation": {}
     },
     {
+        "label": "threading",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "threading",
+        "description": "threading",
+        "detail": "threading",
+        "documentation": {}
+    },
+    {
+        "label": "Thread",
+        "importPath": "threading",
+        "description": "threading",
+        "isExtraImport": true,
+        "detail": "threading",
+        "documentation": {}
+    },
+    {
+        "label": "Thread",
+        "importPath": "threading",
+        "description": "threading",
+        "isExtraImport": true,
+        "detail": "threading",
+        "documentation": {}
+    },
+    {
         "label": "pytest",
         "kind": 6,
         "isExtraImport": true,
@@ -6497,31 +6522,6 @@
         "description": "ultralytics.utils.downloads",
         "isExtraImport": true,
         "detail": "ultralytics.utils.downloads",
-        "documentation": {}
-    },
-    {
-        "label": "threading",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "threading",
-        "description": "threading",
-        "detail": "threading",
-        "documentation": {}
-    },
-    {
-        "label": "Thread",
-        "importPath": "threading",
-        "description": "threading",
-        "isExtraImport": true,
-        "detail": "threading",
-        "documentation": {}
-    },
-    {
-        "label": "Thread",
-        "importPath": "threading",
-        "description": "threading",
-        "isExtraImport": true,
-        "detail": "threading",
         "documentation": {}
     },
     {
@@ -10005,7 +10005,7 @@
         "kind": 2,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "def test_taocans():\n    response = client.get(\"/taocans\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0\n    assert len(json['data']['taocans']) == 2\n    assert json['data']['current_taocan_id'] == 0\ndef test_switch_taocan():\n    response = client.get(\"/switch_taocan?taocan_id=1\")\n    assert response.status_code == 200",
+        "peekOfCode": "def test_taocans():\n    response = client.get(\"/taocans\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0\n    assert len(json['data']['taocans']) == 2\n    assert json['data']['current_taocan_id'] == 0\ndef test_switch_taocan():\n    response = client.post(\"/mode_datasource\",json={\n        'mode':'huiji_detect',",
         "detail": "tests.test_appapi",
         "documentation": {}
     },
@@ -10014,25 +10014,16 @@
         "kind": 2,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "def test_switch_taocan():\n    response = client.get(\"/switch_taocan?taocan_id=1\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0\ndef test_taocan_analysis():\n    response = client.get(\"/taocan_analysis\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0",
+        "peekOfCode": "def test_switch_taocan():\n    response = client.post(\"/mode_datasource\",json={\n        'mode':'huiji_detect',\n        'data_source_type':'camera',\n        'data_source':'0'\n    })\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0\n    response = client.get(\"/switch_taocan?taocan_id=1\")",
         "detail": "tests.test_appapi",
         "documentation": {}
     },
     {
-        "label": "test_taocan_analysis",
+        "label": "test_get_config",
         "kind": 2,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "def test_taocan_analysis():\n    response = client.get(\"/taocan_analysis\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0\n    results = json['data']['current_taocan_result']\n    print(results)\n    assert len(results) > 0\n    assert 'id' in results[0].keys()\n    assert 'name' in results[0].keys()",
-        "detail": "tests.test_appapi",
-        "documentation": {}
-    },
-    {
-        "label": "test_person_analysis",
-        "kind": 2,
-        "importPath": "tests.test_appapi",
-        "description": "tests.test_appapi",
-        "peekOfCode": "def test_person_analysis():\n    response = client.get(\"/person_analysis\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0\ndef test_huiji_video_taocan_detect_result():\n    response = client.get(\"/huiji_video_taocan_detect_result\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 1",
+        "peekOfCode": "def test_get_config():\n    response = client.post(\"/mode_datasource\",json={\n        'mode':'huiji_detect',\n        'data_source_type':'camera',\n        'data_source':'0'\n    })\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0\n    response = client.get(\"/get_config\")",
         "detail": "tests.test_appapi",
         "documentation": {}
     },
@@ -10059,7 +10050,7 @@
         "kind": 2,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "def test_video_source_feed():\n    video_file = 'assets/demo.mp4'\n    response = client.post(\"/mode_datasource\",json={\n        'mode':'huiji_detect',\n        'data_source_type':'video_file',\n        'data_source':video_file\n    })\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0",
+        "peekOfCode": "def test_video_source_feed():\n    # from pyinstrument import Profiler\n    # profiler = Profiler()\n    # profiler.start()\n    video_file = 'assets/demo.mp4'\n    response = client.post(\"/mode_datasource\",json={\n        'mode':'huiji_detect',\n        'data_source_type':'video_file',\n        'data_source':video_file\n    })",
         "detail": "tests.test_appapi",
         "documentation": {}
     },

@@ -162,7 +162,10 @@ async def set_mode_datasource(request: ModeDataSourceRequest):
 
 @app.get("/mode_datasource")
 async def get_mode_datasource():
-    data_source_type = conf.huiji_detect_config['data_source_type'] if conf.current_mode == "huiji_detect" else conf.person_detect_config['data_source_type']
+    if conf.current_mode == "huiji_detect":
+        data_source_type = conf.huiji_detect_config['data_source_type']  
+    else:
+        data_source_type = conf.person_detect_config['data_source_type']
 
     return {
         "code": 0,
@@ -321,7 +324,6 @@ async def lifespan(app: FastAPI):
     conf.save_config()
 
 app.router.lifespan_context = lifespan
-
 
 if __name__ == "__main__":
     import uvicorn
