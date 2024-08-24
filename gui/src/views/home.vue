@@ -162,7 +162,7 @@ export default {
         src = "/" + src;
       }
       //return 'http://8.140.49.13:6789' + src
-      return 'http://192.168.31.77:6789' + src
+      return 'http://127.0.0.1:6789' + src
     },
     async changeisCameraShow() {
       await this.switchTypeFun("2")
@@ -235,17 +235,17 @@ export default {
           this.radio = this.configInfo.camera_type === 0 ? "1" : "2"
           this.valueCamera = this.configInfo.camera_local
           this.input = this.configInfo.camera_url
-          if (this.configInfo.model == 'huiji_detect') {
+          if (this.configInfo.mode == 'huiji_detect') {
             this.activeName = 'first'
           } else {
             this.activeName = 'second'
           }
 
-          this.cardList[0].src = result?.data?.video_source + "?mode=" + this.configInfo.model
-          this.cardList[1].src = result?.data?.video_target + "?mode=" + this.configInfo.model
+          this.cardList[0].src = result?.data?.video_source
+          this.cardList[1].src = result?.data?.video_target
           this.frame_rate = this.configInfo.frame_rate
 
-          if(this.configInfo.model == "person_detect"){
+          if(this.configInfo.mode == "person_detect"){
             this.list = result?.data?.current_person_result
               this.isShow = false
               this.$nextTick(() => {

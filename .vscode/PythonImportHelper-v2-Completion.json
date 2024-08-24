@@ -8952,7 +8952,7 @@
         "kind": 6,
         "importPath": "api.app",
         "description": "api.app",
-        "peekOfCode": "class CameraSetting(BaseModel):\n    type: str\n    local: str\n    url: str\nclass ConfigSetting:\n    model:str\n    camera_type: str\n    camera_local: str\n    camera_url: str\n    taocan_id: int",
+        "peekOfCode": "class CameraSetting(BaseModel):\n    type: str\n    local: str\n    url: str\nclass ConfigSetting:\n    mode:str\n    camera_type: str\n    camera_local: str\n    camera_url: str\n    taocan_id: int",
         "detail": "api.app",
         "documentation": {}
     },
@@ -8961,7 +8961,7 @@
         "kind": 6,
         "importPath": "api.app",
         "description": "api.app",
-        "peekOfCode": "class ConfigSetting:\n    model:str\n    camera_type: str\n    camera_local: str\n    camera_url: str\n    taocan_id: int\n    data_type: str\n    video_source :str\n    video_target :str\n    current_taocan_result:str",
+        "peekOfCode": "class ConfigSetting:\n    mode:str\n    camera_type: str\n    camera_local: str\n    camera_url: str\n    taocan_id: int\n    data_type: str\n    video_source :str\n    video_target :str\n    current_taocan_result:str",
         "detail": "api.app",
         "documentation": {}
     },
@@ -8979,7 +8979,7 @@
         "kind": 2,
         "importPath": "api.app",
         "description": "api.app",
-        "peekOfCode": "def pub_and_pad(r):\n    global latest_frame\n    latest_frame = r['tracked_frame']\n    event.set()  # 设置事件，通知订阅者\n    return (b'--frame\\r\\n Content-Type: image/jpeg\\r\\n\\r\\n' + r['orig_frame'] + b'\\r\\n')\n@app.get('/video_source_feed')\nasync def video_source_feed():\n    generator = video_srv.huiji_detect_frames() if conf.current_mode == 'huiji_detect' else video_srv.person_detect_frames()\n    img_stream = (pub_and_pad(r) for r in generator)\n    return StreamingResponse(img_stream, media_type=\"multipart/x-mixed-replace; boundary=frame\")",
+        "peekOfCode": "def pub_and_pad(event,r):\n    latest_frame[conf.current_mode] = r['tracked_frame']\n    event.set()  # 设置事件，通知订阅者\n    return (b'--frame\\r\\n Content-Type: image/jpeg\\r\\n\\r\\n' + r['orig_frame'] + b'\\r\\n')\n@app.get('/video_source_feed')\nasync def video_source_feed(mode:str = Query(default='huiji_detect',enum=['huiji_detect','person_detect'])):\n    if conf.current_mode != mode:\n        log.error(f\"conf.current_mode != '{mode}\")\n        raise HTTPException(500,f\"conf.current_mode != '{mode}\")\n    if mode == 'huiji_detect':",
         "detail": "api.app",
         "documentation": {}
     },
@@ -8993,11 +8993,11 @@
         "documentation": {}
     },
     {
-        "label": "event",
+        "label": "huiji_event",
         "kind": 5,
         "importPath": "api.app",
         "description": "api.app",
-        "peekOfCode": "event = asyncio.Event()\nlatest_frame = None\ndef pub_and_pad(r):\n    global latest_frame\n    latest_frame = r['tracked_frame']\n    event.set()  # 设置事件，通知订阅者\n    return (b'--frame\\r\\n Content-Type: image/jpeg\\r\\n\\r\\n' + r['orig_frame'] + b'\\r\\n')\n@app.get('/video_source_feed')\nasync def video_source_feed():\n    generator = video_srv.huiji_detect_frames() if conf.current_mode == 'huiji_detect' else video_srv.person_detect_frames()",
+        "peekOfCode": "huiji_event = asyncio.Event()\nlatest_frame = {}\nperson_event = asyncio.Event()\nasync def output_generator(event):\n    while True:\n        await event.wait()  # 等待新消息\n        event.clear()  # 清除事件，等待下次设置\n        yield (b'--frame\\r\\nContent-Type: image/jpeg\\r\\n\\r\\n' + latest_frame[conf.current_mode] + b'\\r\\n')\ndef pub_and_pad(event,r):\n    latest_frame[conf.current_mode] = r['tracked_frame']",
         "detail": "api.app",
         "documentation": {}
     },
@@ -9006,7 +9006,16 @@
         "kind": 5,
         "importPath": "api.app",
         "description": "api.app",
-        "peekOfCode": "latest_frame = None\ndef pub_and_pad(r):\n    global latest_frame\n    latest_frame = r['tracked_frame']\n    event.set()  # 设置事件，通知订阅者\n    return (b'--frame\\r\\n Content-Type: image/jpeg\\r\\n\\r\\n' + r['orig_frame'] + b'\\r\\n')\n@app.get('/video_source_feed')\nasync def video_source_feed():\n    generator = video_srv.huiji_detect_frames() if conf.current_mode == 'huiji_detect' else video_srv.person_detect_frames()\n    img_stream = (pub_and_pad(r) for r in generator)",
+        "peekOfCode": "latest_frame = {}\nperson_event = asyncio.Event()\nasync def output_generator(event):\n    while True:\n        await event.wait()  # 等待新消息\n        event.clear()  # 清除事件，等待下次设置\n        yield (b'--frame\\r\\nContent-Type: image/jpeg\\r\\n\\r\\n' + latest_frame[conf.current_mode] + b'\\r\\n')\ndef pub_and_pad(event,r):\n    latest_frame[conf.current_mode] = r['tracked_frame']\n    event.set()  # 设置事件，通知订阅者",
+        "detail": "api.app",
+        "documentation": {}
+    },
+    {
+        "label": "person_event",
+        "kind": 5,
+        "importPath": "api.app",
+        "description": "api.app",
+        "peekOfCode": "person_event = asyncio.Event()\nasync def output_generator(event):\n    while True:\n        await event.wait()  # 等待新消息\n        event.clear()  # 清除事件，等待下次设置\n        yield (b'--frame\\r\\nContent-Type: image/jpeg\\r\\n\\r\\n' + latest_frame[conf.current_mode] + b'\\r\\n')\ndef pub_and_pad(event,r):\n    latest_frame[conf.current_mode] = r['tracked_frame']\n    event.set()  # 设置事件，通知订阅者\n    return (b'--frame\\r\\n Content-Type: image/jpeg\\r\\n\\r\\n' + r['orig_frame'] + b'\\r\\n')",
         "detail": "api.app",
         "documentation": {}
     },
@@ -9807,7 +9816,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def get_current_person_detect_result():\n    return {id:v['time_s'] for id,v in PersonResults.id_info.items()}\nperson_detect_frame_rates = 0\ndef person_detect_frames():\n    model = get_model(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    frame_count = 0\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        #计算帧率",
+        "peekOfCode": "def get_current_person_detect_result():\n    return {id:v['time_s'] for id,v in PersonResults.id_info.items()}\ndef person_detect_frames():\n    model = get_model(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        #计算帧率\n        frames_info[conf.current_mode]['frame_count'] += 1\n        frames_info[conf.current_mode]['frame_rate'] = frames_info[conf.current_mode]['frame_count'] / (time.time() - start_time)",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9816,7 +9825,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def person_detect_frames():\n    model = get_model(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    frame_count = 0\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        #计算帧率\n        frame_count += 1\n        global person_detect_frame_rates\n        person_detect_frame_rates = frame_count / (time.time() - start_time)",
+        "peekOfCode": "def person_detect_frames():\n    model = get_model(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        #计算帧率\n        frames_info[conf.current_mode]['frame_count'] += 1\n        frames_info[conf.current_mode]['frame_rate'] = frames_info[conf.current_mode]['frame_count'] / (time.time() - start_time)\n        if random.random() < conf.drop_rate:  # 按照一定的比率丢侦\n            continue  # 跳过这一帧",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9825,7 +9834,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    frame_count = 0\n    model = get_model(conf.huiji_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False):\n        #计算帧率\n        frame_count += 1\n        global huiji_detect_frame_rates\n        huiji_detect_frame_rates = frame_count / (time.time() - start_time)",
+        "peekOfCode": "def huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    model = get_model(conf.huiji_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False):\n        #计算帧率\n        frames_info[conf.current_mode]['frame_count'] += 1\n        frames_info[conf.current_mode]['frame_rate'] = frames_info[conf.current_mode]['frame_count'] / (time.time() - start_time)\n        if random.random() < conf.drop_rate:  # 按照一定的比率丢侦\n            continue  # 跳过这一帧",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9834,7 +9843,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def get_huiji_detect_items(detect_result):\n    taocan_id = conf.huiji_detect_config['current_taocan_id']\n    taocan =  [t for t in conf.huiji_detect_config['taocans'] if t['id'] == taocan_id]\n    if not taocan:\n        raise Exception(f\"can't find taocao with id:{taocan_id}\")\n    taocan = taocan[0]\n    in_tancan_results = [\n        {\n            'id': id,\n            'name': next((f'{cn_name} {en_name}' for m_id,en_name,cn_name in conf.huiji_detect_config['meals_info'] if m_id == id),None),",
+        "peekOfCode": "def get_huiji_detect_items(detect_result):\n    if not detect_result:\n        return []\n    taocan_id = conf.huiji_detect_config['current_taocan_id']\n    taocan =  [t for t in conf.huiji_detect_config['taocans'] if t['id'] == taocan_id]\n    if not taocan:\n        raise Exception(f\"can't find taocao with id:{taocan_id}\")\n    taocan = taocan[0]\n    in_tancan_results = [\n        {",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9893,20 +9902,11 @@
         "documentation": {}
     },
     {
-        "label": "person_detect_frame_rates",
+        "label": "frames_info",
         "kind": 5,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "person_detect_frame_rates = 0\ndef person_detect_frames():\n    model = get_model(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    frame_count = 0\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        #计算帧率\n        frame_count += 1\n        global person_detect_frame_rates",
-        "detail": "mcd.video",
-        "documentation": {}
-    },
-    {
-        "label": "huiji_detect_frame_rates",
-        "kind": 5,
-        "importPath": "mcd.video",
-        "description": "mcd.video",
-        "peekOfCode": "huiji_detect_frame_rates = 0\ndef huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    frame_count = 0\n    model = get_model(conf.huiji_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False):\n        #计算帧率\n        frame_count += 1\n        global huiji_detect_frame_rates",
+        "peekOfCode": "frames_info = {\n    \"huiji_detect\": {\n        \"frame_count\": 0,\n        \"frame_rate\": 0\n    },\n     \"person_detect\": {\n        \"frame_count\": 0,\n        \"frame_rate\": 0\n    }\n}",
         "detail": "mcd.video",
         "documentation": {}
     },
