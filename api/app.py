@@ -152,17 +152,12 @@ class ModeDataSourceRequest(BaseModel):
 @app.post("/mode_datasource")
 async def set_mode_datasource(request: ModeDataSourceRequest):
     conf.current_mode = request.mode
-    def update_datasource(detect_config):
-        detect_config['data_source_type'] = request.data_source_type
-        if request.data_source_type == 'camera':
-            detect_config['camera_source'] = request.data_source
-        else:
-            detect_config['video_file'] = request.data_source
-
-    if request.mode == "huiji_detect":
-        update_datasource(conf.huiji_detect_config)
+    detect_config = conf.current_detect_config()
+    detect_config['data_source_type'] = request.data_source_type
+    if request.data_source_type == 'camera':
+        detect_config['camera_source'] = request.data_source
     else:
-        update_datasource(conf.person_detect_config)
+        detect_config['video_file'] = request.data_source
 
     return {
         "code": 0,
@@ -171,20 +166,14 @@ async def set_mode_datasource(request: ModeDataSourceRequest):
 
 @app.get("/mode_datasource")
 async def get_mode_datasource():
-    if conf.current_mode == "huiji_detect":
-        data_source_type = conf.huiji_detect_config['data_source_type']  
-    else:
-        data_source_type = conf.person_detect_config['data_source_type']
-
     return {
         "code": 0,
         "data": {
             "mode": conf.current_mode,
-            "data_source_type": data_source_type,
+            "data_source_type": conf.current_detect_config()['data_source_type'],
             "data_source": video_srv.data_source()
         },
     }
-
 
 @app.get("/taocans")
 async def get_taocans():

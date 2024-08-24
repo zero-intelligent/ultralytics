@@ -20,8 +20,8 @@ def person_detect_frames():
     
     # 开始时间
     start_time = time.time()
-
-    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):
+    source = data_source()
+    for result in model.track(source=source, stream=True,verbose=False, classes=[0]):
         running_state = 'running'
         #计算帧率
         frames_info[conf.current_mode]['frame_count'] += 1
@@ -71,7 +71,8 @@ def huiji_detect_frames():
     running_state = 'loading'
     
     model = get_model(conf.huiji_detect_config['model'])
-    for result in model.track(source=data_source(), stream=True,verbose=False):
+    source = data_source()
+    for result in model.track(source=source, stream=True,verbose=False):
         
         running_state = 'running'
         #计算帧率
@@ -162,22 +163,15 @@ def huiji_detect_results(results):
     return array2jpg(img)
 
 def data_source():
-    def get_ds(detect_config):
-        data_source_type = detect_config['data_source_type']
-        if data_source_type == 'camera':
-            data_source = detect_config['camera_source']
-            if str(data_source).isdigit():
-                data_source = int(data_source)
-            return data_source
-        else:
-            return detect_config['video_file']
-        
-    if conf.current_mode == "huiji_detect":
-        return get_ds(conf.huiji_detect_config)
+    detect_config = conf.current_detect_config()
+    data_source_type = detect_config['data_source_type']
+    if data_source_type == 'camera':
+        data_source = detect_config['camera_source']
+        if str(data_source).isdigit():
+            data_source = int(data_source)
+        return data_source
     else:
-        return get_ds(conf.person_detect_config)
-        
-
+        return detect_config['video_file']
 
 def capture_frames():
     # 打开摄像头

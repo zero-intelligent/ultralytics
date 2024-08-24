@@ -8987,7 +8987,7 @@
         "kind": 6,
         "importPath": "api.app",
         "description": "api.app",
-        "peekOfCode": "class ModeDataSourceRequest(BaseModel):\n    mode: str = Field(default=\"huiji_detect\", enum=[\"huiji_detect\", \"person_detect\"])\n    data_source_type: str = Field(default=\"camera\", enum=[\"camera\", \"video_file\"])\n    data_source: str = Field(..., min_length=1, description=\"数据源不能为空\")\n@app.post(\"/mode_datasource\")\nasync def set_mode_datasource(request: ModeDataSourceRequest):\n    conf.current_mode = request.mode\n    def update_datasource(detect_config):\n        detect_config['data_source_type'] = request.data_source_type\n        if request.data_source_type == 'camera':",
+        "peekOfCode": "class ModeDataSourceRequest(BaseModel):\n    mode: str = Field(default=\"huiji_detect\", enum=[\"huiji_detect\", \"person_detect\"])\n    data_source_type: str = Field(default=\"camera\", enum=[\"camera\", \"video_file\"])\n    data_source: str = Field(..., min_length=1, description=\"数据源不能为空\")\n@app.post(\"/mode_datasource\")\nasync def set_mode_datasource(request: ModeDataSourceRequest):\n    conf.current_mode = request.mode\n    detect_config = conf.current_detect_config()\n    detect_config['data_source_type'] = request.data_source_type\n    if request.data_source_type == 'camera':",
         "detail": "api.app",
         "documentation": {}
     },
@@ -9842,7 +9842,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def get_current_person_detect_result():\n    return {id:v['time_s'] for id,v in PersonResults.id_info.items()}\ndef person_detect_frames():\n    global running_state\n    running_state = 'loading'\n    model = get_model(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        running_state = 'running'",
+        "peekOfCode": "def get_current_person_detect_result():\n    return {id:v['time_s'] for id,v in PersonResults.id_info.items()}\ndef person_detect_frames():\n    global running_state\n    running_state = 'loading'\n    model = get_model(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False, classes=[0]):",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9851,7 +9851,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def person_detect_frames():\n    global running_state\n    running_state = 'loading'\n    model = get_model(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    for result in model.track(source=data_source(), stream=True,verbose=False, classes=[0]):\n        running_state = 'running'\n        #计算帧率\n        frames_info[conf.current_mode]['frame_count'] += 1",
+        "peekOfCode": "def person_detect_frames():\n    global running_state\n    running_state = 'loading'\n    model = get_model(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False, classes=[0]):\n        running_state = 'running'\n        #计算帧率",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9860,7 +9860,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    global running_state\n    running_state = 'loading'\n    model = get_model(conf.huiji_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False):\n        running_state = 'running'\n        #计算帧率\n        frames_info[conf.current_mode]['frame_count'] += 1",
+        "peekOfCode": "def huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    global running_state\n    running_state = 'loading'\n    model = get_model(conf.huiji_detect_config['model'])\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False):\n        running_state = 'running'\n        #计算帧率",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9887,7 +9887,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def data_source():\n    def get_ds(detect_config):\n        data_source_type = detect_config['data_source_type']\n        if data_source_type == 'camera':\n            data_source = detect_config['camera_source']\n            if str(data_source).isdigit():\n                data_source = int(data_source)\n            return data_source\n        else:\n            return detect_config['video_file']",
+        "peekOfCode": "def data_source():\n    detect_config = conf.current_detect_config()\n    data_source_type = detect_config['data_source_type']\n    if data_source_type == 'camera':\n        data_source = detect_config['camera_source']\n        if str(data_source).isdigit():\n            data_source = int(data_source)\n        return data_source\n    else:\n        return detect_config['video_file']",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9941,7 +9941,7 @@
         "kind": 5,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "running_state = 'ready'  #运行状态：准备（ready), 装载中(loading), 运行中(running), 结束（finished)\ndef huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    global running_state\n    running_state = 'loading'\n    model = get_model(conf.huiji_detect_config['model'])\n    for result in model.track(source=data_source(), stream=True,verbose=False):\n        running_state = 'running'\n        #计算帧率",
+        "peekOfCode": "running_state = 'ready'  #运行状态：准备（ready), 装载中(loading), 运行中(running), 结束（finished)\ndef huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    global running_state\n    running_state = 'loading'\n    model = get_model(conf.huiji_detect_config['model'])\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False):\n        running_state = 'running'",
         "detail": "mcd.video",
         "documentation": {}
     },
