@@ -64,8 +64,9 @@ huiji_detect_config = {
             "name": '周末聚划算四人餐',
             "items":[
                 [3,'Burger',4],
-                [12,'McNuggets',1],
-                [4,'Cold Drink',4]
+                [8,'Fries',1],
+                [11,'McFlurry',4],
+                [14,'Pie',4],
             ]
         }
     ]
