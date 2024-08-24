@@ -81,8 +81,12 @@ person_detect_config = {
 
 }
 
-
-
+def current_detect_config():
+    if current_mode == 'huiji_detect':
+        return huiji_detect_config
+    else:
+        return person_detect_config
+    
 config_file = 'mcd_conf.json'
 
 def load_config():
