@@ -202,6 +202,14 @@
         "documentation": {}
     },
     {
+        "label": "log",
+        "importPath": "mcd.logger",
+        "description": "mcd.logger",
+        "isExtraImport": true,
+        "detail": "mcd.logger",
+        "documentation": {}
+    },
+    {
         "label": "mcd.video",
         "kind": 6,
         "isExtraImport": true,
@@ -5781,28 +5789,12 @@
         "documentation": {}
     },
     {
-        "label": "threading",
+        "label": "multiprocessing",
         "kind": 6,
         "isExtraImport": true,
-        "importPath": "threading",
-        "description": "threading",
-        "detail": "threading",
-        "documentation": {}
-    },
-    {
-        "label": "Thread",
-        "importPath": "threading",
-        "description": "threading",
-        "isExtraImport": true,
-        "detail": "threading",
-        "documentation": {}
-    },
-    {
-        "label": "Thread",
-        "importPath": "threading",
-        "description": "threading",
-        "isExtraImport": true,
-        "detail": "threading",
+        "importPath": "multiprocessing",
+        "description": "multiprocessing",
+        "detail": "multiprocessing",
         "documentation": {}
     },
     {
@@ -6522,6 +6514,31 @@
         "description": "ultralytics.utils.downloads",
         "isExtraImport": true,
         "detail": "ultralytics.utils.downloads",
+        "documentation": {}
+    },
+    {
+        "label": "threading",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "threading",
+        "description": "threading",
+        "detail": "threading",
+        "documentation": {}
+    },
+    {
+        "label": "Thread",
+        "importPath": "threading",
+        "description": "threading",
+        "isExtraImport": true,
+        "detail": "threading",
+        "documentation": {}
+    },
+    {
+        "label": "Thread",
+        "importPath": "threading",
+        "description": "threading",
+        "isExtraImport": true,
+        "detail": "threading",
         "documentation": {}
     },
     {
@@ -9708,7 +9725,7 @@
         "kind": 5,
         "importPath": "mcd.conf",
         "description": "mcd.conf",
-        "peekOfCode": "current_mode = 'huiji_detect' \ndrop_rate = 0.15\nhuiji_detect_config = {\n    # 数据源类型，只可以是: 摄像头(camera)/视频文件(video_file)\n    \"data_source_type\": \"camera\",\n    # 当前摄像头地址，本地为 0,1,2， 网络是 uri 地址\n    \"camera_source\": 0,\n    \"video_file\": \"\",\n    # 当前选中的套餐id\n    \"current_taocan_id\": 0,",
+        "peekOfCode": "current_mode = 'huiji_detect' \ndrop_rate = 0.01\nhuiji_detect_config = {\n    # 数据源类型，只可以是: 摄像头(camera)/视频文件(video_file)\n    \"data_source_type\": \"camera\",\n    # 当前摄像头地址，本地为 0,1,2， 网络是 uri 地址\n    \"camera_source\": 0,\n    \"video_file\": \"\",\n    # 当前选中的套餐id\n    \"current_taocan_id\": 0,",
         "detail": "mcd.conf",
         "documentation": {}
     },
@@ -9717,7 +9734,7 @@
         "kind": 5,
         "importPath": "mcd.conf",
         "description": "mcd.conf",
-        "peekOfCode": "drop_rate = 0.15\nhuiji_detect_config = {\n    # 数据源类型，只可以是: 摄像头(camera)/视频文件(video_file)\n    \"data_source_type\": \"camera\",\n    # 当前摄像头地址，本地为 0,1,2， 网络是 uri 地址\n    \"camera_source\": 0,\n    \"video_file\": \"\",\n    # 当前选中的套餐id\n    \"current_taocan_id\": 0,\n    #当前使用的模型",
+        "peekOfCode": "drop_rate = 0.01\nhuiji_detect_config = {\n    # 数据源类型，只可以是: 摄像头(camera)/视频文件(video_file)\n    \"data_source_type\": \"camera\",\n    # 当前摄像头地址，本地为 0,1,2， 网络是 uri 地址\n    \"camera_source\": 0,\n    \"video_file\": \"\",\n    # 当前选中的套餐id\n    \"current_taocan_id\": 0,\n    #当前使用的模型",
         "detail": "mcd.conf",
         "documentation": {}
     },
@@ -9852,7 +9869,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def huiji_detect_results(results):\n    img=None\n    meal_result=None\n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息\n        for obj in result.boxes:\n            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else None\n            if not obj_id:\n                continue",
+        "peekOfCode": "def huiji_detect_results(results):\n    img=None\n    meal_result=None\n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息\n        for obj in result.boxes:\n            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else 0\n            obj_class = int(obj.cls.item())\n            if obj_class not in meal_result:",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9915,7 +9932,7 @@
         "kind": 5,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "last_taocan_check_result = None\ncurrent_taocan_check_result = None\ndef huiji_detect_results(results):\n    img=None\n    meal_result=None\n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息\n        for obj in result.boxes:\n            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else None",
+        "peekOfCode": "last_taocan_check_result = None\ncurrent_taocan_check_result = None\ndef huiji_detect_results(results):\n    img=None\n    meal_result=None\n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息\n        for obj in result.boxes:\n            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else 0",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9924,7 +9941,7 @@
         "kind": 5,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "current_taocan_check_result = None\ndef huiji_detect_results(results):\n    img=None\n    meal_result=None\n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息\n        for obj in result.boxes:\n            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else None\n            if not obj_id:",
+        "peekOfCode": "current_taocan_check_result = None\ndef huiji_detect_results(results):\n    img=None\n    meal_result=None\n    meal_result = {}\n    for result in results:\n        # 提取每个检测结果的 id 和 class 信息\n        for obj in result.boxes:\n            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else 0\n            obj_class = int(obj.cls.item())",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -10019,11 +10036,20 @@
         "documentation": {}
     },
     {
+        "label": "http_get",
+        "kind": 2,
+        "importPath": "tests.test_appapi",
+        "description": "tests.test_appapi",
+        "peekOfCode": "def http_get(url):\n    response = client.get(url)\n    assert response.status_code == 200\ndef test_get_config():\n    response = client.post(\"/mode_datasource\",json={\n        'mode':'huiji_detect',\n        'data_source_type':'video_file',\n        'data_source':'assets/demo_short.mp4'\n    })\n    assert response.status_code == 200",
+        "detail": "tests.test_appapi",
+        "documentation": {}
+    },
+    {
         "label": "test_get_config",
         "kind": 2,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "def test_get_config():\n    response = client.post(\"/mode_datasource\",json={\n        'mode':'huiji_detect',\n        'data_source_type':'camera',\n        'data_source':'0'\n    })\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0\n    response = client.get(\"/get_config\")",
+        "peekOfCode": "def test_get_config():\n    response = client.post(\"/mode_datasource\",json={\n        'mode':'huiji_detect',\n        'data_source_type':'video_file',\n        'data_source':'assets/demo_short.mp4'\n    })\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 0\n    response = client.get(\"/get_config\")",
         "detail": "tests.test_appapi",
         "documentation": {}
     },
@@ -10032,7 +10058,7 @@
         "kind": 2,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "def test_huiji_video_taocan_detect_result():\n    response = client.get(\"/huiji_video_taocan_detect_result\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 1\ndef test_upload_file():\n    file_path = \"assets/demo.mp4\"  # 替换为实际文件路径\n    with open(file_path, \"rb\") as file:\n        response = client.post(\"/single_upload\", files={\"file\": file})\n    assert response.status_code == 200",
+        "peekOfCode": "def test_huiji_video_taocan_detect_result():\n    response = client.get(\"/huiji_video_taocan_detect_result\")\n    assert response.status_code == 200\n    json =  response.json()\n    assert json['code'] == 1\ndef test_upload_file():\n    file_path = \"assets/demo_short.mp4\"  # 替换为实际文件路径\n    with open(file_path, \"rb\") as file:\n        response = client.post(\"/single_upload\", files={\"file\": file})\n    assert response.status_code == 200",
         "detail": "tests.test_appapi",
         "documentation": {}
     },
@@ -10041,7 +10067,7 @@
         "kind": 2,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "def test_upload_file():\n    file_path = \"assets/demo.mp4\"  # 替换为实际文件路径\n    with open(file_path, \"rb\") as file:\n        response = client.post(\"/single_upload\", files={\"file\": file})\n    assert response.status_code == 200\n    assert response.json()[\"filename\"] == \"demo.mp4\"\n    assert os.path.exists(\"uploads/demo.mp4\")\n    response = client.get(\"/mode_datasource\")\n    assert response.status_code == 200\n    json =  response.json()",
+        "peekOfCode": "def test_upload_file():\n    file_path = \"assets/demo_short.mp4\"  # 替换为实际文件路径\n    with open(file_path, \"rb\") as file:\n        response = client.post(\"/single_upload\", files={\"file\": file})\n    assert response.status_code == 200\n    assert response.json()[\"filename\"] == \"demo_short.mp4\"\n    assert os.path.exists(\"uploads/demo_short.mp4\")\n    response = client.get(\"/mode_datasource\")\n    assert response.status_code == 200\n    json =  response.json()",
         "detail": "tests.test_appapi",
         "documentation": {}
     },
@@ -10050,7 +10076,7 @@
         "kind": 2,
         "importPath": "tests.test_appapi",
         "description": "tests.test_appapi",
-        "peekOfCode": "def test_video_source_feed():\n    # from pyinstrument import Profiler\n    # profiler = Profiler()\n    # profiler.start()\n    video_file = 'assets/demo.mp4'\n    response = client.post(\"/mode_datasource\",json={\n        'mode':'huiji_detect',\n        'data_source_type':'video_file',\n        'data_source':video_file\n    })",
+        "peekOfCode": "def test_video_source_feed():\n    # from pyinstrument import Profiler\n    # profiler = Profiler()\n    # profiler.start()\n    video_file = 'assets/demo_short.mp4'\n    response = client.post(\"/mode_datasource\",json={\n        'mode':'huiji_detect',\n        'data_source_type':'video_file',\n        'data_source':video_file\n    })",
         "detail": "tests.test_appapi",
         "documentation": {}
     },

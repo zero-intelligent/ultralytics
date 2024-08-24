@@ -131,9 +131,7 @@ def huiji_detect_results(results):
     for result in results:
         # 提取每个检测结果的 id 和 class 信息
         for obj in result.boxes:
-            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else None
-            if not obj_id:
-                continue
+            obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else 0
             obj_class = int(obj.cls.item())
             if obj_class not in meal_result:
                 meal_result[obj_class]=set()
@@ -144,6 +142,8 @@ def huiji_detect_results(results):
     current_taocan_check_result = {k:len(v) for k,v in meal_result.items()}
     # if current_taocan_check_result:
     #     log.info(f'huiji_detect camera source:{conf.huiji_detect_config['camera_source']} detect results:{current_taocan_check_result}')
+    # else:
+    #     pass
     img = results.plot()
 
     return array2jpg(img)
