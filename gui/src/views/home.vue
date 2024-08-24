@@ -4,7 +4,7 @@
     <div class="hearder">
       <div class="hearder-box">
         <div class="hearder-logo">
-          <el-image style="width: 100%; height: 100px" :src="require('./../assets/logo.png')" fit="scale-down"></el-image>
+          <el-image style="width: 100%; height: 100px" :src="require('./../assets/logo.png')" fit="contain"></el-image>
         </div>
         <div class="hearder-mian">
           <el-tabs v-model="activeName" @tab-click="handleClick">
@@ -21,20 +21,36 @@
     <div class="middle-box">
       <div class="middle-left">
         <div class="middle-top">
-          <el-image style="width: 100%; height: 150px" :src="src" fit="scale-down"></el-image>
+          <el-image style="width: 100%; height: 150px" :src="src"></el-image>
+        </div>
+        <div class="middle-middle" v-if="activeName == 'first'">
+          <div v-if="configInfo.total_taocan_result_state == 'correct'" class="middle-middle-title"> 配 餐 完 整</div>
+          <div v-if="configInfo.total_taocan_result_state == 'incorrect'" class="middle-middle-title-error"> 配 餐 不 完 整</div>
         </div>
         <div class="middle-bottom" v-if="activeName == 'first'">
-          <div v-for="(item, index) in list" :key="index">
-            <span class="middle-item-error" :style='{ backgroundColor: item.count === item.real_count ? "#30FD2E" : "#FF0202" }'>{{
-              item.name }}</span>
-          </div>
+          <span  v-if="isShow">
+            <span class="middle-item-title">套餐内食品</span><br />
+            <div v-for="(item, index) in list" :key="index">
+              <span class="middle-item-error" v-if="item.is_in_taocan"
+                :style='{ backgroundColor: item.count === item.real_count ? "#30FD2E" : "#FF0202" }'>{{
+                  item.name }}</span>
+            </div>
+          </span>
+          <span  v-if="isShow">
+            <span class="middle-item-title">非套餐内食品</span>
+            <div v-for="(item, index) in list" :key="index">
+              <span class="middle-item-error" v-if="!item.is_in_taocan"
+                :style='{ backgroundColor: item.count === item.real_count ? "#30FD2E" : "#FF0202" }'>{{
+                  item.name }}</span>
+            </div>
+          </span>
         </div>
         <div class="middle-bottom" v-else>
           <div v-for="(item, index) in list" :key="index">
-            <div class="middle-item-first" style="font-size: 18px;">{{ item.title }}</div>
-            <div v-for="(itm, idx) in item.list" :key="idx" class="middle-item-itm">
+            <div class="middle-item-first" style="font-size: 18px;">人员{{ index }}:{{ item }}秒</div>
+            <!-- <div v-for="(itm, idx) in item.list" :key="idx" class="middle-item-itm">
               {{ itm.title }}
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
@@ -68,8 +84,12 @@
               <video-component :videoSrc="getSrc(item.src)"></video-component>
             </div> -->
             <!-- <div class="middle-main-vedio" v-if="isShow && configInfo && configInfo.data_type === 'camera'"> -->
-            <div class="middle-main-vedio" >
-              <img :src="getSrc(item.src)" width="100%" height="100%" />
+            <div class="middle-main-vedio">
+              <el-image :src="getSrc(item.src)" width="100%" height="100%" style="width: 100%; height: 100%" :preview-src-list="getSrcList(item.src)" fit="cover">
+                <div slot="placeholder" class="image-slot">
+                  {{ configInfo.running_state }}<span class="dot">...</span>
+                </div>
+              </el-image>
             </div>
           </div>
         </div>
@@ -93,7 +113,7 @@
             <el-button type="warning" style="margin-left: 20px;" @click="submit"> 确 定 </el-button>
           </div>
         </div>
-        <div class="middle-footer" v-if="activeName != 'second'">
+        <div class="middle-footer" v-if="activeName != 'second'" >
           <el-button type="warning" @click="changeType(0)"
             :style="{ color: configInfo.taocan_id === 0 ? '#fff' : '', textDecoration: configInfo.taocan_id === 0 ? 'underline' : '' }">
             套餐A </el-button>
@@ -120,7 +140,7 @@ export default {
     return {
       radio: '1',
       activeName: 'first',
-      frame_rate:0,
+      frame_rate: 0,
       input: "",
       loading: false,
       isCameraShow: true,
@@ -155,14 +175,24 @@ export default {
   },
   methods: {
     getSrc(src) {
-      if(src == "" || src=="null" || src== null){
+      if (src == "" || src == "null" || src == null) {
         return "";
       }
-      if(src[0] != "/"){
+      if (src[0] != "/") {
         src = "/" + src;
       }
       return 'http://8.140.49.13:6789' + src
       //return 'http://192.168.31.77:6789' + src
+    },
+    getSrcList(src) {
+      if (src == "" || src == "null" || src == null) {
+        return [];
+      }
+      if (src[0] != "/") {
+        src = "/" + src;
+      }
+      return ['http://8.140.49.13:6789' + src]
+      //return ['http://192.168.31.77:6789' + src]
     },
     async changeisCameraShow() {
       await this.switchTypeFun("2")
@@ -197,7 +227,7 @@ export default {
         let result = await modeDatasource(params)
         if (result.code === 0) {
           this.isCameraShow = true
-          
+
           // this.cardList[0].src = ""
           // this.cardList[1].src = ""
 
@@ -227,11 +257,11 @@ export default {
     },
     async getConfigInfo() {
       try {
+        
         this.loading = true
         let result = await getConfig()
         if (result.code === 0) {
-          console.log(result)
-          this.configInfo = result.data
+          this.configInfo = {...result.data}
           this.radio = this.configInfo.camera_type === 0 ? "1" : "2"
           this.valueCamera = this.configInfo.camera_local
           this.input = this.configInfo.camera_url
@@ -240,33 +270,28 @@ export default {
           } else {
             this.activeName = 'second'
           }
-
           this.cardList[0].src = result?.data?.video_source //+ "?mode=" + this.configInfo.mode
           this.cardList[1].src = result?.data?.video_target //+ "?mode=" + this.configInfo.mode
           this.frame_rate = this.configInfo.frame_rate
-
-          if(this.configInfo.mode == "person_detect"){
+          if (this.configInfo.mode == "person_detect") {
             this.list = result?.data?.current_person_result
-              this.isShow = false
-              this.$nextTick(() => {
-                this.isShow = true
-              })              
+            this.isShow = false
+            this.$nextTick(() => {
+              this.isShow = true
+            })
           } else {
             this.list = result?.data?.current_taocan_result
-              this.isShow = false
-              this.$nextTick(() => {
-                this.isShow = true
-              })
+            this.isShow = false
+            this.$nextTick(() => {
+              this.isShow = true
+            })
           }
-
-
-
           clearInterval(this.timer);
           this.timer = setInterval(() => {
-                setTimeout(async () => {
-                  this.getConfigTarget();
-                }, 0);
-              }, 3000);
+            setTimeout(async () => {
+              this.getConfigTarget();
+            }, 0);
+          }, 3000);
 
           // if (this.configInfo.data_type === 'video_file') {
           //   //if (!this.configInfo?.data_file_source || this.configInfo?.data_file_source == null) {
@@ -298,7 +323,7 @@ export default {
           //       }, 0);
           //     }, 3000);
           //     // this.timer = setInterval(this.refreshOther(), 3000);
-          //   }
+          //   } 
           // }
         } else {
           this.configInfo = {}
@@ -312,11 +337,32 @@ export default {
     async getConfigTarget() {
       try {
         this.loading = true
-        this.list = []
         let result = await getConfig()
         if (result.code === 0) {
-          if (this.configInfo?.data_file_target && this.configInfo?.data_file_target.length > 0) {
-            //clearInterval(this.timer)
+          this.configInfo = {...result.data}
+          this.radio = this.configInfo.camera_type === 0 ? "1" : "2"
+          this.valueCamera = this.configInfo.camera_local
+          this.input = this.configInfo.camera_url
+          if (this.configInfo.mode == 'huiji_detect') {
+            this.activeName = 'first'
+          } else {
+            this.activeName = 'second'
+          }
+          this.cardList[0].src = result?.data?.video_source //+ "?mode=" + this.configInfo.mode
+          this.cardList[1].src = result?.data?.video_target //+ "?mode=" + this.configInfo.mode
+          this.frame_rate = this.configInfo.frame_rate
+          if (this.configInfo.mode == "person_detect") {
+            this.list = result?.data?.current_person_result
+            this.isShow = false
+            this.$nextTick(() => {
+              this.isShow = true
+            })
+          } else {
+            this.list = result?.data?.current_taocan_result
+            this.isShow = false
+            this.$nextTick(() => {
+              this.isShow = true
+            })
           }
         } else {
           this.configInfo = {}
@@ -373,6 +419,7 @@ export default {
         }
         let result = await changeTaocan(params)
         if (result.code === 0) {
+          this.configInfo.taocan_id = type
           console.log(result)
         }
       } catch (error) {
@@ -430,7 +477,7 @@ export default {
 
       await this.switchTypeFun(1)
       console.log("sefdsafadsf");
-      let file      = item.file
+      let file = item.file
       this.disabled = true;
       console.log("start to upload33");
       console.log(this.list)
@@ -441,29 +488,29 @@ export default {
       console.log("start to upload111");
       // 文件大于50MB时分片上传
       // if (file.size / 1024 / 1024 < 50) {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("name", file.name);
-        console.log("start to upload");
-        uploadCamera(formData).then((res) => {
-          if (res.error !== "error") {
-            this.list.forEach((item) => {
-              if (item.name === file.name) {
-                item.percent = 100;
-              }
-            })
-            this.$message.success(`${file.name}：上传完成`);
-            this.getConfigInfo();
-          } else {
-            this.list.forEach((item) => {
-              if (item.name === file.name) {
-                item.typeProgress = 1;
-              }
-            })
-          }
-        }).finally(() => {
-          this.disabled = false;
-        });
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("name", file.name);
+      console.log("start to upload");
+      uploadCamera(formData).then((res) => {
+        if (res.error !== "error") {
+          this.list.forEach((item) => {
+            if (item.name === file.name) {
+              item.percent = 100;
+            }
+          })
+          this.$message.success(`${file.name}：上传完成`);
+          this.getConfigInfo();
+        } else {
+          this.list.forEach((item) => {
+            if (item.name === file.name) {
+              item.typeProgress = 1;
+            }
+          })
+        }
+      }).finally(() => {
+        this.disabled = false;
+      });
       // } else {
       // const size = 1 * 1024 * 1024; // 10MB 每个分片大小
       // let current = 0; // 当前分片index(从0开始)
@@ -588,6 +635,7 @@ export default {
   height: calc(100% - 120px);
   box-sizing: border-box;
   display: flex;
+  justify-content: space-around;
 }
 
 .hearder-logo {
@@ -635,6 +683,30 @@ export default {
   padding: 1px 5px;
 }
 
+.middle-middle-title {
+  color: #30FD2E;
+  display: inline-block;
+  margin: 10px 0;
+  font-size: 30px;
+  font-weight: 900;
+}
+
+.middle-middle-title-error {
+  color: #FF0202;
+  display: inline-block;
+  margin: 10px 0;
+  font-size: 30px;
+  font-weight: 900;
+}
+
+.middle-item-title {
+  color: #fff;
+  display: inline-block;
+  margin: 10px 0;
+  font-size: 20px;
+  font-weight: 900;
+}
+
 .middle-item-error {
   color: #fff;
   background: #FF0202;
@@ -675,7 +747,7 @@ export default {
 
 .middle-main-else {
   margin-top: 40px;
-  height: 420px;
+  height: 520px;
   background: #444;
   border-radius: 8px;
   display: flex;
@@ -810,5 +882,4 @@ export default {
   color: #333;
   padding: 10px 30px;
   font-weight: 900;
-}
-</style>
+}</style>
