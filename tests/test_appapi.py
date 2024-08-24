@@ -4,6 +4,7 @@ import pytest
 import os
 import time
 from fastapi.testclient import TestClient
+from ultralytics import YOLO
 from api.app import app  
 from mcd import conf
 from mcd.logger import log
@@ -12,7 +13,14 @@ from mcd.util import get_video_time
 
 client = TestClient(app)
 
+def test_yolo():
+    model = YOLO("yolov8n.pt")
+    results = model.track(source=0, stream=True,verbose=False)
+    results = model.track(source='uploads/demo.mp4', stream=True,verbose=False)
+    log.info("end.")
 
+
+    
 def test_switch_mode():
     response = client.get("/switch_mode?mode=huiji_detect")
     assert response.status_code == 200

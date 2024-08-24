@@ -16,7 +16,7 @@ def person_detect_frames():
     global running_state
     running_state = 'loading'
     
-    model = get_model(conf.person_detect_config['model'])
+    model = YOLO(conf.person_detect_config['model'])
     
     # 开始时间
     start_time = time.time()
@@ -70,7 +70,7 @@ def huiji_detect_frames():
     global running_state
     running_state = 'loading'
     
-    model = get_model(conf.huiji_detect_config['model'])
+    model = YOLO(conf.huiji_detect_config['model'])
     source = data_source()
     for result in model.track(source=source, stream=True,verbose=False):
         
