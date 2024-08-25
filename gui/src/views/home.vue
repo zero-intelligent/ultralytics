@@ -176,7 +176,7 @@ export default {
     await this.getConfigInfo()
 
     //var source = new EventSource("http://192.168.31.77:6789/config_sse");
-    var source = new EventSource("http://8.140.49.13:6789/config_sse");
+    var source = new EventSource("http://127.0.0.1:6789/config_sse");
     source.onmessage = function(event) {
       console.log(event.data)
     };
@@ -190,7 +190,7 @@ export default {
       if (src[0] != "/") {
         src = "/" + src;
       }
-      return 'http://8.140.49.13:6789' + src
+      return 'http://127.0.0.1:6789' + src
       //return 'http://192.168.31.77:6789' + src
     },
     getSrcList(src) {
@@ -200,7 +200,7 @@ export default {
       if (src[0] != "/") {
         src = "/" + src;
       }
-      return ['http://8.140.49.13:6789' + src]
+      return ['http://127.0.0.1:6789' + src]
       //return ['http://192.168.31.77:6789' + src]
     },
     async changeisCameraShow() {

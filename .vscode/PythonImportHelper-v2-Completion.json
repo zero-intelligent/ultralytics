@@ -1,11 +1,11 @@
 [
     {
-        "label": "asyncio",
+        "label": "json",
         "kind": 6,
         "isExtraImport": true,
-        "importPath": "asyncio",
-        "description": "asyncio",
-        "detail": "asyncio",
+        "importPath": "json",
+        "description": "json",
+        "detail": "json",
         "documentation": {}
     },
     {
@@ -253,6 +253,14 @@
     },
     {
         "label": "huiji_event",
+        "importPath": "mcd.event",
+        "description": "mcd.event",
+        "isExtraImport": true,
+        "detail": "mcd.event",
+        "documentation": {}
+    },
+    {
+        "label": "config_changed_event",
         "importPath": "mcd.event",
         "description": "mcd.event",
         "isExtraImport": true,
@@ -5407,15 +5415,6 @@
         "documentation": {}
     },
     {
-        "label": "json",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "json",
-        "description": "json",
-        "detail": "json",
-        "documentation": {}
-    },
-    {
         "label": "stringify",
         "importPath": "flatted",
         "description": "flatted",
@@ -5655,6 +5654,15 @@
         "description": "copy",
         "isExtraImport": true,
         "detail": "copy",
+        "documentation": {}
+    },
+    {
+        "label": "asyncio",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "asyncio",
+        "description": "asyncio",
+        "detail": "asyncio",
         "documentation": {}
     },
     {
@@ -9010,15 +9018,6 @@
         "importPath": "torch.distributed",
         "description": "torch.distributed",
         "detail": "torch.distributed",
-        "documentation": {}
-    },
-    {
-        "label": "ConfigSetting",
-        "kind": 6,
-        "importPath": "api.app",
-        "description": "api.app",
-        "peekOfCode": "class ConfigSetting:\n    mode:str\n    camera_type: str\n    camera_local: str\n    camera_url: str\n    taocan_id: int\n    data_type: str\n    video_source :str\n    video_target :str\n    current_taocan_result:str",
-        "detail": "api.app",
         "documentation": {}
     },
     {
