@@ -32,7 +32,7 @@ async def demo(mode:str = Query(default='huiji_detect',enum=['huiji_detect','per
     await set_mode_datasource(ModeDataSourceRequest(
         mode = mode,
         data_source_type = "camera",
-        data_source = 0
+        data_source = "0"
     ))
     html_content = """
     <html>
@@ -55,7 +55,7 @@ async def demo(mode:str = Query(default='huiji_detect',enum=['huiji_detect','per
 
 @app.get("/demo_person")
 async def demo_person():
-    return demo(mode='person_detect')
+    return await demo(mode='person_detect')
 
 
 @app.get("/config_sse")
@@ -65,7 +65,7 @@ async def get_config():
             await config_changed_event.wait()  # 等待新消息
             config_changed_event.clear()  # 清除事件，等待下次设置
             config = await get_config()
-            yield f"event: config_changed_event\ndata: {json.dumps(config['data'],ensure_ascii=False)}\n\n"
+            yield f"data: {json.dumps(config['data'],ensure_ascii=False)}\n\n"
 
     return StreamingResponse(config_stream(), media_type="text/event-stream")
 
