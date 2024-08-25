@@ -1,4 +1,4 @@
-import asyncio
+import json
 from fastapi import FastAPI, File, Form, HTTPException, Request,Response, UploadFile
 from fastapi import Body,Query
 from fastapi.exceptions import RequestValidationError
@@ -15,22 +15,6 @@ from mcd.camera import get_cameras
 import mcd.conf as conf
 from mcd.event import config_changed_event,person_event,huiji_event
 from pydantic import BaseModel
-
-
-class ConfigSetting:
-    mode:str
-    camera_type: str
-    camera_local: str
-    camera_url: str
-    taocan_id: int
-    data_type: str
-    video_source :str
-    video_target :str
-    current_taocan_result:str
-    current_person_result:str
-    frame_rate:int
-    running_state:str
-    total_taocan_result_state:str
 
 
 app = FastAPI()
@@ -76,49 +60,42 @@ async def demo_person():
 
 @app.get("/config_sse")
 async def get_config():
-    while True:
-        await config_changed_event.wait()  # 等待新消息
-        config_changed_event.clear()  # 清除事件，等待下次设置
-        yield await get_config()['data']
+    async def config_stream():
+        while True:
+            await config_changed_event.wait()  # 等待新消息
+            config_changed_event.clear()  # 清除事件，等待下次设置
+            config = await get_config()
+            yield f"event: config_changed_event\ndata: {json.dumps(config['data'])}\n\n"
+
+    return StreamingResponse(config_stream(), media_type="text/event-stream")
+
 
 @app.get("/get_config")
 async def get_config():
+    config = {
+        "mode": conf.current_mode,
+        "running_state": video_srv.running_state,
+        "frame_rate": int(video_srv.frames_info[conf.current_mode]['frame_rate']),
+        "taocan_id": conf.current_detect_config()["current_taocan_id"],
+        "camera_type": 0,
+        "camera_local": conf.current_detect_config()["camera_source"],
+        "camera_url": "",
+        "data_type": conf.current_detect_config()['data_source_type'],
+        "video_source": f"video_source_feed?mode={conf.current_mode}&data_source_type={conf.current_detect_config()['data_source_type']}",
+        "video_target": f"video_source_feed?mode={conf.current_mode}&data_source_type={conf.current_detect_config()['data_source_type']}",
+    }
     
-    configSetting = ConfigSetting()
-    configSetting.mode = conf.current_mode
-
     if conf.current_mode == 'huiji_detect':
-        configSetting.running_state = video_srv.running_state
-        configSetting.frame_rate = int(video_srv.frames_info[conf.current_mode]['frame_rate'])
-        configSetting.taocan_id = conf.huiji_detect_config["current_taocan_id"]
-        configSetting.camera_type=0
-        configSetting.camera_local = conf.huiji_detect_config["camera_source"]
-        configSetting.camera_url = ""
-        configSetting.data_type = conf.huiji_detect_config.get('data_source_type')
-        configSetting.video_source = "video_source_feed?mode=" + conf.current_mode + "&data_source_type=" + conf.huiji_detect_config['data_source_type']
-        configSetting.video_target = "video_output_feed?mode=" + conf.current_mode + "&data_source_type=" + conf.huiji_detect_config['data_source_type']
-        
         result_state,results = video_srv.get_huiji_detect_items(video_srv.current_taocan_check_result)
-        configSetting.current_taocan_result = results
-        configSetting.total_taocan_result_state = result_state
-
-    if conf.current_mode == 'person_detect':
-        configSetting.running_state = video_srv.running_state
-        configSetting.frame_rate = int(video_srv.frames_info[conf.current_mode]['frame_rate'])
-        configSetting.camera_type = 0
-        configSetting.camera_local = conf.person_detect_config["camera_source"]
-        configSetting.camera_url = ""
-        configSetting.data_type = conf.person_detect_config.get('data_source_type')
-        configSetting.video_source = "video_source_feed?mode=" + conf.current_mode + "&data_source_type=" + conf.person_detect_config['data_source_type']
-        configSetting.video_target = "video_output_feed?mode=" + conf.current_mode + "&data_source_type=" + conf.person_detect_config['data_source_type']
-        configSetting.current_person_result = video_srv.get_current_person_detect_result()
-        configSetting.total_taocan_result_state = 'other'
-
+        config['current_taocan_result'] = results
+        config['total_taocan_result_state'] = result_state
+    else:
+        config['current_person_result'] = video_srv.get_current_person_detect_result()
     
-    log.info(vars(configSetting))
+    log.info(json.dumps(config,indent=4))
     return {
         "code":0,
-        "data":configSetting
+        "data":config
     }
 
 
