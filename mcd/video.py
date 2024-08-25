@@ -1,4 +1,4 @@
-import os
+import gc
 import random
 import time
 import cv2
@@ -21,8 +21,14 @@ def person_detect_frames():
     # 开始时间
     start_time = time.time()
     source = data_source()
+    mode = conf.current_mode
     for result in model.track(source=source, stream=True,verbose=False, classes=[0]):
         running_state = 'running'
+        
+        # 如果用户已经切换了mode或者数据源，当前的检测程序退出
+        if conf.current_mode != mode or data_source() != source:
+            break
+        
         #计算帧率
         frames_info[conf.current_mode]['frame_count'] += 1
         frames_info[conf.current_mode]['frame_rate'] = frames_info[conf.current_mode]['frame_count'] / (time.time() - start_time)
@@ -50,6 +56,9 @@ def person_detect_frames():
             "orig_frame": orig_frame,
             "tracked_frame": tracked_frame
         }
+    # 模型运行结束后，回收较重的模型资源
+    del model
+    gc.collect()
     running_state = 'finished'
 
 frames_info = {
@@ -72,9 +81,15 @@ def huiji_detect_frames():
     
     model = YOLO(conf.huiji_detect_config['model'])
     source = data_source()
+    mode = conf.current_mode
     for result in model.track(source=source, stream=True,verbose=False):
         
         running_state = 'running'
+        
+        # 如果用户已经切换了mode或者数据源，当前的检测程序退出
+        if conf.current_mode != mode or data_source() != source:
+            break
+        
         #计算帧率
         frames_info[conf.current_mode]['frame_count'] += 1
         frames_info[conf.current_mode]['frame_rate'] = frames_info[conf.current_mode]['frame_count'] / (time.time() - start_time)
@@ -95,6 +110,10 @@ def huiji_detect_frames():
             "orig_frame": orig_frame,
             "tracked_frame": huiji_detect_results(result)
         }
+    
+    # 模型运行结束后，回收较重的模型资源
+    del model
+    gc.collect()
     running_state = 'finished'
         
 def get_huiji_detect_items(detect_result):

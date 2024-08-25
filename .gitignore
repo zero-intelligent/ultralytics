@@ -167,3 +167,4 @@ pnnx*
 
 # calibration image
 calibration_*.npy
+.vscode/PythonImportHelper-v2-Completion.json
