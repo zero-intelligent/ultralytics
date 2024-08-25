@@ -236,6 +236,46 @@
         "documentation": {}
     },
     {
+        "label": "config_changed_event",
+        "importPath": "mcd.event",
+        "description": "mcd.event",
+        "isExtraImport": true,
+        "detail": "mcd.event",
+        "documentation": {}
+    },
+    {
+        "label": "person_event",
+        "importPath": "mcd.event",
+        "description": "mcd.event",
+        "isExtraImport": true,
+        "detail": "mcd.event",
+        "documentation": {}
+    },
+    {
+        "label": "huiji_event",
+        "importPath": "mcd.event",
+        "description": "mcd.event",
+        "isExtraImport": true,
+        "detail": "mcd.event",
+        "documentation": {}
+    },
+    {
+        "label": "person_event",
+        "importPath": "mcd.event",
+        "description": "mcd.event",
+        "isExtraImport": true,
+        "detail": "mcd.event",
+        "documentation": {}
+    },
+    {
+        "label": "config_changed_event",
+        "importPath": "mcd.event",
+        "description": "mcd.event",
+        "isExtraImport": true,
+        "detail": "mcd.event",
+        "documentation": {}
+    },
+    {
         "label": "os",
         "kind": 6,
         "isExtraImport": true,
@@ -5636,6 +5676,15 @@
         "documentation": {}
     },
     {
+        "label": "gc",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "gc",
+        "description": "gc",
+        "detail": "gc",
+        "documentation": {}
+    },
+    {
         "label": "random",
         "kind": 6,
         "isExtraImport": true,
@@ -7391,15 +7440,6 @@
         "documentation": {}
     },
     {
-        "label": "gc",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "gc",
-        "description": "gc",
-        "detail": "gc",
-        "documentation": {}
-    },
-    {
         "label": "warnings",
         "kind": 6,
         "isExtraImport": true,
@@ -8973,15 +9013,6 @@
         "documentation": {}
     },
     {
-        "label": "CameraSetting",
-        "kind": 6,
-        "importPath": "api.app",
-        "description": "api.app",
-        "peekOfCode": "class CameraSetting(BaseModel):\n    type: str\n    local: str\n    url: str\nclass ConfigSetting:\n    mode:str\n    camera_type: str\n    camera_local: str\n    camera_url: str\n    taocan_id: int",
-        "detail": "api.app",
-        "documentation": {}
-    },
-    {
         "label": "ConfigSetting",
         "kind": 6,
         "importPath": "api.app",
@@ -8995,7 +9026,7 @@
         "kind": 6,
         "importPath": "api.app",
         "description": "api.app",
-        "peekOfCode": "class ModeDataSourceRequest(BaseModel):\n    mode: str = Field(default=\"huiji_detect\", enum=[\"huiji_detect\", \"person_detect\"])\n    data_source_type: str = Field(default=\"camera\", enum=[\"camera\", \"video_file\"])\n    data_source: str = Field(..., min_length=1, description=\"数据源不能为空\")\n@app.post(\"/mode_datasource\")\nasync def set_mode_datasource(request: ModeDataSourceRequest):\n    conf.current_mode = request.mode\n    detect_config = conf.current_detect_config()\n    detect_config['data_source_type'] = request.data_source_type\n    if request.data_source_type == 'camera':",
+        "peekOfCode": "class ModeDataSourceRequest(BaseModel):\n    mode: str = Field(default=\"huiji_detect\", enum=[\"huiji_detect\", \"person_detect\"])\n    data_source_type: str = Field(default=\"camera\", enum=[\"camera\", \"video_file\"])\n    data_source: str = Field(..., min_length=1, description=\"数据源不能为空\")\n@app.post(\"/mode_datasource\")\nasync def set_mode_datasource(request: ModeDataSourceRequest):\n    detect_config = conf.current_detect_config()\n    if conf.current_mode != request.mode \\\n       or detect_config['data_source_type'] != request.data_source_type \\\n       or conf.data_source() != request.data_source:",
         "detail": "api.app",
         "documentation": {}
     },
@@ -9013,16 +9044,7 @@
         "kind": 5,
         "importPath": "api.app",
         "description": "api.app",
-        "peekOfCode": "app = FastAPI()\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=[\"http://pinda.cn\",\"http://127.0.0.1:8000\"],\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],\n)\n@app.get(\"/demo_huiji\")\nasync def demo_huiji():",
-        "detail": "api.app",
-        "documentation": {}
-    },
-    {
-        "label": "huiji_event",
-        "kind": 5,
-        "importPath": "api.app",
-        "description": "api.app",
-        "peekOfCode": "huiji_event = asyncio.Event()\nlatest_frame = {}\nperson_event = asyncio.Event()\nasync def output_generator(event):\n    while True:\n        await event.wait()  # 等待新消息\n        event.clear()  # 清除事件，等待下次设置\n        yield (b'--frame\\r\\nContent-Type: image/jpeg\\r\\n\\r\\n' + latest_frame[conf.current_mode] + b'\\r\\n')\ndef pub_and_pad(event,r):\n    latest_frame[conf.current_mode] = r['tracked_frame']",
+        "peekOfCode": "app = FastAPI()\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=[\"http://pinda.cn\",\"http://127.0.0.1:8000\"],\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],\n)\n@app.get(\"/demo_huiji\")\nasync def demo(mode:str = Query(default='huiji_detect',enum=['huiji_detect','person_detect'])):",
         "detail": "api.app",
         "documentation": {}
     },
@@ -9031,16 +9053,7 @@
         "kind": 5,
         "importPath": "api.app",
         "description": "api.app",
-        "peekOfCode": "latest_frame = {}\nperson_event = asyncio.Event()\nasync def output_generator(event):\n    while True:\n        await event.wait()  # 等待新消息\n        event.clear()  # 清除事件，等待下次设置\n        yield (b'--frame\\r\\nContent-Type: image/jpeg\\r\\n\\r\\n' + latest_frame[conf.current_mode] + b'\\r\\n')\ndef pub_and_pad(event,r):\n    latest_frame[conf.current_mode] = r['tracked_frame']\n    event.set()  # 设置事件，通知订阅者",
-        "detail": "api.app",
-        "documentation": {}
-    },
-    {
-        "label": "person_event",
-        "kind": 5,
-        "importPath": "api.app",
-        "description": "api.app",
-        "peekOfCode": "person_event = asyncio.Event()\nasync def output_generator(event):\n    while True:\n        await event.wait()  # 等待新消息\n        event.clear()  # 清除事件，等待下次设置\n        yield (b'--frame\\r\\nContent-Type: image/jpeg\\r\\n\\r\\n' + latest_frame[conf.current_mode] + b'\\r\\n')\ndef pub_and_pad(event,r):\n    latest_frame[conf.current_mode] = r['tracked_frame']\n    event.set()  # 设置事件，通知订阅者\n    return (b'--frame\\r\\n Content-Type: image/jpeg\\r\\n\\r\\n' + r['orig_frame'] + b'\\r\\n')",
+        "peekOfCode": "latest_frame = {}\nasync def output_generator(event):\n    while True:\n        await event.wait()  # 等待新消息\n        event.clear()  # 清除事件，等待下次设置\n        yield (b'--frame\\r\\nContent-Type: image/jpeg\\r\\n\\r\\n' + latest_frame[conf.current_mode] + b'\\r\\n')\ndef pub_and_pad(event,r):\n    latest_frame[conf.current_mode] = r['tracked_frame']\n    event.set()  # 设置事件，通知订阅者\n    return (b'--frame\\r\\n Content-Type: image/jpeg\\r\\n\\r\\n' + r['orig_frame'] + b'\\r\\n')",
         "detail": "api.app",
         "documentation": {}
     },
@@ -9711,6 +9724,15 @@
         "documentation": {}
     },
     {
+        "label": "data_source",
+        "kind": 2,
+        "importPath": "mcd.conf",
+        "description": "mcd.conf",
+        "peekOfCode": "def data_source():\n    detect_config = current_detect_config()\n    data_source_type = detect_config['data_source_type']\n    if data_source_type == 'camera':\n        data_source = detect_config['camera_source']\n        if str(data_source).isdigit():\n            data_source = int(data_source)\n        return data_source\n    else:\n        return detect_config['video_file']",
+        "detail": "mcd.conf",
+        "documentation": {}
+    },
+    {
         "label": "current_detect_config",
         "kind": 2,
         "importPath": "mcd.conf",
@@ -9769,7 +9791,7 @@
         "kind": 5,
         "importPath": "mcd.conf",
         "description": "mcd.conf",
-        "peekOfCode": "person_detect_config = {\n    # 数据源类型，只可以是: 摄像头(camera)/视频文件(video_file)\n    \"data_source_type\": \"camera\",\n    # 当前摄像头地址，本地为 0,1,2， 网络是 uri 地址\n    \"camera_source\": 0,\n    \"video_file\": \"\",\n    \"model\": \"yolov8n.pt\"\n}\ndef current_detect_config():\n    if current_mode == 'huiji_detect':",
+        "peekOfCode": "person_detect_config = {\n    # 数据源类型，只可以是: 摄像头(camera)/视频文件(video_file)\n    \"data_source_type\": \"camera\",\n    # 当前摄像头地址，本地为 0,1,2， 网络是 uri 地址\n    \"camera_source\": 0,\n    \"video_file\": \"\",\n    \"model\": \"yolov8n.pt\"\n}\ndef data_source():\n    detect_config = current_detect_config()",
         "detail": "mcd.conf",
         "documentation": {}
     },
@@ -9789,6 +9811,33 @@
         "description": "mcd.custom_result",
         "peekOfCode": "class PersonResults(Results):\n    id_info = {}\n    def __init__(self, **kwargs):\n        super().__init__(**kwargs)\n    # 覆盖基类的方法，否则复制对象时，类型信息又回去了\n    def new(self):\n        return PersonResults(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)\n    def plot(self,\n             conf=True,\n             line_width=None,",
         "detail": "mcd.custom_result",
+        "documentation": {}
+    },
+    {
+        "label": "config_changed_event",
+        "kind": 5,
+        "importPath": "mcd.event",
+        "description": "mcd.event",
+        "peekOfCode": "config_changed_event = asyncio.Event()\n#汇集区检测\nhuiji_event = asyncio.Event()\n# 人员检测\nperson_event = asyncio.Event()",
+        "detail": "mcd.event",
+        "documentation": {}
+    },
+    {
+        "label": "huiji_event",
+        "kind": 5,
+        "importPath": "mcd.event",
+        "description": "mcd.event",
+        "peekOfCode": "huiji_event = asyncio.Event()\n# 人员检测\nperson_event = asyncio.Event()",
+        "detail": "mcd.event",
+        "documentation": {}
+    },
+    {
+        "label": "person_event",
+        "kind": 5,
+        "importPath": "mcd.event",
+        "description": "mcd.event",
+        "peekOfCode": "person_event = asyncio.Event()",
+        "detail": "mcd.event",
         "documentation": {}
     },
     {
@@ -9850,7 +9899,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def get_current_person_detect_result():\n    return {id:int(v['time_s']) for id,v in PersonResults.id_info.items()}\ndef person_detect_frames():\n    global running_state\n    running_state = 'loading'\n    model = YOLO(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False, classes=[0]):",
+        "peekOfCode": "def get_current_person_detect_result():\n    return {id:int(v['time_s']) for id,v in PersonResults.id_info.items()}\ndef person_detect_frames():\n    global running_state\n    running_state = 'loading'\n    model = YOLO(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    source = conf.data_source()\n    mode = conf.current_mode",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9859,7 +9908,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def person_detect_frames():\n    global running_state\n    running_state = 'loading'\n    model = YOLO(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False, classes=[0]):\n        running_state = 'running'\n        #计算帧率",
+        "peekOfCode": "def person_detect_frames():\n    global running_state\n    running_state = 'loading'\n    model = YOLO(conf.person_detect_config['model'])\n    # 开始时间\n    start_time = time.time()\n    source = conf.data_source()\n    mode = conf.current_mode\n    for result in model.track(source=source, stream=True,verbose=False, classes=[0]):\n        running_state = 'running'",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9868,7 +9917,7 @@
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    global running_state\n    running_state = 'loading'\n    model = YOLO(conf.huiji_detect_config['model'])\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False):\n        running_state = 'running'\n        #计算帧率",
+        "peekOfCode": "def huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    global running_state\n    running_state = 'loading'\n    model = YOLO(conf.huiji_detect_config['model'])\n    source = conf.data_source()\n    mode = conf.current_mode\n    for result in model.track(source=source, stream=True,verbose=False):\n        running_state = 'running'",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9891,20 +9940,11 @@
         "documentation": {}
     },
     {
-        "label": "data_source",
-        "kind": 2,
-        "importPath": "mcd.video",
-        "description": "mcd.video",
-        "peekOfCode": "def data_source():\n    detect_config = conf.current_detect_config()\n    data_source_type = detect_config['data_source_type']\n    if data_source_type == 'camera':\n        data_source = detect_config['camera_source']\n        if str(data_source).isdigit():\n            data_source = int(data_source)\n        return data_source\n    else:\n        return detect_config['video_file']",
-        "detail": "mcd.video",
-        "documentation": {}
-    },
-    {
         "label": "capture_frames",
         "kind": 2,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "def capture_frames():\n    # 打开摄像头\n    cap = cv2.VideoCapture(data_source())\n    while True:\n        ret, frame = cap.read()\n        if not ret:\n            break\n        ret, buffer = cv2.imencode('.jpg', frame)\n        frame = buffer.tobytes()\n        # yield frame",
+        "peekOfCode": "def capture_frames():\n    # 打开摄像头\n    cap = cv2.VideoCapture(conf.data_source())\n    while True:\n        ret, frame = cap.read()\n        if not ret:\n            break\n        ret, buffer = cv2.imencode('.jpg', frame)\n        frame = buffer.tobytes()\n        # yield frame",
         "detail": "mcd.video",
         "documentation": {}
     },
@@ -9949,7 +9989,7 @@
         "kind": 5,
         "importPath": "mcd.video",
         "description": "mcd.video",
-        "peekOfCode": "running_state = 'ready'  #运行状态：准备（ready), 装载中(loading), 运行中(running), 结束（finished)\ndef huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    global running_state\n    running_state = 'loading'\n    model = YOLO(conf.huiji_detect_config['model'])\n    source = data_source()\n    for result in model.track(source=source, stream=True,verbose=False):\n        running_state = 'running'",
+        "peekOfCode": "running_state = 'ready'  #运行状态：准备（ready), 装载中(loading), 运行中(running), 结束（finished)\ndef huiji_detect_frames():\n     # 开始时间\n    start_time = time.time()\n    global running_state\n    running_state = 'loading'\n    model = YOLO(conf.huiji_detect_config['model'])\n    source = conf.data_source()\n    mode = conf.current_mode\n    for result in model.track(source=source, stream=True,verbose=False):",
         "detail": "mcd.video",
         "documentation": {}
     },

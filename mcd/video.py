@@ -1,4 +1,4 @@
-import os
+import gc
 import random
 import time
 import cv2
@@ -6,6 +6,7 @@ from ultralytics import YOLO
 import mcd.conf as conf
 from mcd.logger import log
 from mcd.custom_result import PersonResults
+from mcd.event import config_changed_event
 
 
 def get_current_person_detect_result():
@@ -20,9 +21,15 @@ def person_detect_frames():
     
     # 开始时间
     start_time = time.time()
-    source = data_source()
+    source = conf.data_source()
+    mode = conf.current_mode
     for result in model.track(source=source, stream=True,verbose=False, classes=[0]):
         running_state = 'running'
+        
+        # 如果用户已经切换了mode或者数据源，当前的检测程序退出
+        if conf.current_mode != mode or conf.data_source() != source:
+            break
+        
         #计算帧率
         frames_info[conf.current_mode]['frame_count'] += 1
         frames_info[conf.current_mode]['frame_rate'] = frames_info[conf.current_mode]['frame_count'] / (time.time() - start_time)
@@ -50,6 +57,9 @@ def person_detect_frames():
             "orig_frame": orig_frame,
             "tracked_frame": tracked_frame
         }
+    # 模型运行结束后，回收较重的模型资源
+    del model
+    gc.collect()
     running_state = 'finished'
 
 frames_info = {
@@ -71,10 +81,16 @@ def huiji_detect_frames():
     running_state = 'loading'
     
     model = YOLO(conf.huiji_detect_config['model'])
-    source = data_source()
+    source = conf.data_source()
+    mode = conf.current_mode
     for result in model.track(source=source, stream=True,verbose=False):
         
         running_state = 'running'
+        
+        # 如果用户已经切换了mode或者数据源，当前的检测程序退出
+        if conf.current_mode != mode or conf.data_source() != source:
+            break
+        
         #计算帧率
         frames_info[conf.current_mode]['frame_count'] += 1
         frames_info[conf.current_mode]['frame_rate'] = frames_info[conf.current_mode]['frame_count'] / (time.time() - start_time)
@@ -95,6 +111,10 @@ def huiji_detect_frames():
             "orig_frame": orig_frame,
             "tracked_frame": huiji_detect_results(result)
         }
+    
+    # 模型运行结束后，回收较重的模型资源
+    del model
+    gc.collect()
     running_state = 'finished'
         
 def get_huiji_detect_items(detect_result):
@@ -154,6 +174,9 @@ def huiji_detect_results(results):
     global current_taocan_check_result,last_taocan_check_result
     last_taocan_check_result = current_taocan_check_result
     current_taocan_check_result = {k:len(v) for k,v in meal_result.items()}
+    if current_taocan_check_result != last_taocan_check_result:
+        config_changed_event.set()
+        
     # if current_taocan_check_result:
     #     log.info(f'huiji_detect camera source:{conf.huiji_detect_config['camera_source']} detect results:{current_taocan_check_result}')
     # else:
@@ -162,20 +185,10 @@ def huiji_detect_results(results):
 
     return array2jpg(img)
 
-def data_source():
-    detect_config = conf.current_detect_config()
-    data_source_type = detect_config['data_source_type']
-    if data_source_type == 'camera':
-        data_source = detect_config['camera_source']
-        if str(data_source).isdigit():
-            data_source = int(data_source)
-        return data_source
-    else:
-        return detect_config['video_file']
 
 def capture_frames():
     # 打开摄像头
-    cap = cv2.VideoCapture(data_source())
+    cap = cv2.VideoCapture(conf.data_source())
     while True:
         ret, frame = cap.read()
         if not ret:

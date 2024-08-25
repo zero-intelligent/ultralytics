@@ -64,8 +64,9 @@ huiji_detect_config = {
             "name": '周末聚划算四人餐',
             "items":[
                 [3,'Burger',4],
-                [12,'McNuggets',1],
-                [4,'Cold Drink',4]
+                [8,'Fries',1],
+                [11,'McFlurry',4],
+                [14,'Pie',4],
             ]
         }
     ]
@@ -80,6 +81,18 @@ person_detect_config = {
     "model": "yolov8n.pt"
 
 }
+
+def data_source():
+    detect_config = current_detect_config()
+    data_source_type = detect_config['data_source_type']
+    if data_source_type == 'camera':
+        data_source = detect_config['camera_source']
+        if str(data_source).isdigit():
+            data_source = int(data_source)
+        return data_source
+    else:
+        return detect_config['video_file']
+    
 
 def current_detect_config():
     if current_mode == 'huiji_detect':
