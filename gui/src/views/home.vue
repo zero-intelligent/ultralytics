@@ -25,10 +25,11 @@
         </div>
         <div class="middle-middle" v-if="activeName == 'first'">
           <div v-if="configInfo.total_taocan_result_state == 'correct'" class="middle-middle-title"> 配 餐 完 整</div>
-          <div v-if="configInfo.total_taocan_result_state == 'incorrect'" class="middle-middle-title-error"> 配 餐 不 完 整</div>
+          <div v-if="configInfo.total_taocan_result_state == 'incorrect'" class="middle-middle-title-error"> 配 餐 不 完 整
+          </div>
         </div>
         <div class="middle-bottom" v-if="activeName == 'first'">
-          <span  v-if="isShow">
+          <span v-if="isShow">
             <span class="middle-item-title">套餐内食品</span><br />
             <div v-for="(item, index) in list" :key="index">
               <span class="middle-item-error" v-if="item.is_in_taocan"
@@ -36,7 +37,7 @@
                   item.name }}</span>
             </div>
           </span>
-          <span  v-if="isShow">
+          <span v-if="isShow">
             <span class="middle-item-title">非套餐内食品</span>
             <div v-for="(item, index) in list" :key="index">
               <span class="middle-item-error" v-if="!item.is_in_taocan"
@@ -85,7 +86,9 @@
             </div> -->
             <!-- <div class="middle-main-vedio" v-if="isShow && configInfo && configInfo.data_type === 'camera'"> -->
             <div class="middle-main-vedio">
-              <el-image :src="getSrc(item.src)" width="100%" height="100%" style="width: 100%; height: 100%" :preview-src-list="getSrcList(item.src)" fit="cover">
+
+              <el-image :src="getSrc(item.src)" width="100%" height="100%" style="width: 100%; height: 100%"
+                :preview-src-list="getSrcList(item.src)" fit="cover">
                 <div slot="placeholder" class="image-slot">
                   {{ configInfo.running_state }}<span class="dot">...</span>
                 </div>
@@ -113,7 +116,7 @@
             <el-button type="warning" style="margin-left: 20px;" @click="submit"> 确 定 </el-button>
           </div>
         </div>
-        <div class="middle-footer" v-if="activeName != 'second'" >
+        <div class="middle-footer" v-if="activeName != 'second'">
           <el-button type="warning" @click="changeType(0)"
             :style="{ color: configInfo.taocan_id === 0 ? '#fff' : '', textDecoration: configInfo.taocan_id === 0 ? 'underline' : '' }">
             套餐A </el-button>
@@ -171,6 +174,12 @@ export default {
   },
   async mounted() {
     await this.getConfigInfo()
+
+    //var source = new EventSource("http://192.168.31.77:6789/config_sse");
+    var source = new EventSource("http://8.140.49.13:6789/config_sse");
+    source.onmessage = function(event) {
+      console.log(event.data)
+    };
 
   },
   methods: {
@@ -257,11 +266,11 @@ export default {
     },
     async getConfigInfo() {
       try {
-        
+
         this.loading = true
         let result = await getConfig()
         if (result.code === 0) {
-          this.configInfo = {...result.data}
+          this.configInfo = { ...result.data }
           this.radio = this.configInfo.camera_type === 0 ? "1" : "2"
           this.valueCamera = this.configInfo.camera_local
           this.input = this.configInfo.camera_url
@@ -286,12 +295,12 @@ export default {
               this.isShow = true
             })
           }
-          clearInterval(this.timer);
-          this.timer = setInterval(() => {
-            setTimeout(async () => {
-              this.getConfigTarget();
-            }, 0);
+          // clearInterval(this.timer);
+          // this.timer = setInterval(() => {
+          setTimeout(async () => {
+            this.getConfigTarget();
           }, 3000);
+          // }, 3000);
 
           // if (this.configInfo.data_type === 'video_file') {
           //   //if (!this.configInfo?.data_file_source || this.configInfo?.data_file_source == null) {
@@ -339,7 +348,7 @@ export default {
         this.loading = true
         let result = await getConfig()
         if (result.code === 0) {
-          this.configInfo = {...result.data}
+          this.configInfo = { ...result.data }
           this.radio = this.configInfo.camera_type === 0 ? "1" : "2"
           this.valueCamera = this.configInfo.camera_local
           this.input = this.configInfo.camera_url
@@ -364,6 +373,7 @@ export default {
               this.isShow = true
             })
           }
+
         } else {
           this.configInfo = {}
         }
@@ -371,6 +381,9 @@ export default {
         console.log(error)
       } finally {
         this.loading = false
+        setTimeout(async () => {
+          this.getConfigTarget();
+        }, 3000);
       }
     },
     async refresh() {
@@ -610,7 +623,7 @@ export default {
 <style>
 .main {
   width: 100%;
-  height: 98vh;
+  height: 100vh;
   background: #000;
   box-sizing: border-box;
   display: flex;
