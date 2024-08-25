@@ -65,7 +65,7 @@ async def get_config():
             await config_changed_event.wait()  # 等待新消息
             config_changed_event.clear()  # 清除事件，等待下次设置
             config = await get_config()
-            yield f"event: config_changed_event\ndata: {json.dumps(config['data'])}\n\n"
+            yield f"event: config_changed_event\ndata: {json.dumps(config['data'],ensure_ascii=False)}\n\n"
 
     return StreamingResponse(config_stream(), media_type="text/event-stream")
 
@@ -76,7 +76,6 @@ async def get_config():
         "mode": conf.current_mode,
         "running_state": video_srv.running_state,
         "frame_rate": int(video_srv.frames_info[conf.current_mode]['frame_rate']),
-        "taocan_id": conf.current_detect_config()["current_taocan_id"],
         "camera_type": 0,
         "camera_local": conf.current_detect_config()["camera_source"],
         "camera_url": "",
@@ -89,10 +88,11 @@ async def get_config():
         result_state,results = video_srv.get_huiji_detect_items(video_srv.current_taocan_check_result)
         config['current_taocan_result'] = results
         config['total_taocan_result_state'] = result_state
+        config["taocan_id"] = conf.current_detect_config()["current_taocan_id"]
     else:
         config['current_person_result'] = video_srv.get_current_person_detect_result()
     
-    log.info(json.dumps(config,indent=4))
+    log.info(json.dumps(config,ensure_ascii=False))
     return {
         "code":0,
         "data":config

@@ -2,7 +2,7 @@ from ultralytics.engine.results import Results
 from copy import deepcopy
 import torch
 from ultralytics.utils.plotting import Annotator
-from mcd.event import person_event
+from mcd.event import config_changed_event, person_event
 
 
 class PersonResults(Results):
@@ -68,7 +68,7 @@ class PersonResults(Results):
                 else:
                     # 每发现一帧，积累每帧的时间
                     if int(PersonResults.id_info[id]['time_s'] + 1.0/20) != int(PersonResults.id_info[id]['time_s']):
-                        person_event.set()
+                        config_changed_event.set()
                     PersonResults.id_info[id]['time_s'] += 1.0/20
                     PersonResults.id_info[id]['path'] += [[int((float(d.xyxy[0][0]) + float(d.xyxy[0][2]))/2),
                                                            # 添加路径坐标
