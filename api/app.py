@@ -107,8 +107,8 @@ async def switch_mode(mode:str = Query(default='huiji_detect',enum=['huiji_detec
             "msg":f"mode has been {mode}"
         }
     
-    config_changed_event.set()
     conf.current_mode = mode
+    config_changed_event.set()
     return {
         "code": 0,
         "msg":f"mode swit to {mode}"
@@ -122,10 +122,14 @@ class ModeDataSourceRequest(BaseModel):
 @app.post("/mode_datasource")
 async def set_mode_datasource(request: ModeDataSourceRequest):
     detect_config = conf.current_detect_config()
-    if conf.current_mode != request.mode \
-       or detect_config['data_source_type'] != request.data_source_type \
-       or conf.data_source() != request.data_source:
-        config_changed_event.set()
+    if conf.current_mode == request.mode \
+       and detect_config['data_source_type'] == request.data_source_type \
+       and conf.data_source() == request.data_source:
+        return {
+            "code": 0,
+            "msg":f"mode_datasource same,no changed"
+        }
+        
         
     conf.current_mode = request.mode
     detect_config['data_source_type'] = request.data_source_type
@@ -134,9 +138,10 @@ async def set_mode_datasource(request: ModeDataSourceRequest):
     else:
         detect_config['video_file'] = request.data_source
 
+    config_changed_event.set()
     return {
         "code": 0,
-        "msg":f"ok"
+        "msg":f"mode_datasource changed"
     }
 
 @app.get("/mode_datasource")
@@ -162,14 +167,18 @@ async def get_taocans():
 
 @app.get("/switch_taocan")
 async def switch_taocan(taocan_id:int = Query(ge=0, le=1)):
-    if conf.huiji_detect_config["current_taocan_id"] != taocan_id:
-        config_changed_event.set()
-        
+    if conf.huiji_detect_config["current_taocan_id"] == taocan_id:
+        return {
+            "code": 0,
+            "msg":f"taocan_id had {taocan_id}"
+    }
+
     conf.huiji_detect_config["current_taocan_id"] = taocan_id
+    config_changed_event.set()
     # 此处需要将视频分析的结果和套餐的信息进行合并
     return {
         "code": 0,
-        "msg":"switch success"
+        "msg":f"switch success to {taocan_id}"
     }
 
 

@@ -68,12 +68,13 @@ class PersonResults(Results):
                 else:
                     # 每发现一帧，积累每帧的时间
                     if int(PersonResults.id_info[id]['time_s'] + 1.0/20) != int(PersonResults.id_info[id]['time_s']):
-                        config_changed_event.set()
+                        changed = True
                     PersonResults.id_info[id]['time_s'] += 1.0/20
                     PersonResults.id_info[id]['path'] += [[int((float(d.xyxy[0][0]) + float(d.xyxy[0][2]))/2),
                                                            # 添加路径坐标
                                                            int((float(d.xyxy[0][1]) + float(d.xyxy[0][3]))/2)]]
-
+                    if changed:
+                        config_changed_event.set()
                 label = f"id:{id},{int(PersonResults.id_info[id]['time_s'])}s"
                 xy = [
                     int((float(d.xyxy[0][0]) + float(d.xyxy[0][2]))/2)-8, int(d.xyxy[0][1])]
