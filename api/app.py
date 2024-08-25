@@ -13,12 +13,9 @@ from mcd.logger import log
 import mcd.video as video_srv
 from mcd.camera import get_cameras
 import mcd.conf as conf
+from mcd.event import config_changed_event,person_event,huiji_event
 from pydantic import BaseModel
 
-class CameraSetting(BaseModel):
-    type: str
-    local: str
-    url: str
 
 class ConfigSetting:
     mode:str
@@ -47,7 +44,12 @@ app.add_middleware(
 )
 
 @app.get("/demo_huiji")
-async def demo_huiji():
+async def demo(mode:str = Query(default='huiji_detect',enum=['huiji_detect','person_detect'])):
+    await set_mode_datasource(ModeDataSourceRequest(
+        mode = mode,
+        data_source_type = "camera",
+        data_source = 0
+    ))
     html_content = """
     <html>
     <head>
@@ -57,8 +59,8 @@ async def demo_huiji():
     <h1>Camera Stream</h1>
     <table>
         <tr>
-            <td><img src="/huiji_video_source_feed" width="1024" height="768" /></td>
-            <td><img src="/huiji_video_output_feed" width="1024" height="768" /></td>
+            <td><img src="/video_source_feed" width="1024" height="768" /></td>
+            <td><img src="/video_output_feed" width="1024" height="768" /></td>
         </tr>
     </table>
     </body>
@@ -69,26 +71,16 @@ async def demo_huiji():
 
 @app.get("/demo_person")
 async def demo_person():
-    html_content = """
-    <html>
-    <head>
-    <title>Camera Stream</title>
-    </head>
-    <body>
-    <h1>Camera Stream</h1>
-    <table>
-        <tr>
-            <td><img src="/person_video_source_feed" width="1024" height="768" /></td>
-            <td><img src="/person_video_output_feed" width="1024" height="768" /></td>
-        </tr>
-    </table>
-    </body>
-    </html>
-    """
+    return demo(mode='person_detect')
 
-    return Response(content=html_content, media_type="text/html")
 
-    
+@app.get("/config_sse")
+async def get_config():
+    while True:
+        await config_changed_event.wait()  # 等待新消息
+        config_changed_event.clear()  # 清除事件，等待下次设置
+        yield await get_config()['data']
+
 @app.get("/get_config")
 async def get_config():
     
@@ -138,6 +130,7 @@ async def switch_mode(mode:str = Query(default='huiji_detect',enum=['huiji_detec
             "msg":f"mode has been {mode}"
         }
     
+    config_changed_event.set()
     conf.current_mode = mode
     return {
         "code": 0,
@@ -151,8 +144,13 @@ class ModeDataSourceRequest(BaseModel):
 
 @app.post("/mode_datasource")
 async def set_mode_datasource(request: ModeDataSourceRequest):
-    conf.current_mode = request.mode
     detect_config = conf.current_detect_config()
+    if conf.current_mode != request.mode \
+       or detect_config['data_source_type'] != request.data_source_type \
+       or conf.data_source() != request.data_source:
+        config_changed_event.set()
+        
+    conf.current_mode = request.mode
     detect_config['data_source_type'] = request.data_source_type
     if request.data_source_type == 'camera':
         detect_config['camera_source'] = request.data_source
@@ -187,13 +185,15 @@ async def get_taocans():
 
 @app.get("/switch_taocan")
 async def switch_taocan(taocan_id:int = Query(ge=0, le=1)):
+    if conf.huiji_detect_config["current_taocan_id"] != taocan_id:
+        config_changed_event.set()
+        
     conf.huiji_detect_config["current_taocan_id"] = taocan_id
     # 此处需要将视频分析的结果和套餐的信息进行合并
     return {
         "code": 0,
         "msg":"switch success"
     }
-
 
 
 @app.get("/available_cameras")
@@ -224,9 +224,7 @@ async def sync_huiji_video_events():
         }
     }
 
-huiji_event = asyncio.Event()
 latest_frame = {}
-person_event = asyncio.Event()
 
 async def output_generator(event):
     while True:

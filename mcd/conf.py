@@ -82,6 +82,18 @@ person_detect_config = {
 
 }
 
+def data_source():
+    detect_config = current_detect_config()
+    data_source_type = detect_config['data_source_type']
+    if data_source_type == 'camera':
+        data_source = detect_config['camera_source']
+        if str(data_source).isdigit():
+            data_source = int(data_source)
+        return data_source
+    else:
+        return detect_config['video_file']
+    
+
 def current_detect_config():
     if current_mode == 'huiji_detect':
         return huiji_detect_config
