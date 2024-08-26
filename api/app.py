@@ -7,14 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from contextlib import asynccontextmanager
-from pydantic import BaseModel, Field
 
 from mcd.logger import log
-import mcd.video as video_srv
+import mcd.video_srv as video_srv
 from mcd.camera import get_cameras
 import mcd.conf as conf
+from mcd.model_datasource import ModeDataSource
 from mcd.event import config_changed_event,person_event,huiji_event
-from pydantic import BaseModel
 
 
 app = FastAPI()
@@ -29,7 +28,7 @@ app.add_middleware(
 
 @app.get("/demo_huiji")
 async def demo(mode:str = Query(default='huiji_detect',enum=['huiji_detect','person_detect'])):
-    await set_mode_datasource(ModeDataSourceRequest(
+    video_srv.update_datasource(ModeDataSource(
         mode = mode,
         data_source_type = "camera",
         data_source = "0"
@@ -117,13 +116,9 @@ async def switch_mode(mode:str = Query(default='huiji_detect',enum=['huiji_detec
             "msg":f"mode has been {mode}"
         }
     
-class ModeDataSourceRequest(BaseModel):
-    mode: str = Field(default="huiji_detect", enum=["huiji_detect", "person_detect"])
-    data_source_type: str = Field(default="camera", enum=["camera", "video_file"])
-    data_source: str = Field(..., min_length=1, description="数据源不能为空")
 
 @app.post("/mode_datasource")
-async def set_mode_datasource(request: ModeDataSourceRequest):
+async def set_mode_datasource(request: ModeDataSource):
     detect_config = conf.current_detect_config()
     if conf.current_mode == request.mode \
        and detect_config['data_source_type'] == request.data_source_type \
@@ -133,15 +128,7 @@ async def set_mode_datasource(request: ModeDataSourceRequest):
             "msg":f"mode_datasource same,no changed"
         }
         
-        
-    conf.current_mode = request.mode
-    detect_config['data_source_type'] = request.data_source_type
-    if request.data_source_type == 'camera':
-        detect_config['camera_source'] = request.data_source
-    else:
-        detect_config['video_file'] = request.data_source
-
-    config_changed_event.set()
+    video_srv.update_datasource(request)
     return {
         "code": 0,
         "msg":f"mode_datasource changed"
@@ -272,7 +259,7 @@ async def single_upload_file(file: UploadFile = File(...)):
         with open(file_path, "wb") as f:
             f.write(file_content)
          # 上传完成后，更新文件信息
-        await set_mode_datasource(ModeDataSourceRequest(
+        video_srv.update_datasource(ModeDataSource(
             mode = conf.current_mode,
             data_source_type = "video_file",
             data_source = file_path
