@@ -169,20 +169,52 @@ export default {
       ],
       disabled: false,
       configInfo: {},
-      timer: null
+      timer: null,
+      eventSource:null
     }
   },
+
+  beforeDestroy() {
+    if (this.eventSource) {
+      this.eventSource.close();
+    }
+  },
+
   async mounted() {
     await this.getConfigInfo()
 
-    //var source = new EventSource("http://192.168.31.77:6789/config_sse");
-    var source = new EventSource("http://8.140.49.13:6789/config_sse");
-    source.onmessage = function(event) {
-      console.log(event.data)
-    };
-
+    this.connectEventSource();
+  },
+  created() {
+    
   },
   methods: {
+
+    connectEventSource() {
+      this.eventSource = new EventSource('http://8.140.49.13:6789/config_sse');
+      //this.eventSource = new EventSource('http://192.168.31.77:6789/config_sse');
+
+      this.eventSource.onmessage = (event) => {
+        console.log(event.data)
+        const data = JSON.parse(event.data);
+        console.log(data);
+        // this.events.push(data);
+        let dataJson = {
+          code:0,
+          data: data
+        };
+        this.doGetConfig(dataJson);
+      };
+
+      this.eventSource.onopen=function(event){
+        console.log('EventSource open ', event);
+      }
+ 
+      this.eventSource.onerror = (error) => {
+        console.error('EventSource failed', error);
+      };
+    },
+
     getSrc(src) {
       if (src == "" || src == "null" || src == null) {
         return "";
@@ -240,7 +272,6 @@ export default {
           // this.cardList[0].src = ""
           // this.cardList[1].src = ""
 
-
           this.getConfigInfo()
         }
       } catch (error) {
@@ -268,38 +299,13 @@ export default {
       try {
 
         this.loading = true
-        let result = await getConfig()
-        if (result.code === 0) {
-          this.configInfo = { ...result.data }
-          this.radio = this.configInfo.camera_type === 0 ? "1" : "2"
-          this.valueCamera = this.configInfo.camera_local
-          this.input = this.configInfo.camera_url
-          if (this.configInfo.mode == 'huiji_detect') {
-            this.activeName = 'first'
-          } else {
-            this.activeName = 'second'
-          }
-          this.cardList[0].src = result?.data?.video_source //+ "?mode=" + this.configInfo.mode
-          this.cardList[1].src = result?.data?.video_target //+ "?mode=" + this.configInfo.mode
-          this.frame_rate = this.configInfo.frame_rate
-          if (this.configInfo.mode == "person_detect") {
-            this.list = result?.data?.current_person_result
-            this.isShow = false
-            this.$nextTick(() => {
-              this.isShow = true
-            })
-          } else {
-            this.list = result?.data?.current_taocan_result
-            this.isShow = false
-            this.$nextTick(() => {
-              this.isShow = true
-            })
-          }
+        let result = await getConfig();
+        this.doGetConfig(result);
           // clearInterval(this.timer);
           // this.timer = setInterval(() => {
-          setTimeout(async () => {
-            this.getConfigTarget();
-          }, 3000);
+          // setTimeout(async () => {
+          //   this.getConfigTarget();
+          // }, 3000);
           // }, 3000);
 
           // if (this.configInfo.data_type === 'video_file') {
@@ -334,15 +340,48 @@ export default {
           //     // this.timer = setInterval(this.refreshOther(), 3000);
           //   } 
           // }
-        } else {
-          this.configInfo = {}
-        }
+        // } else {
+        //   this.configInfo = {}
+        // }
       } catch (error) {
         console.log(error)
       } finally {
         this.loading = false
       }
     },
+
+    doGetConfig(result){
+      if (result.code === 0) {
+          this.configInfo = { ...result.data }
+          this.radio = this.configInfo.camera_type === 0 ? "1" : "2"
+          this.valueCamera = this.configInfo.camera_local
+          this.input = this.configInfo.camera_url
+          if (this.configInfo.mode == 'huiji_detect') {
+            this.activeName = 'first'
+          } else {
+            this.activeName = 'second'
+          }
+          this.cardList[0].src = result?.data?.video_source //+ "?mode=" + this.configInfo.mode
+          this.cardList[1].src = result?.data?.video_target //+ "?mode=" + this.configInfo.mode
+          this.frame_rate = this.configInfo.frame_rate
+          if (this.configInfo.mode == "person_detect") {
+            this.list = result?.data?.current_person_result
+            this.isShow = false
+            this.$nextTick(() => {
+              this.isShow = true
+            })
+          } else {
+            this.list = result?.data?.current_taocan_result
+            this.isShow = false
+            this.$nextTick(() => {
+              this.isShow = true
+            })
+          }
+        } else {
+          this.configInfo = {}
+        }
+    },
+
     async getConfigTarget() {
       try {
         this.loading = true
