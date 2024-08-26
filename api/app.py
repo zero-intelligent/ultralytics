@@ -1,4 +1,4 @@
-import asyncio
+import json
 from fastapi import FastAPI, File, Form, HTTPException, Request,Response, UploadFile
 from fastapi import Body,Query
 from fastapi.exceptions import RequestValidationError
@@ -17,22 +17,6 @@ from mcd.event import config_changed_event,person_event,huiji_event
 from pydantic import BaseModel
 
 
-class ConfigSetting:
-    mode:str
-    camera_type: str
-    camera_local: str
-    camera_url: str
-    taocan_id: int
-    data_type: str
-    video_source :str
-    video_target :str
-    current_taocan_result:str
-    current_person_result:str
-    frame_rate:int
-    running_state:str
-    total_taocan_result_state:str
-
-
 app = FastAPI()
 
 app.add_middleware(
@@ -48,7 +32,7 @@ async def demo(mode:str = Query(default='huiji_detect',enum=['huiji_detect','per
     await set_mode_datasource(ModeDataSourceRequest(
         mode = mode,
         data_source_type = "camera",
-        data_source = 0
+        data_source = "0"
     ))
     html_content = """
     <html>
@@ -71,72 +55,68 @@ async def demo(mode:str = Query(default='huiji_detect',enum=['huiji_detect','per
 
 @app.get("/demo_person")
 async def demo_person():
-    return demo(mode='person_detect')
+    return await demo(mode='person_detect')
 
 
 @app.get("/config_sse")
 async def get_config():
-    while True:
-        await config_changed_event.wait()  # 等待新消息
-        config_changed_event.clear()  # 清除事件，等待下次设置
-        yield await get_config()['data']
+    async def config_stream():
+        while True:
+            await config_changed_event.wait()  # 等待新消息
+            config_changed_event.clear()  # 清除事件，等待下次设置
+            config = get_config()
+            event = f"data: {json.dumps(config,ensure_ascii=False)}\n\n"
+            log.info(f"推送事件：{event}")
+            yield event
+
+    return StreamingResponse(config_stream(), media_type="text/event-stream")
+
+def get_config():
+    config = {
+        "mode": conf.current_mode,
+        "running_state": video_srv.state['running_state'],
+        "frame_rate": int(video_srv.state['frame_rate']),
+        "camera_type": 0,
+        "camera_local": conf.current_detect_config()["camera_source"],
+        "camera_url": "",
+        "data_type": conf.current_detect_config()['data_source_type'],
+        "video_source": f"video_source_feed?mode={conf.current_mode}&data_source_type={conf.current_detect_config()['data_source_type']}",
+        "video_target": f"video_output_feed?mode={conf.current_mode}&data_source_type={conf.current_detect_config()['data_source_type']}",
+    }
+    
+    if conf.current_mode == 'huiji_detect':
+        result_state,results = video_srv.get_huiji_detect_items(video_srv.current_taocan_check_result)
+        config['current_taocan_result'] = results
+        config['total_taocan_result_state'] = result_state
+        config["taocan_id"] = conf.current_detect_config()["current_taocan_id"]
+    else:
+        config['current_person_result'] = video_srv.get_current_person_detect_result()
+    return config
 
 @app.get("/get_config")
-async def get_config():
-    
-    configSetting = ConfigSetting()
-    configSetting.mode = conf.current_mode
-
-    if conf.current_mode == 'huiji_detect':
-        configSetting.running_state = video_srv.running_state
-        configSetting.frame_rate = int(video_srv.frames_info[conf.current_mode]['frame_rate'])
-        configSetting.taocan_id = conf.huiji_detect_config["current_taocan_id"]
-        configSetting.camera_type=0
-        configSetting.camera_local = conf.huiji_detect_config["camera_source"]
-        configSetting.camera_url = ""
-        configSetting.data_type = conf.huiji_detect_config.get('data_source_type')
-        configSetting.video_source = "video_source_feed?mode=" + conf.current_mode + "&data_source_type=" + conf.huiji_detect_config['data_source_type']
-        configSetting.video_target = "video_output_feed?mode=" + conf.current_mode + "&data_source_type=" + conf.huiji_detect_config['data_source_type']
-        
-        result_state,results = video_srv.get_huiji_detect_items(video_srv.current_taocan_check_result)
-        configSetting.current_taocan_result = results
-        configSetting.total_taocan_result_state = result_state
-
-    if conf.current_mode == 'person_detect':
-        configSetting.running_state = video_srv.running_state
-        configSetting.frame_rate = int(video_srv.frames_info[conf.current_mode]['frame_rate'])
-        configSetting.camera_type = 0
-        configSetting.camera_local = conf.person_detect_config["camera_source"]
-        configSetting.camera_url = ""
-        configSetting.data_type = conf.person_detect_config.get('data_source_type')
-        configSetting.video_source = "video_source_feed?mode=" + conf.current_mode + "&data_source_type=" + conf.person_detect_config['data_source_type']
-        configSetting.video_target = "video_output_feed?mode=" + conf.current_mode + "&data_source_type=" + conf.person_detect_config['data_source_type']
-        configSetting.current_person_result = video_srv.get_current_person_detect_result()
-        configSetting.total_taocan_result_state = 'other'
-
-    
-    log.info(vars(configSetting))
+async def config():
+    data = get_config()
+    log.info(f"get_config: {data}")
     return {
         "code":0,
-        "data":configSetting
+        "data":data
     }
 
 
 @app.get("/switch_mode")
 async def switch_mode(mode:str = Query(default='huiji_detect',enum=['huiji_detect','person_detect'])):
-    if conf.current_mode == mode:
+    switch_ok = video_srv.swith_mode(mode)
+    if switch_ok:
+        return {
+            "code": 0,
+            "msg":f"mode swit to {mode}"
+        }
+    else:
         return {
             "code": 0,
             "msg":f"mode has been {mode}"
         }
     
-    config_changed_event.set()
-    conf.current_mode = mode
-    return {
-        "code": 0,
-        "msg":f"mode swit to {mode}"
-    }
-
 class ModeDataSourceRequest(BaseModel):
     mode: str = Field(default="huiji_detect", enum=["huiji_detect", "person_detect"])
     data_source_type: str = Field(default="camera", enum=["camera", "video_file"])
@@ -145,10 +125,14 @@ class ModeDataSourceRequest(BaseModel):
 @app.post("/mode_datasource")
 async def set_mode_datasource(request: ModeDataSourceRequest):
     detect_config = conf.current_detect_config()
-    if conf.current_mode != request.mode \
-       or detect_config['data_source_type'] != request.data_source_type \
-       or conf.data_source() != request.data_source:
-        config_changed_event.set()
+    if conf.current_mode == request.mode \
+       and detect_config['data_source_type'] == request.data_source_type \
+       and conf.data_source() == request.data_source:
+        return {
+            "code": 0,
+            "msg":f"mode_datasource same,no changed"
+        }
+        
         
     conf.current_mode = request.mode
     detect_config['data_source_type'] = request.data_source_type
@@ -157,9 +141,10 @@ async def set_mode_datasource(request: ModeDataSourceRequest):
     else:
         detect_config['video_file'] = request.data_source
 
+    config_changed_event.set()
     return {
         "code": 0,
-        "msg":f"ok"
+        "msg":f"mode_datasource changed"
     }
 
 @app.get("/mode_datasource")
@@ -185,14 +170,18 @@ async def get_taocans():
 
 @app.get("/switch_taocan")
 async def switch_taocan(taocan_id:int = Query(ge=0, le=1)):
-    if conf.huiji_detect_config["current_taocan_id"] != taocan_id:
-        config_changed_event.set()
-        
+    if conf.huiji_detect_config["current_taocan_id"] == taocan_id:
+        return {
+            "code": 0,
+            "msg":f"taocan_id had {taocan_id}"
+    }
+
     conf.huiji_detect_config["current_taocan_id"] = taocan_id
+    config_changed_event.set()
     # 此处需要将视频分析的结果和套餐的信息进行合并
     return {
         "code": 0,
-        "msg":"switch success"
+        "msg":f"switch success to {taocan_id}"
     }
 
 
@@ -224,13 +213,6 @@ async def sync_huiji_video_events():
         }
     }
 
-latest_frame = {}
-
-async def output_generator(event):
-    while True:
-        await event.wait()  # 等待新消息
-        event.clear()  # 清除事件，等待下次设置
-        yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + latest_frame[conf.current_mode] + b'\r\n')
 
 def pub_and_pad(event,r):
     latest_frame[conf.current_mode] = r['tracked_frame']
@@ -253,7 +235,16 @@ async def video_source_feed(mode:str             = Query(default='huiji_detect',
         img_stream = (pub_and_pad(person_event,r) for r in video_srv.person_detect_frames())
     return StreamingResponse(img_stream, media_type="multipart/x-mixed-replace; boundary=frame")
 
-            
+
+latest_frame = {}
+
+# 从检测流中获取最新的输出结果侦
+async def get_latest_frame_generator(event):
+    while True:
+        await event.wait()  # 等待新消息
+        event.clear()  # 清除事件，等待下次设置
+        yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + latest_frame[conf.current_mode] + b'\r\n')
+           
 @app.get('/video_output_feed')
 async def video_output_feed(mode:str             = Query(default='huiji_detect',enum=['huiji_detect','person_detect']),
                             data_source_type:str = Query(default='camera',enum=['camera','video_file'])):
@@ -265,9 +256,9 @@ async def video_output_feed(mode:str             = Query(default='huiji_detect',
         raise HTTPException(500,f"conf.data_source_type != '{data_source_type}'")
     
     if mode == 'huiji_detect':
-        generator = output_generator(huiji_event)
+        generator = get_latest_frame_generator(huiji_event)
     else:
-        generator = output_generator(person_event)
+        generator = get_latest_frame_generator(person_event)
     return StreamingResponse(generator, media_type="multipart/x-mixed-replace; boundary=frame")
 
 

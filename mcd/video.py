@@ -12,110 +12,86 @@ from mcd.event import config_changed_event
 def get_current_person_detect_result():
     return {id:int(v['time_s']) for id,v in PersonResults.id_info.items()}
 
+def get_person_detect_result(detect_result):
+    detect_result.__class__ = PersonResults
+    tracked_frame = detect_result.plot()  # 获取带检测结果的帧
+    return array2jpg(tracked_frame)
 
 def person_detect_frames():
-    global running_state
-    running_state = 'loading'
-    
-    model = YOLO(conf.person_detect_config['model'])
-    
-    # 开始时间
-    start_time = time.time()
-    source = conf.data_source()
-    mode = conf.current_mode
-    for result in model.track(source=source, stream=True,verbose=False, classes=[0]):
-        running_state = 'running'
-        
-        # 如果用户已经切换了mode或者数据源，当前的检测程序退出
-        if conf.current_mode != mode or conf.data_source() != source:
-            break
-        
-        #计算帧率
-        frames_info[conf.current_mode]['frame_count'] += 1
-        frames_info[conf.current_mode]['frame_rate'] = frames_info[conf.current_mode]['frame_count'] / (time.time() - start_time)
-        
-        if random.random() < conf.drop_rate:  # 按照一定的比率丢侦
-            continue  # 跳过这一帧
-        
-        orig_frame = result.orig_img  # 获取原始帧
-        # 编码原始帧为 JPEG
-        ret, orig_buffer = cv2.imencode('.jpg', orig_frame)
-        if not ret:
-            continue
-        orig_frame = orig_buffer.tobytes()
-        
-        result.__class__ = PersonResults
-        tracked_frame = result.plot()  # 获取带检测结果的帧
-        # 编码带检测结果的帧为 JPEG
-        ret, tracked_buffer = cv2.imencode('.jpg', tracked_frame)
-        if not ret:
-            continue
-        tracked_frame = tracked_buffer.tobytes()
+    return detect_frames(get_person_detect_result)
 
-        # 使用生成器同时返回两个流
-        yield {
-            "orig_frame": orig_frame,
-            "tracked_frame": tracked_frame
-        }
-    # 模型运行结束后，回收较重的模型资源
-    del model
-    gc.collect()
-    running_state = 'finished'
-
-frames_info = {
-    "huiji_detect": {
-        "frame_count": 0,
-        "frame_rate": 0
-    },
-     "person_detect": {
-        "frame_count": 0,
-        "frame_rate": 0
-    }
+state = {
+    "running_state": "ready", #运行状态：准备（ready), 装载中(loading), 运行中(running), 结束（finished)
+    "frame_count": 0,
+    "frame_rate": 0
 }
-running_state = 'ready'  #运行状态：准备（ready), 装载中(loading), 运行中(running), 结束（finished)
 
-def huiji_detect_frames():
-     # 开始时间
-    start_time = time.time()
-    global running_state
-    running_state = 'loading'
+
+def change_running_state(new_state):
+    if state['running_state'] != new_state:
+        state['running_state'] = new_state
+        config_changed_event.set() # 通知状态变更
+        
+def swith_mode(mode:str):
+    if mode not in ('huiji_detect','person_detect'):
+        raise Exception(f"只支持 'huiji_detect','person_detect'")
+    if conf.current_mode == mode:
+        return False
+    if mode == 'person_detect':
+        PersonResults.id_info = {}
     
-    model = YOLO(conf.huiji_detect_config['model'])
+    conf.current_mode = mode
+    while state['running_state'] != 'finished':
+        log.info(f"wait to last mode to finish.current:{state['running_state']}")
+        time.sleep(0.3)
+    change_running_state('ready')
+    return True
+        
+    
+def detect_frames(detect_results2trackedframe):
+    # 初始化计算帧率配置
+    start_time = time.time()
+    state['frame_count'] = 0
+    state['frame_rate'] = 0
+    
+    change_running_state('loading')
+    
+    model = YOLO(conf.current_detect_config()['model'])
     source = conf.data_source()
     mode = conf.current_mode
-    for result in model.track(source=source, stream=True,verbose=False):
-        
-        running_state = 'running'
+    classes = [0] if mode == 'person_detect' else None
+    for result in model.track(source=source, stream=True,verbose=False,classes=classes):
+        change_running_state('running')
         
         # 如果用户已经切换了mode或者数据源，当前的检测程序退出
         if conf.current_mode != mode or conf.data_source() != source:
+            log.info(f"{conf.current_mode},data_source:{source} quiting")
             break
         
         #计算帧率
-        frames_info[conf.current_mode]['frame_count'] += 1
-        frames_info[conf.current_mode]['frame_rate'] = frames_info[conf.current_mode]['frame_count'] / (time.time() - start_time)
+        state['frame_count'] += 1
+        state['frame_rate'] = state['frame_count'] / (time.time() - start_time)
         
         if random.random() < conf.drop_rate:  # 按照一定的比率丢侦
             continue  # 跳过这一帧
         
-        orig_frame = result.orig_img  # 获取原始帧
-
-        # 编码原始帧为 JPEG
-        ret, orig_buffer = cv2.imencode('.jpg', orig_frame)
-        if not ret:
+        orig_frame = array2jpg(result.orig_img)  # 获取原始帧
+        if not orig_frame:
             continue
-        orig_frame = orig_buffer.tobytes()
 
         # 使用生成器同时返回两个流
         yield {
             "orig_frame": orig_frame,
-            "tracked_frame": huiji_detect_results(result)
+            "tracked_frame": detect_results2trackedframe(result)
         }
     
     # 模型运行结束后，回收较重的模型资源
     del model
     gc.collect()
-    running_state = 'finished'
+    change_running_state('finished')
+    
+def huiji_detect_frames():
+    return detect_frames(huiji_detect_results)
         
 def get_huiji_detect_items(detect_result):
     if not detect_result:
@@ -209,6 +185,8 @@ def get_model(model_path):
 
 def array2jpg(frame):
     ret, buffer = cv2.imencode('.jpg', frame)
+    if not ret:
+        return None
     return buffer.tobytes()
 
 
