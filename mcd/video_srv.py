@@ -7,6 +7,7 @@ import mcd.conf as conf
 from mcd.logger import log
 from mcd.custom_result import PersonResults
 from mcd.event import config_changed_event
+from mcd.model_datasource import ModeDataSource
 
 
 def get_current_person_detect_result():
@@ -42,11 +43,31 @@ def swith_mode(mode:str):
     
     conf.current_mode = mode
     while state['running_state'] != 'finished':
-        log.info(f"wait to last mode to finish.current:{state['running_state']}")
+        log.info(f"wait last mode to finish.current: {state['running_state']}")
         time.sleep(0.3)
     change_running_state('ready')
     return True
         
+def update_datasource(datasource:ModeDataSource):
+    
+    detect_config = conf.current_detect_config()
+    
+    #更新配置信息
+    conf.current_mode = datasource.mode
+    detect_config['data_source_type'] = datasource.data_source_type
+    if datasource.data_source_type == 'camera':
+        detect_config['camera_source'] = datasource.data_source
+    else:
+        detect_config['video_file'] = datasource.data_source
+    
+    # 确保上个配置的模型运行完成
+    while state['running_state'] != 'finished':
+        log.info(f"wait last mode to finish, current:{state['running_state']}")
+        time.sleep(0.3)
+    change_running_state('ready')
+
+    config_changed_event.set()
+    
     
 def detect_frames(detect_results2trackedframe):
     # 初始化计算帧率配置
@@ -57,14 +78,15 @@ def detect_frames(detect_results2trackedframe):
     change_running_state('loading')
     
     model = YOLO(conf.current_detect_config()['model'])
-    source = conf.data_source()
     mode = conf.current_mode
+    datasource_type = conf.current_detect_config()['data_source_type']
+    source = conf.data_source()
     classes = [0] if mode == 'person_detect' else None
     for result in model.track(source=source, stream=True,verbose=False,classes=classes):
         change_running_state('running')
         
         # 如果用户已经切换了mode或者数据源，当前的检测程序退出
-        if conf.current_mode != mode or conf.data_source() != source:
+        if (conf.current_mode,conf.current_detect_config()['data_source_type'], conf.data_source()) != (mode,datasource_type,source):
             log.info(f"{conf.current_mode},data_source:{source} quiting")
             break
         

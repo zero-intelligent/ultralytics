@@ -8,7 +8,7 @@ from ultralytics import YOLO
 from api.app import app  
 from mcd import conf
 from mcd.logger import log
-import mcd.video as video_srv
+import mcd.video_srv as video_srv
 from mcd.util import get_video_time
 
 client = TestClient(app)
