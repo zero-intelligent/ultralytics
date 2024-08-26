@@ -74,8 +74,8 @@ async def get_config():
 def get_config():
     config = {
         "mode": conf.current_mode,
-        "running_state": video_srv.running_state,
-        "frame_rate": int(video_srv.frames_info[conf.current_mode]['frame_rate']),
+        "running_state": video_srv.state['running_state'],
+        "frame_rate": int(video_srv.state['frame_rate']),
         "camera_type": 0,
         "camera_local": conf.current_detect_config()["camera_source"],
         "camera_url": "",
@@ -239,7 +239,8 @@ async def video_source_feed(mode:str             = Query(default='huiji_detect',
 
 latest_frame = {}
 
-async def output_generator(event):
+# 从检测流中获取最新的输出结果侦
+async def get_latest_frame_generator(event):
     while True:
         await event.wait()  # 等待新消息
         event.clear()  # 清除事件，等待下次设置
@@ -256,9 +257,9 @@ async def video_output_feed(mode:str             = Query(default='huiji_detect',
         raise HTTPException(500,f"conf.data_source_type != '{data_source_type}'")
     
     if mode == 'huiji_detect':
-        generator = output_generator(huiji_event)
+        generator = get_latest_frame_generator(huiji_event)
     else:
-        generator = output_generator(person_event)
+        generator = get_latest_frame_generator(person_event)
     return StreamingResponse(generator, media_type="multipart/x-mixed-replace; boundary=frame")
 
 

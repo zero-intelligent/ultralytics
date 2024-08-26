@@ -20,40 +20,42 @@ def get_person_detect_result(detect_result):
 def person_detect_frames():
     return detect_frames(get_person_detect_result)
 
-frames_info = {
-    "huiji_detect": {
-        "frame_count": 0,
-        "frame_rate": 0
-    },
-     "person_detect": {
-        "frame_count": 0,
-        "frame_rate": 0
-    }
+state = {
+    "running_state": "ready", #运行状态：准备（ready), 装载中(loading), 运行中(running), 结束（finished)
+    "frame_count": 0,
+    "frame_rate": 0
 }
-running_state = 'ready'  #运行状态：准备（ready), 装载中(loading), 运行中(running), 结束（finished)
 
+
+def change_running_state(new_state):
+    if state['running_state'] != new_state:
+        state['running_state'] = new_state
+        config_changed_event.set() # 通知状态变更
+    
 def detect_frames(detect_results2trackedframe):
-    # 开始时间
+    # 初始化计算帧率配置
     start_time = time.time()
-    global running_state
-    running_state = 'loading'
+    state['frame_count'] = 0
+    state['frame_rate'] = 0
+    
+    change_running_state('loading')
     
     model = YOLO(conf.current_detect_config()['model'])
     source = conf.data_source()
     mode = conf.current_mode
     classes = [0] if mode == 'person_detect' else None
     for result in model.track(source=source, stream=True,verbose=False,classes=classes):
-        
-        running_state = 'running'
+        change_running_state('running')
         
         # 如果用户已经切换了mode或者数据源，当前的检测程序退出
         if conf.current_mode != mode or conf.data_source() != source:
             log.info(f"{conf.current_mode},data_source:{source} quiting")
+            change_running_state('ready')
             break
         
         #计算帧率
-        frames_info[mode]['frame_count'] += 1
-        frames_info[mode]['frame_rate'] = frames_info[mode]['frame_count'] / (time.time() - start_time)
+        state['frame_count'] += 1
+        state['frame_rate'] = state['frame_count'] / (time.time() - start_time)
         
         if random.random() < conf.drop_rate:  # 按照一定的比率丢侦
             continue  # 跳过这一帧
@@ -71,7 +73,6 @@ def detect_frames(detect_results2trackedframe):
     # 模型运行结束后，回收较重的模型资源
     del model
     gc.collect()
-    running_state = 'finished'
     
 def huiji_detect_frames():
     return detect_frames(huiji_detect_results)
