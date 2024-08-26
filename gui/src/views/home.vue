@@ -88,7 +88,6 @@
             <div class="middle-main-vedio">
                 <!-- :preview-src-list="getSrcList(item.src)"  -->
               <el-image :src="getSrc(item.src)" width="100%" height="100%" style="width: 100%; height: 100%"
-                :preview-src-list="getSrcList(item.src)"
                 fit="cover">
                 <div slot="placeholder" class="image-slot">
                   {{ configInfo.running_state }}<span class="dot">...</span>
