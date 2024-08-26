@@ -86,9 +86,10 @@
             </div> -->
             <!-- <div class="middle-main-vedio" v-if="isShow && configInfo && configInfo.data_type === 'camera'"> -->
             <div class="middle-main-vedio">
-
+                <!-- :preview-src-list="getSrcList(item.src)"  -->
               <el-image :src="getSrc(item.src)" width="100%" height="100%" style="width: 100%; height: 100%"
-                :preview-src-list="getSrcList(item.src)" fit="cover">
+                :preview-src-list="getSrcList(item.src)"
+                fit="cover">
                 <div slot="placeholder" class="image-slot">
                   {{ configInfo.running_state }}<span class="dot">...</span>
                 </div>
@@ -131,7 +132,7 @@
 
 <script>
 // 
-import { getDataHuiji, getDataPeople, changeTaocan, getCamraList, modeDatasource, uploadCamera, getConfig, switchMode } from "./../api/index"
+import { getDataHuiji, getDataPeople, changeTaocan, getCamraList, modeDatasource, uploadCamera, getConfig, switchMode,baseUrl } from "./../api/index"
 // import videoComponent from './../components/videoComponent.vue'
 // import SparkMD5 from "spark-md5";
 export default {
@@ -191,7 +192,7 @@ export default {
   methods: {
 
     connectEventSource() {
-      this.eventSource = new EventSource('http://8.140.49.13:6789/config_sse');
+      this.eventSource = new EventSource( baseUrl + '/config_sse');
       //this.eventSource = new EventSource('http://192.168.31.77:6789/config_sse');
 
       this.eventSource.onmessage = (event) => {
@@ -222,7 +223,7 @@ export default {
       if (src[0] != "/") {
         src = "/" + src;
       }
-      return 'http://8.140.49.13:6789' + src
+      return baseUrl + src
       //return 'http://192.168.31.77:6789' + src
     },
     getSrcList(src) {
@@ -232,7 +233,7 @@ export default {
       if (src[0] != "/") {
         src = "/" + src;
       }
-      return ['http://8.140.49.13:6789' + src]
+      return [ baseUrl + src]
       //return ['http://192.168.31.77:6789' + src]
     },
     async changeisCameraShow() {
@@ -272,7 +273,7 @@ export default {
           // this.cardList[0].src = ""
           // this.cardList[1].src = ""
 
-          this.getConfigInfo()
+          // this.getConfigInfo()
         }
       } catch (error) {
         console.log(error)
@@ -506,7 +507,7 @@ export default {
         // this.refreshOther()
         await this.switchModeFun("person_detect")
       }
-      this.getConfigInfo()
+      //this.getConfigInfo()
     },
     getMd5(file, spark) {
       return new Promise((resolve) => {
