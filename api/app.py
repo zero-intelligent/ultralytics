@@ -64,14 +64,14 @@ async def get_config():
         while True:
             await config_changed_event.wait()  # 等待新消息
             config_changed_event.clear()  # 清除事件，等待下次设置
-            config = await get_config()
-            yield f"data: {json.dumps(config['data'],ensure_ascii=False)}\n\n"
+            config = get_config()
+            event = f"data: {json.dumps(config,ensure_ascii=False)}\n\n"
+            log.info(f"推送事件：{event}")
+            yield event
 
     return StreamingResponse(config_stream(), media_type="text/event-stream")
 
-
-@app.get("/get_config")
-async def get_config():
+def get_config():
     config = {
         "mode": conf.current_mode,
         "running_state": video_srv.running_state,
@@ -81,7 +81,7 @@ async def get_config():
         "camera_url": "",
         "data_type": conf.current_detect_config()['data_source_type'],
         "video_source": f"video_source_feed?mode={conf.current_mode}&data_source_type={conf.current_detect_config()['data_source_type']}",
-        "video_target": f"video_source_feed?mode={conf.current_mode}&data_source_type={conf.current_detect_config()['data_source_type']}",
+        "video_target": f"video_output_feed?mode={conf.current_mode}&data_source_type={conf.current_detect_config()['data_source_type']}",
     }
     
     if conf.current_mode == 'huiji_detect':
@@ -91,11 +91,15 @@ async def get_config():
         config["taocan_id"] = conf.current_detect_config()["current_taocan_id"]
     else:
         config['current_person_result'] = video_srv.get_current_person_detect_result()
-    
-    log.info(json.dumps(config,ensure_ascii=False))
+    return config
+
+@app.get("/get_config")
+async def config():
+    data = get_config()
+    log.info(f"get_config: {data}")
     return {
         "code":0,
-        "data":config
+        "data":data
     }
 
 
@@ -210,13 +214,6 @@ async def sync_huiji_video_events():
         }
     }
 
-latest_frame = {}
-
-async def output_generator(event):
-    while True:
-        await event.wait()  # 等待新消息
-        event.clear()  # 清除事件，等待下次设置
-        yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + latest_frame[conf.current_mode] + b'\r\n')
 
 def pub_and_pad(event,r):
     latest_frame[conf.current_mode] = r['tracked_frame']
@@ -239,7 +236,15 @@ async def video_source_feed(mode:str             = Query(default='huiji_detect',
         img_stream = (pub_and_pad(person_event,r) for r in video_srv.person_detect_frames())
     return StreamingResponse(img_stream, media_type="multipart/x-mixed-replace; boundary=frame")
 
-            
+
+latest_frame = {}
+
+async def output_generator(event):
+    while True:
+        await event.wait()  # 等待新消息
+        event.clear()  # 清除事件，等待下次设置
+        yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + latest_frame[conf.current_mode] + b'\r\n')
+           
 @app.get('/video_output_feed')
 async def video_output_feed(mode:str             = Query(default='huiji_detect',enum=['huiji_detect','person_detect']),
                             data_source_type:str = Query(default='camera',enum=['camera','video_file'])):
