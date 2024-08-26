@@ -74,24 +74,30 @@
           </div>
         </div>
         <div class="middle-main" v-if="isCameraShow">
+          <span style="display: inline-block;margin-top: 40px;padding-right: 8px;width: 72px;"> 
+            <!-- slot="placeholder" class="image-slot" -->
+            <div>
+              {{ configInfo.running_state }}
+              <span class="dot">...</span>
+            </div>
+            <div v-if='frame_rate > 0'>
+              帧率：{{ frame_rate }}
+            </div>
+          </span>
           <div v-for="(item, index) in cardList" :key="index" class="middle-main-item">
             <div class="middle-main-hearder">
               <div>{{ item.label }}</div>
-              <div v-if='frame_rate > 0'>
-                帧率：{{ frame_rate }}
-              </div>
+
             </div>
             <!-- <div class="middle-main-vedio" v-if="isShow && configInfo && configInfo.data_type === 'video_file'">
               <video-component :videoSrc="getSrc(item.src)"></video-component>
             </div> -->
             <!-- <div class="middle-main-vedio" v-if="isShow && configInfo && configInfo.data_type === 'camera'"> -->
             <div class="middle-main-vedio">
-                <!-- :preview-src-list="getSrcList(item.src)"  -->
+
               <el-image :src="getSrc(item.src)" width="100%" height="100%" style="width: 100%; height: 100%"
-                fit="cover">
-                <div slot="placeholder" class="image-slot">
-                  {{ configInfo.running_state }}<span class="dot">...</span>
-                </div>
+                :preview-src-list="getSrcList(item.src)" fit="cover">
+
               </el-image>
             </div>
           </div>
@@ -131,7 +137,7 @@
 
 <script>
 // 
-import { getDataHuiji, getDataPeople, changeTaocan, getCamraList, modeDatasource, uploadCamera, getConfig, switchMode,baseUrl } from "./../api/index"
+import { getDataHuiji, getDataPeople, changeTaocan, getCamraList, modeDatasource, uploadCamera, getConfig, switchMode, baseUrl } from "./../api/index"
 // import videoComponent from './../components/videoComponent.vue'
 // import SparkMD5 from "spark-md5";
 export default {
@@ -160,17 +166,16 @@ export default {
       list: [],
       cardList: [{
         label: "Input",
-        src: ""
+        src: "video_source_feed",
       }, {
         label: "Output",
-        num: 25,
-        src: ""
+        src: "video_output_feed"
       },
       ],
       disabled: false,
       configInfo: {},
       timer: null,
-      eventSource:null
+      eventSource: null
     }
   },
 
@@ -186,12 +191,12 @@ export default {
     this.connectEventSource();
   },
   created() {
-    
+
   },
   methods: {
 
     connectEventSource() {
-      this.eventSource = new EventSource( baseUrl + '/config_sse');
+      this.eventSource = new EventSource(baseUrl + '/config_sse');
       //this.eventSource = new EventSource('http://192.168.31.77:6789/config_sse');
 
       this.eventSource.onmessage = (event) => {
@@ -200,16 +205,16 @@ export default {
         console.log(data);
         // this.events.push(data);
         let dataJson = {
-          code:0,
+          code: 0,
           data: data
         };
         this.doGetConfig(dataJson);
       };
 
-      this.eventSource.onopen=function(event){
+      this.eventSource.onopen = function (event) {
         console.log('EventSource open ', event);
       }
- 
+
       this.eventSource.onerror = (error) => {
         console.error('EventSource failed', error);
       };
@@ -232,7 +237,7 @@ export default {
       if (src[0] != "/") {
         src = "/" + src;
       }
-      return [ baseUrl + src]
+      return [baseUrl + src]
       //return ['http://192.168.31.77:6789' + src]
     },
     async changeisCameraShow() {
@@ -301,45 +306,45 @@ export default {
         this.loading = true
         let result = await getConfig();
         this.doGetConfig(result);
-          // clearInterval(this.timer);
-          // this.timer = setInterval(() => {
-          // setTimeout(async () => {
-          //   this.getConfigTarget();
-          // }, 3000);
-          // }, 3000);
+        // clearInterval(this.timer);
+        // this.timer = setInterval(() => {
+        // setTimeout(async () => {
+        //   this.getConfigTarget();
+        // }, 3000);
+        // }, 3000);
 
-          // if (this.configInfo.data_type === 'video_file') {
-          //   //if (!this.configInfo?.data_file_source || this.configInfo?.data_file_source == null) {
-          //     clearInterval(this.timer);
-          //     this.timer = setInterval(() => {
-          //       setTimeout(async () => {
-          //         this.getConfigTarget();
-          //       }, 0);
-          //     }, 3000);
-          //   //}
-          // } else {
-          //   if (this.activeName == 'first') {
-          //     this.list = []
-          //     this.refresh()
-          //     clearInterval(this.timer);
-          //     this.timer = setInterval(() => {
-          //       setTimeout(async () => {
-          //         this.refresh();
-          //       }, 0);
-          //     }, 3000);
-          //     // this.timer = setInterval(this.refresh(), 3000);
-          //   } else {
-          //     this.list = []
-          //     this.refreshOther();
-          //     clearInterval(this.timer);
-          //     this.timer = setInterval(() => {
-          //       setTimeout(async () => {
-          //         this.refreshOther();
-          //       }, 0);
-          //     }, 3000);
-          //     // this.timer = setInterval(this.refreshOther(), 3000);
-          //   } 
-          // }
+        // if (this.configInfo.data_type === 'video_file') {
+        //   //if (!this.configInfo?.data_file_source || this.configInfo?.data_file_source == null) {
+        //     clearInterval(this.timer);
+        //     this.timer = setInterval(() => {
+        //       setTimeout(async () => {
+        //         this.getConfigTarget();
+        //       }, 0);
+        //     }, 3000);
+        //   //}
+        // } else {
+        //   if (this.activeName == 'first') {
+        //     this.list = []
+        //     this.refresh()
+        //     clearInterval(this.timer);
+        //     this.timer = setInterval(() => {
+        //       setTimeout(async () => {
+        //         this.refresh();
+        //       }, 0);
+        //     }, 3000);
+        //     // this.timer = setInterval(this.refresh(), 3000);
+        //   } else {
+        //     this.list = []
+        //     this.refreshOther();
+        //     clearInterval(this.timer);
+        //     this.timer = setInterval(() => {
+        //       setTimeout(async () => {
+        //         this.refreshOther();
+        //       }, 0);
+        //     }, 3000);
+        //     // this.timer = setInterval(this.refreshOther(), 3000);
+        //   } 
+        // }
         // } else {
         //   this.configInfo = {}
         // }
@@ -350,36 +355,36 @@ export default {
       }
     },
 
-    doGetConfig(result){
+    doGetConfig(result) {
       if (result.code === 0) {
-          this.configInfo = { ...result.data }
-          this.radio = this.configInfo.camera_type === 0 ? "1" : "2"
-          this.valueCamera = this.configInfo.camera_local
-          this.input = this.configInfo.camera_url
-          if (this.configInfo.mode == 'huiji_detect') {
-            this.activeName = 'first'
-          } else {
-            this.activeName = 'second'
-          }
-          this.cardList[0].src = result?.data?.video_source //+ "?mode=" + this.configInfo.mode
-          this.cardList[1].src = result?.data?.video_target //+ "?mode=" + this.configInfo.mode
-          this.frame_rate = this.configInfo.frame_rate
-          if (this.configInfo.mode == "person_detect") {
-            this.list = result?.data?.current_person_result
-            this.isShow = false
-            this.$nextTick(() => {
-              this.isShow = true
-            })
-          } else {
-            this.list = result?.data?.current_taocan_result
-            this.isShow = false
-            this.$nextTick(() => {
-              this.isShow = true
-            })
-          }
+        this.configInfo = { ...result.data }
+        this.radio = this.configInfo.camera_type === 0 ? "1" : "2"
+        this.valueCamera = this.configInfo.camera_local
+        this.input = this.configInfo.camera_url
+        if (this.configInfo.mode == 'huiji_detect') {
+          this.activeName = 'first'
         } else {
-          this.configInfo = {}
+          this.activeName = 'second'
         }
+        // this.cardList[0].src = result?.data?.video_source //+ "?mode=" + this.configInfo.mode
+        // this.cardList[1].src = result?.data?.video_target //+ "?mode=" + this.configInfo.mode
+        this.frame_rate = this.configInfo.frame_rate
+        if (this.configInfo.mode == "person_detect") {
+          this.list = result?.data?.current_person_result
+          this.isShow = false
+          this.$nextTick(() => {
+            this.isShow = true
+          })
+        } else {
+          this.list = result?.data?.current_taocan_result
+          this.isShow = false
+          this.$nextTick(() => {
+            this.isShow = true
+          })
+        }
+      } else {
+        this.configInfo = {}
+      }
     },
 
     async getConfigTarget() {
@@ -396,8 +401,8 @@ export default {
           } else {
             this.activeName = 'second'
           }
-          this.cardList[0].src = result?.data?.video_source //+ "?mode=" + this.configInfo.mode
-          this.cardList[1].src = result?.data?.video_target //+ "?mode=" + this.configInfo.mode
+          // this.cardList[0].src = result?.data?.video_source //+ "?mode=" + this.configInfo.mode
+          // this.cardList[1].src = result?.data?.video_target //+ "?mode=" + this.configInfo.mode
           this.frame_rate = this.configInfo.frame_rate
           if (this.configInfo.mode == "person_detect") {
             this.list = result?.data?.current_person_result
@@ -430,8 +435,8 @@ export default {
         this.loading = true
         let result = await getDataHuiji()
         if (result.code === 0) {
-          this.cardList[0].src = result?.data?.input_video
-          this.cardList[1].src = result?.data?.output_video
+          // this.cardList[0].src = result?.data?.input_video
+          // this.cardList[1].src = result?.data?.output_video
           this.list = result?.data?.current_taocan_result
           this.isShow = false
           this.$nextTick(() => {
@@ -449,8 +454,8 @@ export default {
         this.loading = true
         let result = await getDataPeople()
         if (result.code === 0) {
-          this.cardList[0].src = result?.data?.input_video
-          this.cardList[1].src = result?.data?.output_video
+          // this.cardList[0].src = result?.data?.input_video
+          // this.cardList[1].src = result?.data?.output_video
           this.list = result?.data?.data
           this.isShow = false
           this.$nextTick(() => {
@@ -810,7 +815,7 @@ export default {
 }
 
 .middle-main-item {
-  width: 48%;
+  width:  calc(47% - 36px);
   margin-right: 2%;
   margin-top: 40px;
   height: 420px;
@@ -934,4 +939,5 @@ export default {
   color: #333;
   padding: 10px 30px;
   font-weight: 900;
-}</style>
+}
+</style>
