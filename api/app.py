@@ -105,19 +105,18 @@ async def config():
 
 @app.get("/switch_mode")
 async def switch_mode(mode:str = Query(default='huiji_detect',enum=['huiji_detect','person_detect'])):
-    if conf.current_mode == mode:
+    switch_ok = video_srv.swith_mode(mode)
+    if switch_ok:
+        return {
+            "code": 0,
+            "msg":f"mode swit to {mode}"
+        }
+    else:
         return {
             "code": 0,
             "msg":f"mode has been {mode}"
         }
     
-    conf.current_mode = mode
-    config_changed_event.set()
-    return {
-        "code": 0,
-        "msg":f"mode swit to {mode}"
-    }
-
 class ModeDataSourceRequest(BaseModel):
     mode: str = Field(default="huiji_detect", enum=["huiji_detect", "person_detect"])
     data_source_type: str = Field(default="camera", enum=["camera", "video_file"])

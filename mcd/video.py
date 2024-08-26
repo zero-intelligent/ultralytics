@@ -31,6 +31,22 @@ def change_running_state(new_state):
     if state['running_state'] != new_state:
         state['running_state'] = new_state
         config_changed_event.set() # 通知状态变更
+        
+def swith_mode(mode:str):
+    if mode not in ('huiji_detect','person_detect'):
+        raise Exception(f"只支持 'huiji_detect','person_detect'")
+    if conf.current_mode == mode:
+        return False
+    if mode == 'person_detect':
+        PersonResults.id_info = {}
+    
+    conf.current_mode = mode
+    while state['running_state'] != 'finished':
+        log.info(f"wait to last mode to finish.current:{state['running_state']}")
+        time.sleep(0.3)
+    change_running_state('ready')
+    return True
+        
     
 def detect_frames(detect_results2trackedframe):
     # 初始化计算帧率配置
@@ -50,7 +66,6 @@ def detect_frames(detect_results2trackedframe):
         # 如果用户已经切换了mode或者数据源，当前的检测程序退出
         if conf.current_mode != mode or conf.data_source() != source:
             log.info(f"{conf.current_mode},data_source:{source} quiting")
-            change_running_state('ready')
             break
         
         #计算帧率
@@ -73,6 +88,7 @@ def detect_frames(detect_results2trackedframe):
     # 模型运行结束后，回收较重的模型资源
     del model
     gc.collect()
+    change_running_state('finished')
     
 def huiji_detect_frames():
     return detect_frames(huiji_detect_results)
