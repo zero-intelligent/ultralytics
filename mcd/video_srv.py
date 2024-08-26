@@ -1,7 +1,11 @@
+from functools import lru_cache
 import gc
+import queue
 import random
+import threading
 import time
 import cv2
+from mcd.util import singleton_execution
 from ultralytics import YOLO
 import mcd.conf as conf
 from mcd.logger import log
@@ -18,13 +22,12 @@ def get_person_detect_result(detect_result):
     tracked_frame = detect_result.plot()  # 获取带检测结果的帧
     return array2jpg(tracked_frame)
 
-def person_detect_frames():
-    return detect_frames(get_person_detect_result)
 
 state = {
     "running_state": "ready", #运行状态：准备（ready), 装载中(loading), 运行中(running), 结束（finished)
     "frame_count": 0,
-    "frame_rate": 0
+    "frame_rate": 0,
+    "detect_frame_exit": False
 }
 
 
@@ -42,10 +45,13 @@ def swith_mode(mode:str):
         PersonResults.id_info = {}
     
     conf.current_mode = mode
-    while state['running_state'] != 'finished':
-        log.info(f"wait last mode to finish.current: {state['running_state']}")
-        time.sleep(0.3)
+    # 通知正在运行的模型退出
+    state['detect_frame_exit'] = True
+    
     change_running_state('ready')
+    
+    while not video_frame_queue.empty():
+        video_frame_queue.get()
     return True
         
 def update_datasource(datasource:ModeDataSource):
@@ -60,16 +66,25 @@ def update_datasource(datasource:ModeDataSource):
     else:
         detect_config['video_file'] = datasource.data_source
     
-    # 确保上个配置的模型运行完成
-    while state['running_state'] != 'finished':
-        log.info(f"wait last mode to finish, current:{state['running_state']}")
-        time.sleep(0.3)
+    # 通知正在运行的模型退出
+    state['detect_frame_exit'] = True
+    
     change_running_state('ready')
-
+    while not video_frame_queue.empty():
+        video_frame_queue.get()
+    
     config_changed_event.set()
-    
-    
-def detect_frames(detect_results2trackedframe):
+
+video_frame_queue = queue.Queue()
+
+def run_detect_loop():
+    def loop():
+        while True:
+            detect_frames()
+    thread = threading.Thread(name="主循环",target=loop,daemon=True)
+    thread.start()
+
+def detect_frames():
     # 初始化计算帧率配置
     start_time = time.time()
     state['frame_count'] = 0
@@ -83,12 +98,18 @@ def detect_frames(detect_results2trackedframe):
     source = conf.data_source()
     classes = [0] if mode == 'person_detect' else None
     for result in model.track(source=source, stream=True,verbose=False,classes=classes):
-        change_running_state('running')
-        
         # 如果用户已经切换了mode或者数据源，当前的检测程序退出
         if (conf.current_mode,conf.current_detect_config()['data_source_type'], conf.data_source()) != (mode,datasource_type,source):
             log.info(f"{conf.current_mode},data_source:{source} quiting")
             break
+        
+         # 如果被标记退出，则退出
+        if state['detect_frame_exit']:
+            state['detect_frame_exit'] = False
+            break
+        
+        change_running_state('running')
+
         
         #计算帧率
         state['frame_count'] += 1
@@ -102,18 +123,20 @@ def detect_frames(detect_results2trackedframe):
             continue
 
         # 使用生成器同时返回两个流
-        yield {
+        if conf.current_mode == 'huiji_detect':
+            tracked_frame = huiji_detect_results(result)
+        else:
+            tracked_frame = get_person_detect_result(result)
+        video_frame_queue.put({
             "orig_frame": orig_frame,
-            "tracked_frame": detect_results2trackedframe(result)
-        }
+            "tracked_frame": tracked_frame
+        })
     
     # 模型运行结束后，回收较重的模型资源
     del model
     gc.collect()
     change_running_state('finished')
     
-def huiji_detect_frames():
-    return detect_frames(huiji_detect_results)
         
 def get_huiji_detect_items(detect_result):
     if not detect_result:

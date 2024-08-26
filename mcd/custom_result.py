@@ -2,7 +2,7 @@ from ultralytics.engine.results import Results
 from copy import deepcopy
 import torch
 from ultralytics.utils.plotting import Annotator
-from mcd.event import config_changed_event, person_event
+from mcd.event import config_changed_event
 
 
 class PersonResults(Results):

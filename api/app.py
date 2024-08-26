@@ -1,4 +1,5 @@
 import json
+import time
 from fastapi import FastAPI, File, Form, HTTPException, Request,Response, UploadFile
 from fastapi import Body,Query
 from fastapi.exceptions import RequestValidationError
@@ -13,7 +14,7 @@ import mcd.video_srv as video_srv
 from mcd.camera import get_cameras
 import mcd.conf as conf
 from mcd.model_datasource import ModeDataSource
-from mcd.event import config_changed_event,person_event,huiji_event
+from mcd.event import config_changed_event,result_frame_arrive_event
 
 
 app = FastAPI()
@@ -79,8 +80,8 @@ def get_config():
         "camera_local": conf.current_detect_config()["camera_source"],
         "camera_url": "",
         "data_type": conf.current_detect_config()['data_source_type'],
-        "video_source": f"video_source_feed?mode={conf.current_mode}&data_source_type={conf.current_detect_config()['data_source_type']}",
-        "video_target": f"video_output_feed?mode={conf.current_mode}&data_source_type={conf.current_detect_config()['data_source_type']}",
+        "video_source": f"video_source_feed",
+        "video_target": f"video_output_feed",
     }
     
     if conf.current_mode == 'huiji_detect':
@@ -201,52 +202,36 @@ async def sync_huiji_video_events():
     }
 
 
-def pub_and_pad(event,r):
-    latest_frame[conf.current_mode] = r['tracked_frame']
-    event.set()  # 设置事件，通知订阅者
+@app.get('/video_source_feed')
+async def video_source_feed():
+    def queue_to_generator():
+        while True:
+            item = video_srv.video_frame_queue.get()
+            # log.info('=====  sending source frame....')
+            yield pub_and_pad(item)
+            
+    return StreamingResponse(queue_to_generator(), media_type="multipart/x-mixed-replace; boundary=frame")
+
+latest_frame = None
+
+def pub_and_pad(r):
+    global latest_frame
+    latest_frame = r['tracked_frame']
+    result_frame_arrive_event.set()  # 设置事件，通知订阅者
     return (b'--frame\r\n Content-Type: image/jpeg\r\n\r\n' + r['orig_frame'] + b'\r\n')
 
-@app.get('/video_source_feed')
-async def video_source_feed(mode:str             = Query(default='huiji_detect',enum=['huiji_detect','person_detect']),
-                            data_source_type:str = Query(default='camera',enum=['camera','video_file'])):
-    if conf.current_mode != mode:
-        log.error(f"conf.current_mode != '{mode}'")
-        raise HTTPException(500,f"conf.current_mode != '{mode}'")
-    if conf.current_detect_config()['data_source_type'] != data_source_type:
-        log.error(f"conf.data_source_type != '{data_source_type}'")
-        raise HTTPException(500,f"conf.data_source_type != '{data_source_type}'")
-    
-    if mode == 'huiji_detect':
-        img_stream = (pub_and_pad(huiji_event,r) for r in video_srv.huiji_detect_frames())
-    else:
-        img_stream = (pub_and_pad(person_event,r) for r in video_srv.person_detect_frames())
-    return StreamingResponse(img_stream, media_type="multipart/x-mixed-replace; boundary=frame")
 
-
-latest_frame = {}
-
-# 从检测流中获取最新的输出结果侦
-async def get_latest_frame_generator(event):
-    while True:
-        await event.wait()  # 等待新消息
-        event.clear()  # 清除事件，等待下次设置
-        yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + latest_frame[conf.current_mode] + b'\r\n')
-           
 @app.get('/video_output_feed')
-async def video_output_feed(mode:str             = Query(default='huiji_detect',enum=['huiji_detect','person_detect']),
-                            data_source_type:str = Query(default='camera',enum=['camera','video_file'])):
-    if conf.current_mode != mode:
-        log.error(f"conf.current_mode != '{mode}'")
-        raise HTTPException(500,f"conf.current_mode != '{mode}'")
-    if conf.current_detect_config()['data_source_type'] != data_source_type:
-        log.error(f"conf.data_source_type != '{data_source_type}'")
-        raise HTTPException(500,f"conf.data_source_type != '{data_source_type}'")
-    
-    if mode == 'huiji_detect':
-        generator = get_latest_frame_generator(huiji_event)
-    else:
-        generator = get_latest_frame_generator(person_event)
-    return StreamingResponse(generator, media_type="multipart/x-mixed-replace; boundary=frame")
+async def video_output_feed():
+    # 从检测流中获取最新的输出结果侦
+    async def get_latest_frame_generator():
+        while True:
+            await result_frame_arrive_event.wait()  # 等待新消息
+            result_frame_arrive_event.clear()  # 清除事件，等待下次设置
+            # log.info('=====  sending output frame....')
+            yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + latest_frame + b'\r\n')
+   
+    return StreamingResponse(get_latest_frame_generator(), media_type="multipart/x-mixed-replace; boundary=frame")
 
 
 @app.post('/single_upload')
@@ -304,6 +289,7 @@ async def log_requests(request: Request, call_next):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     conf.load_config()
+    video_srv.run_detect_loop()
     yield
     conf.save_config()
 
