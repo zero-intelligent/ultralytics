@@ -72,8 +72,8 @@ async def get_config():
 def get_config():
     config = {
         "mode": conf.current_mode,
-        "running_state": video_srv.state['running_state'],
-        "frame_rate": int(video_srv.state['frame_rate']),
+        "running_state": video_srv.VideoState.running_state,
+        "frame_rate": int(video_srv.VideoState.frame_rate),
         "camera_type": 0,
         "camera_local": conf.current_detect_config()["camera_source"],
         "camera_url": "",

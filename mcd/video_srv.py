@@ -21,18 +21,16 @@ def get_person_detect_result(detect_result):
     tracked_frame = detect_result.plot()  # 获取带检测结果的帧
     return array2jpg(tracked_frame)
 
-
-state = {
-    "running_state": "ready", #运行状态：准备（ready), 装载中(loading), 运行中(running), 结束（finished)
-    "frame_count": 0,
-    "frame_rate": 0,
-    "detect_frame_exit": False
-}
+class VideoState:
+    running_state:str = "ready" #运行状态：准备（ready), 装载中(loading), 运行中(running), 结束（finished)
+    frame_count:int = 0
+    frame_rate:int = 0
+    detect_frame_exit:bool = False
 
 
 def change_running_state(new_state):
-    if state['running_state'] != new_state:
-        state['running_state'] = new_state
+    if VideoState.running_state != new_state:
+        VideoState.running_state = new_state
         config_changed_event.set() # 通知状态变更
         
 def swith_mode(mode:str):
@@ -45,7 +43,7 @@ def swith_mode(mode:str):
     
     conf.current_mode = mode
     # 通知正在运行的模型退出
-    state['detect_frame_exit'] = True
+    VideoState.detect_frame_exit = True
     
     change_running_state('ready')
     
@@ -66,7 +64,7 @@ def update_datasource(datasource:ModeDataSource):
         detect_config['video_file'] = datasource.data_source
     
     # 通知正在运行的模型退出
-    state['detect_frame_exit'] = True
+    VideoState.detect_frame_exit = True
     
     change_running_state('ready')
     while not video_frame_queue.empty():
@@ -80,15 +78,15 @@ def run_detect_loop():
     def loop():
         while True:
             detect_frames()
-    thread = threading.Thread(name="主循环",target=loop,daemon=True)
+    thread = threading.Thread(name="main_loop",target=loop,daemon=True)
     thread.start()
 
 # @profile
 def detect_frames():
     # 初始化计算帧率配置
     start_time = time.time()
-    state['frame_count'] = 0
-    state['frame_rate'] = 0
+    VideoState.frame_count = 0
+    VideoState.frame_rate = 0
     
     change_running_state('loading')
     
@@ -104,15 +102,15 @@ def detect_frames():
             break
         
          # 如果被标记退出，则退出
-        if state['detect_frame_exit']:
-            state['detect_frame_exit'] = False
+        if VideoState.detect_frame_exit:
+            VideoState.detect_frame_exit = False
             break
         
         change_running_state('running')
 
         #计算帧率
-        state['frame_count'] += 1
-        state['frame_rate'] = state['frame_count'] / (time.time() - start_time)
+        VideoState.frame_count += 1
+        VideoState.frame_rate = VideoState.frame_count / (time.time() - start_time)
         
         if random.random() < conf.drop_rate:  # 按照一定的比率丢侦
             continue  # 跳过这一帧

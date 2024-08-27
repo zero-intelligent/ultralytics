@@ -5,7 +5,7 @@ import os
 import time
 from fastapi.testclient import TestClient
 from ultralytics import YOLO
-from api.app import app  
+from mcd.api import app  
 from mcd import conf
 from mcd.logger import log
 import mcd.video_srv as video_srv
@@ -165,10 +165,6 @@ def test_upload_file():
 
 
 def test_video_source_feed():
-    # from pyinstrument import Profiler
-    # profiler = Profiler()
-    # profiler.start()
-    
     video_file = 'assets/demo_short.mp4'
     
     response = client.post("/mode_datasource",json={
@@ -198,12 +194,6 @@ def test_video_source_feed():
     for f in video_srv.huiji_detect_frames():
         pass
     
-    
-    # profiler.stop()
-
-    # with open("profile_report.html", "w") as f:
-    #     f.write(profiler.output_html())
-       
     
     
 

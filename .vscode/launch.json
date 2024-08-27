@@ -8,17 +8,7 @@
             "name": "fastapi_debug",
             "type": "debugpy",
             "request": "launch",
-            "program": "api/app.py",
-            "console": "integratedTerminal",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}"
-            }
-        },
-        {
-            "name": "main_debug",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "api/main.py",
+            "program": "mcd/api.py",
             "console": "integratedTerminal",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
