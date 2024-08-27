@@ -109,13 +109,13 @@ def load_config():
             conf = json.load(config_file1)
             log.info(f'load {config_file}, conents:{conf}')
         global current_mode,huiji_detect_config,person_detect_config
-        current_mode = conf['current_mode']
+        current_mode = Mode(conf['current_mode'])
         huiji_detect_config = conf['huiji_detect_config']
         person_detect_config = conf['person_detect_config']
 
 def save_config():
     conf = {
-        'current_mode': current_mode,
+        'current_mode': current_mode.value,
         'huiji_detect_config': huiji_detect_config,
         'person_detect_config': person_detect_config
     }
