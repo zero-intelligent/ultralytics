@@ -1,9 +1,10 @@
 import json
 import os
+from mcd.domain_entities import DataSourceType, Mode
 from mcd.logger import log
 
 # 当前的分析模式 套餐汇集分析：huiji_detect, 大厅人员检测分析：person_detect
-current_mode = 'huiji_detect' 
+current_mode = Mode.HUIJI
 
 drop_rate = 0.01
 
@@ -85,7 +86,7 @@ person_detect_config = {
 def data_source():
     detect_config = current_detect_config()
     data_source_type = detect_config['data_source_type']
-    if data_source_type == 'camera':
+    if data_source_type == DataSourceType.CAMERA.value:
         data_source = detect_config['camera_source']
         if str(data_source).isdigit():
             data_source = int(data_source)
@@ -95,7 +96,7 @@ def data_source():
     
 
 def current_detect_config():
-    if current_mode == 'huiji_detect':
+    if current_mode == Mode.HUIJI:
         return huiji_detect_config
     else:
         return person_detect_config

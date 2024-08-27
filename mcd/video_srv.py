@@ -1,3 +1,4 @@
+from enum import Enum
 import gc
 import queue
 import random
@@ -10,7 +11,7 @@ from mcd import conf
 from mcd.logger import log
 from mcd.custom_result import PersonResults
 from mcd.event import config_changed_event
-from mcd.model_datasource import ModeDataSource
+from mcd.domain_entities import DataSourceType, Mode, ModeDataSource, RunningState, TancanResult
 
 
 def get_current_person_detect_result():
@@ -21,8 +22,10 @@ def get_person_detect_result(detect_result):
     tracked_frame = detect_result.plot()  # 获取带检测结果的帧
     return array2jpg(tracked_frame)
 
+
+    
 class VideoState:
-    running_state:str = "ready" #运行状态：准备（ready), 装载中(loading), 运行中(running), 结束（finished)
+    running_state:RunningState = RunningState.READY #运行状态：准备（ready), 装载中(loading), 运行中(running), 结束（finished)
     frame_count:int = 0
     frame_rate:int = 0
     detect_frame_exit:bool = False
@@ -33,19 +36,17 @@ def change_running_state(new_state):
         VideoState.running_state = new_state
         config_changed_event.set() # 通知状态变更
         
-def swith_mode(mode:str):
-    if mode not in ('huiji_detect','person_detect'):
-        raise Exception(f"只支持 'huiji_detect','person_detect'")
+def swith_mode(mode:Mode):
     if conf.current_mode == mode:
         return False
-    if mode == 'person_detect':
+    if mode == Mode.PERSON:
         PersonResults.id_info = {}
     
     conf.current_mode = mode
     # 通知正在运行的模型退出
     VideoState.detect_frame_exit = True
     
-    change_running_state('ready')
+    change_running_state(RunningState.READY)
     
     while not video_frame_queue.empty():
         video_frame_queue.get()
@@ -58,7 +59,7 @@ def update_datasource(datasource:ModeDataSource):
     #更新配置信息
     conf.current_mode = datasource.mode
     detect_config['data_source_type'] = datasource.data_source_type
-    if datasource.data_source_type == 'camera':
+    if datasource.data_source_type == DataSourceType.CAMERA:
         detect_config['camera_source'] = datasource.data_source
     else:
         detect_config['video_file'] = datasource.data_source
@@ -66,7 +67,7 @@ def update_datasource(datasource:ModeDataSource):
     # 通知正在运行的模型退出
     VideoState.detect_frame_exit = True
     
-    change_running_state('ready')
+    change_running_state(RunningState.READY)
     while not video_frame_queue.empty():
         video_frame_queue.get()
     
@@ -88,13 +89,13 @@ def detect_frames():
     VideoState.frame_count = 0
     VideoState.frame_rate = 0
     
-    change_running_state('loading')
+    change_running_state(RunningState.LOADING)
     
     model = YOLO(conf.current_detect_config()['model'])
     mode = conf.current_mode
     datasource_type = conf.current_detect_config()['data_source_type']
     source = conf.data_source()
-    classes = [0] if mode == 'person_detect' else None
+    classes = [0] if mode == Mode.PERSON else None
     for result in model.track(source=source, stream=True,verbose=False,classes=classes):
         # 如果用户已经切换了mode或者数据源，当前的检测程序退出
         if (conf.current_mode,conf.current_detect_config()['data_source_type'], conf.data_source()) != (mode,datasource_type,source):
@@ -106,7 +107,7 @@ def detect_frames():
             VideoState.detect_frame_exit = False
             break
         
-        change_running_state('running')
+        change_running_state(RunningState.RUNNING)
 
         #计算帧率
         VideoState.frame_count += 1
@@ -119,7 +120,7 @@ def detect_frames():
         if not orig_frame:
             continue
 
-        if conf.current_mode == 'huiji_detect':
+        if conf.current_mode == Mode.HUIJI:
             tracked_frame = huiji_detect_results(result)
         else:
             tracked_frame = get_person_detect_result(result)
@@ -133,7 +134,7 @@ def detect_frames():
     # 模型运行结束后，回收较重的模型资源
     del model
     gc.collect()
-    change_running_state('finished')
+    change_running_state(RunningState.FINISHED)
     
         
 def get_huiji_detect_items(detect_result):
@@ -146,29 +147,29 @@ def get_huiji_detect_items(detect_result):
     taocan = taocan[0]
     
     in_tancan_results = [
-        {
-            'id': id,
-            'name': next((f'{cn_name} {en_name}' for m_id,en_name,cn_name in conf.huiji_detect_config['meals_info'] if m_id == id),None),
-            'count': count,
-            'real_count': detect_result[id] if id in detect_result else 0,
-            'lack_item': id not in detect_result,
-            'lack_count': id in detect_result and  detect_result[id] < count,
-            'is_in_taocan': True
-        } for id,name,count in taocan['items']
+        TancanResult(
+            id = id,
+            name = next((f'{cn_name} {en_name}' for m_id,en_name,cn_name in conf.huiji_detect_config['meals_info'] if m_id == id),None),
+            count = count,
+            real_count = detect_result[id] if id in detect_result else 0,
+            lack_item = id not in detect_result,
+            lack_count = id in detect_result and  detect_result[id] < count,
+            is_in_taocan = True
+        ) for id,name,count in taocan['items']
     ]
 
     out_tancan_results = [
-        {
-            'id': id,
-            'name': next((f'{cn_name} {en_name}' for m_id,en_name,cn_name in conf.huiji_detect_config['meals_info'] if m_id == id),None),
-            'count': None,
-            'real_count': count,
-            'lack_item': None,
-            'lack_count': None,
-            'is_in_taocan': False
-        } for id,count in detect_result.items() if id not in [i[0] for i in taocan['items']]
+        TancanResult(
+            id = id,
+            name = next((f'{cn_name} {en_name}' for m_id,en_name,cn_name in conf.huiji_detect_config['meals_info'] if m_id == id),None),
+            count = None,
+            real_count = count,
+            lack_item = None,
+            lack_count = None,
+            is_in_taocan = False
+        ) for id,count in detect_result.items() if id not in [i[0] for i in taocan['items']]
     ]
-    has_incorrect = any([r['lack_item'] or r['lack_count'] for r in in_tancan_results]) or len(out_tancan_results) > 0
+    has_incorrect = any([r.lack_item or r.lack_count for r in in_tancan_results]) or len(out_tancan_results) > 0
     result_state = 'incorrect' if has_incorrect else 'correct'
     results = in_tancan_results + out_tancan_results
     return result_state,results

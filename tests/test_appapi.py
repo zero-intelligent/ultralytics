@@ -4,6 +4,7 @@ import pytest
 import os
 import time
 from fastapi.testclient import TestClient
+from mcd.domain_entities import DataSourceType, Mode
 from ultralytics import YOLO
 from mcd.api import app  
 from mcd import conf
@@ -37,8 +38,8 @@ def test_available_cameras():
 
 def test_mode_datasource():
     response = client.post("/mode_datasource",json={
-        'mode':'huiji_detect',
-        'data_source_type':'camera',
+        'mode': Mode.HUIJI,
+        'data_source_type':DataSourceType.CAMERA,
         'data_source':'0'
     })
     assert response.status_code == 200
@@ -49,8 +50,8 @@ def test_mode_datasource():
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
-    assert json['data']['mode'] == 'huiji_detect'
-    assert json['data']['data_source_type'] == 'camera'
+    assert json['data']['mode'] == Mode.HUIJI
+    assert json['data']['data_source_type'] == DataSourceType.CAMERA.value
     assert int(json['data']['data_source']) == 0
 
 def test_taocans():
@@ -63,8 +64,8 @@ def test_taocans():
 
 def test_switch_taocan():
     response = client.post("/mode_datasource",json={
-        'mode':'huiji_detect',
-        'data_source_type':'camera',
+        'mode':Mode.HUIJI,
+        'data_source_type':DataSourceType.CAMERA.value,
         'data_source':'0'
     })
     assert response.status_code == 200
@@ -88,8 +89,8 @@ def http_get(url):
     
 def test_get_config():
     response = client.post("/mode_datasource",json={
-        'mode':'huiji_detect',
-        'data_source_type':'video_file',
+        'mode':Mode.HUIJI,
+        'data_source_type':DataSourceType.VIDEO_FILE.value,
         'data_source':'assets/demo_short.mp4'
     })
     assert response.status_code == 200
@@ -159,7 +160,7 @@ def test_upload_file():
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
-    assert json['data']['data_source_type'] == 'video_file'
+    assert json['data']['data_source_type'] == DataSourceType.VIDEO_FILE.value
     assert json['data']['data_source'] == 'uploads/demo_short.mp4'
 
 
@@ -168,8 +169,8 @@ def test_video_source_feed():
     video_file = 'assets/demo_short.mp4'
     
     response = client.post("/mode_datasource",json={
-        'mode':'huiji_detect',
-        'data_source_type':'video_file',
+        'mode':Mode.HUIJI,
+        'data_source_type':DataSourceType.VIDEO_FILE,
         'data_source':video_file
     })
     assert response.status_code == 200
