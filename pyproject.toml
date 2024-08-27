@@ -136,12 +136,11 @@ ultralytics = "ultralytics.cfg:entrypoint"
 
 # Tools settings -------------------------------------------------------------------------------------------------------
 [tool.setuptools]  # configuration specific to the `setuptools` build backend.
-packages = { find = { where = ["."], include = ["ultralytics", "ultralytics.*","mcd","gui"] } }
+packages = { find = { where = ["."], include = ["ultralytics", "ultralytics.*","mcd"] } }
 [tool.setuptools.package-data]
 ultralytics = ["**/*.yaml", "../tests/*.py"]
 "ultralytics.assets" = ["*.jpg"]
 mcd=["*.py","*.pt"]
-gui=["**/*"]
 
 [tool.setuptools.dynamic]
 version = { attr = "ultralytics.__version__" }
