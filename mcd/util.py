@@ -1,6 +1,8 @@
 from functools import wraps
 import threading
 import cv2
+from cProfile import Profile
+from pstats import SortKey, Stats
 
 # 获取视频播放时长(秒)
 def get_video_time(vidoe_file):
@@ -28,3 +30,15 @@ def singleton_execution(func):
 
     return wrapper
 
+# 函数性能分析装饰器
+def profile(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        with Profile() as profile:
+            ret = func(*args, **kwargs)
+            Stats(profile).strip_dirs().sort_stats(SortKey.CUMULATIVE).print_stats(20)
+            Stats(profile).strip_dirs().sort_stats(SortKey.TIME).print_stats(20)
+            Stats(profile).strip_dirs().sort_stats(SortKey.CALLS).print_stats(20)
+            return ret
+    return wrapper
+            

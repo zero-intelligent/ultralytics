@@ -1,18 +1,16 @@
 import json
 import time
-from fastapi import FastAPI, File, Form, HTTPException, Request,Response, UploadFile
-from fastapi import Body,Query
+from fastapi import FastAPI, File, HTTPException, Request,Response, UploadFile
+from fastapi import Query
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from contextlib import asynccontextmanager
 
 from mcd.logger import log
-import mcd.video_srv as video_srv
 from mcd.camera import get_cameras
-import mcd.conf as conf
+from mcd import conf,video_srv
 from mcd.model_datasource import ModeDataSource
 from mcd.event import config_changed_event,result_frame_arrive_event
 

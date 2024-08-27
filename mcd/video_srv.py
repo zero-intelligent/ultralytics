@@ -1,13 +1,12 @@
-from functools import lru_cache
 import gc
 import queue
 import random
 import threading
 import time
 import cv2
-from mcd.util import singleton_execution
+from mcd.util import profile
 from ultralytics import YOLO
-import mcd.conf as conf
+from mcd import conf
 from mcd.logger import log
 from mcd.custom_result import PersonResults
 from mcd.event import config_changed_event
@@ -84,6 +83,7 @@ def run_detect_loop():
     thread = threading.Thread(name="主循环",target=loop,daemon=True)
     thread.start()
 
+# @profile
 def detect_frames():
     # 初始化计算帧率配置
     start_time = time.time()
@@ -110,7 +110,6 @@ def detect_frames():
         
         change_running_state('running')
 
-        
         #计算帧率
         state['frame_count'] += 1
         state['frame_rate'] = state['frame_count'] / (time.time() - start_time)
@@ -122,11 +121,12 @@ def detect_frames():
         if not orig_frame:
             continue
 
-        # 使用生成器同时返回两个流
         if conf.current_mode == 'huiji_detect':
             tracked_frame = huiji_detect_results(result)
         else:
             tracked_frame = get_person_detect_result(result)
+            
+        #将结果写入队列
         video_frame_queue.put({
             "orig_frame": orig_frame,
             "tracked_frame": tracked_frame
