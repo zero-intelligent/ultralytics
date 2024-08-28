@@ -1,5 +1,15 @@
 #!/bin/bash
 
+whl_file=./dist/ultralytics-8.2.63-py3-none-any.whl
+
+if [ ! -f "$whl_file" ]; then
+    echo "Error: File $whl_file does not exist."
+    exit 1
+fi
+
+pip install $whl_file
+
+# 安装服务
 SERVICE_NAME="mcd-video-analysis"
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME.service"
 
