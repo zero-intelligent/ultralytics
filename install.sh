@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 安装文件路径
 whl_file=./dist/ultralytics-8.2.63-py3-none-any.whl
 
 if [ ! -f "$whl_file" ]; then
@@ -7,7 +8,10 @@ if [ ! -f "$whl_file" ]; then
     exit 1
 fi
 
-pip install $whl_file
+if ! pip install "$whl_file"; then
+    echo "Error: Failed to install $whl_file."
+    exit 1
+fi
 
 # 安装服务
 SERVICE_NAME="mcd-video-analysis"
