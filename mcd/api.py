@@ -121,7 +121,7 @@ async def set_mode_datasource(request: ModeDataSource):
 
 @app.get("/mode_datasource")
 async def get_mode_datasource():
-    return ok(data = {
+    return ok({
             "mode": conf.current_mode,
             "data_source_type": conf.current_detect_config()['data_source_type'],
             "data_source": video_srv.data_source()
@@ -129,7 +129,7 @@ async def get_mode_datasource():
 
 @app.get("/taocans")
 async def get_taocans():
-    return ok(data = {
+    return ok({
             "taocans": conf.huiji_detect_config["taocans"],
             "current_taocan_id": conf.huiji_detect_config["current_taocan_id"]
         })
@@ -154,7 +154,7 @@ async def sync_huiji_video_events():
         return ok(data = {},msg="当前没有检测结果")
     taocan_id = conf.huiji_detect_config['current_taocan_id']
     taocan =  conf.huiji_detect_config['taocan'][taocan_id]
-    return ok(data = {
+    return ok({
             "taocan_id": taocan_id,
             "taocan_name":taocan['name'],
             "items": video_srv.get_detect_items(video_srv.current_taocan_check_result)
