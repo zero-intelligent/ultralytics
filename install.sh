@@ -1,7 +1,5 @@
 #!/bin/bash
 
-
-
 APP_HOME=`cd -P $(dirname "$0");pwd`
 echo "APP_HOME=$APP_HOME"
 # 安装文件路径
@@ -9,12 +7,14 @@ whl_file=./dist/ultralytics-8.2.63-py3-none-any.whl
 
 if [ ! -f "$whl_file" ]; then
     echo "Error: File $whl_file does not exist. begin to build. "
-    if ! pip install -i https://mirrors.aliyun.com/pypi/simple build setuptools wheel;then
+    if ! pip install -i https://mirrors.aliyun.com/pypi/simple build setuptools wheel; then
         echo "install module build setuptools wheel fail!"
         exit 1
+    fi
     if ! python -m build; then
         echo "python -m build fail!"
         exit 1
+    fi
 fi
 
 if ! pip install "$whl_file"; then
