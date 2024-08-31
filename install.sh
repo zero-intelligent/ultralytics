@@ -17,7 +17,7 @@ if [ ! -f "$whl_file" ]; then
     fi
 fi
 
-if ! pip install "$whl_file"; then
+if ! pip install "$whl_file" -i https://mirrors.aliyun.com/pypi/simple; then
     echo "Error: Failed to install $whl_file."
     exit 1
 fi
