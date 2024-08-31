@@ -26,14 +26,14 @@ def get_cameras_windows():
             cameras.append((device.DeviceID, device.Name))
     return cameras
 
-def get_cameras_linux():
+def get_cameras_linux(max_cameras=30):
     camera_list = []
 
     # Try to open a large number of camera indices
-    for camera_id in range(10):
+    for camera_id in range(max_cameras):
         cap = cv2.VideoCapture(camera_id)
         if cap.isOpened():
-            camera_name = f"Camera {camera_id}"
+            camera_name = f"/dev/video{camera_id}"
             camera_list.append((camera_id, camera_name))
             cap.release()
     return camera_list
