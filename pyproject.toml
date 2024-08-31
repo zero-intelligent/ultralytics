@@ -81,6 +81,7 @@ dependencies = [
     "ultralytics-thop>=2.0.0", # FLOPs computation https://github.com/ultralytics/thop
     "fastapi>=0.112.0",
     "colorlog>=6.8.2"
+    "build>=1.2.1"
 ]
 
 # Optional dependencies ------------------------------------------------------------------------------------------------
