@@ -1,5 +1,7 @@
 #!/bin/bash
 
+APP_HOME=$(dirname "$0")
+echo "APP_HOME=$APP_HOME"
 # 安装文件路径
 whl_file=./dist/ultralytics-8.2.63-py3-none-any.whl
 
