@@ -73,6 +73,7 @@ huiji_detect_config = {
     ]
 }
 
+
 person_detect_config = {
     # 数据源类型，只可以是: 摄像头(camera)/视频文件(video_file)
     "data_source_type": "camera",
@@ -82,6 +83,22 @@ person_detect_config = {
     "model": "yolov8n.pt"
 
 }
+
+
+def configure_default_local_camera():
+    from mcd.camera import get_cameras
+    cameras = get_cameras()
+    if not cameras:
+        log.error("找不到可用的本地摄像头")
+        return
+        
+    if not huiji_detect_config['camera_source']:
+        huiji_detect_config['camera_source'] = cameras[0]
+    if not person_detect_config['camera_source']:
+        person_detect_config['camera_source'] = cameras[0]
+    
+
+configure_default_local_camera()
 
 def data_source():
     detect_config = current_detect_config()
