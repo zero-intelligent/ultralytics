@@ -37,7 +37,7 @@ Type=simple
 ExecStart="mcd-video-analysis"
 ExecStop="/usr/bin/pkill -f mcd-video-analysis"
 Restart=always
-User=admin
+User=$USER
 WorkingDirectory=$APP_HOME
 Environment="PATH=/usr/local/bin:/usr/bin:/bin" "PYTHONUNBUFFERED=1"
 
