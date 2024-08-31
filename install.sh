@@ -4,8 +4,13 @@
 whl_file=./dist/ultralytics-8.2.63-py3-none-any.whl
 
 if [ ! -f "$whl_file" ]; then
-    echo "Error: File $whl_file does not exist."
-    exit 1
+    echo "Error: File $whl_file does not exist. begin to build. "
+    if ! pip install -i https://mirrors.aliyun.com/pypi/simple build setuptools wheel;then
+        echo "install module build setuptools wheel fail!"
+        exit 1
+    if ! python -m build; then
+        echo "python -m build fail!"
+        exit 1
 fi
 
 if ! pip install "$whl_file"; then
