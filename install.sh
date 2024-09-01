@@ -19,7 +19,7 @@ if [ ! -f "$whl_file" ]; then
     fi
 fi
 
-if ! pip install "$whl_file" -i https://mirrors.aliyun.com/pypi/simple; then
+if ! pip install --user "$whl_file" -i https://mirrors.aliyun.com/pypi/simple; then
     echo "Error: Failed to install $whl_file."
     exit 1
 fi
@@ -29,15 +29,15 @@ SERVICE_NAME="mcd-video-analysis"
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME.service"
 
 # 创建服务单元文件
-sudo cat > "$SERVICE_FILE" <<EOL
+sudo tee "$SERVICE_FILE" > /dev/null <<EOL
 [Unit]
 Description=$SERVICE_NAME
 After=network.target
 
 [Service]
 Type=simple
-ExecStart="mcd-video-analysis"
-ExecStop="/usr/bin/pkill -f mcd-video-analysis"
+ExecStart=uvicorn mcd.api:app --host 0.0.0.0 --port 6789 --reload
+ExecStop=/usr/bin/pkill -f uvicorn
 Restart=always
 User=$USER
 WorkingDirectory=$APP_HOME

@@ -136,7 +136,6 @@ extra = [
 [project.scripts]
 yolo = "ultralytics.cfg:entrypoint"
 ultralytics = "ultralytics.cfg:entrypoint"
-mcd-video-analysis = "mcd.api:main"
 
 # Tools settings -------------------------------------------------------------------------------------------------------
 [tool.setuptools]  # configuration specific to the `setuptools` build backend.
