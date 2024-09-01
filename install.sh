@@ -18,7 +18,7 @@ if [ ! -f "$whl_file" ]; then
         exit 1
     fi
 fi
-
+pip uninstall "$whl_file" -y
 if ! pip install --user "$whl_file" -i https://mirrors.aliyun.com/pypi/simple; then
     echo "Error: Failed to install $whl_file."
     exit 1

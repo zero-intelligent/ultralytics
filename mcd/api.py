@@ -1,6 +1,6 @@
 import json
 import time
-from fastapi import FastAPI, File, HTTPException, Request,Response, UploadFile
+from fastapi import APIRouter, FastAPI, File, HTTPException, Request,Response, UploadFile
 from fastapi import Query
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -17,6 +17,8 @@ from mcd.event import config_changed_event,result_frame_arrive_event
 
 
 app = FastAPI()
+router = APIRouter(prefix="/api")
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,7 +28,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/demo_huiji")
+@router.get("/demo_huiji")
 async def demo(mode:Mode = Query(default=Mode.HUIJI)):
     video_srv.update_datasource(ModeDataSource(
         mode = mode,
@@ -52,12 +54,12 @@ async def demo(mode:Mode = Query(default=Mode.HUIJI)):
 
     return Response(content=html_content, media_type="text/html")
 
-@app.get("/demo_person")
+@router.get("/demo_person")
 async def demo_person():
     return await demo(mode=Mode.PERSON)
 
 
-@app.get("/config_sse")
+@router.get("/config_sse")
 async def get_config():
     async def config_stream():
         while True:
@@ -92,14 +94,14 @@ def get_config():
         config['current_person_result'] =  video_srv.get_current_person_detect_result()
     return config
 
-@app.get("/get_config")
+@router.get("/get_config")
 async def config():
     data = get_config()
     log.info(f"get_config: {data}")
     return ok(data)
 
 
-@app.get("/switch_mode")
+@router.get("/switch_mode")
 async def switch_mode(mode:Mode = Query(default=Mode.HUIJI)):
     switch_ok = video_srv.swith_mode(mode)
     if switch_ok:
@@ -108,7 +110,7 @@ async def switch_mode(mode:Mode = Query(default=Mode.HUIJI)):
         return ok(msg=f"mode has been {mode}")
     
 
-@app.post("/mode_datasource")
+@router.post("/mode_datasource")
 async def set_mode_datasource(request: ModeDataSource):
     detect_config = conf.current_detect_config()
     if conf.current_mode == request.mode \
@@ -119,7 +121,7 @@ async def set_mode_datasource(request: ModeDataSource):
     video_srv.update_datasource(request)
     return ok(msg=f"mode_datasource changed")
 
-@app.get("/mode_datasource")
+@router.get("/mode_datasource")
 async def get_mode_datasource():
     return ok({
             "mode": conf.current_mode,
@@ -127,14 +129,14 @@ async def get_mode_datasource():
             "data_source": video_srv.data_source()
         })
 
-@app.get("/taocans")
+@router.get("/taocans")
 async def get_taocans():
     return ok({
             "taocans": conf.huiji_detect_config["taocans"],
             "current_taocan_id": conf.huiji_detect_config["current_taocan_id"]
         })
 
-@app.get("/switch_taocan")
+@router.get("/switch_taocan")
 async def switch_taocan(taocan_id:int = Query(ge=0, le=1)):
     if conf.huiji_detect_config["current_taocan_id"] == taocan_id:
         return ok(msg=f"taocan_id had {taocan_id}")
@@ -144,11 +146,11 @@ async def switch_taocan(taocan_id:int = Query(ge=0, le=1)):
     return ok(msg=f"switch success to {taocan_id}")
 
 
-@app.get("/available_cameras")
+@router.get("/available_cameras")
 async def get_available_cameras():
     return ok(data = {id:name for id,name in get_cameras()})
 
-@app.get('/huiji_video_taocan_detect_result')
+@router.get('/huiji_video_taocan_detect_result')
 async def sync_huiji_video_events():
     if not video_srv.current_taocan_check_result:
         return ok(data = {},msg="当前没有检测结果")
@@ -161,7 +163,7 @@ async def sync_huiji_video_events():
         })
 
 
-@app.get('/video_source_feed')
+@router.get('/video_source_feed')
 async def video_source_feed():
     def queue_to_generator():
         while True:
@@ -180,7 +182,7 @@ def pub_and_pad(r):
     return (b'--frame\r\n Content-Type: image/jpeg\r\n\r\n' + r['orig_frame'] + b'\r\n')
 
 
-@app.get('/video_output_feed')
+@router.get('/video_output_feed')
 async def video_output_feed():
     # 从检测流中获取最新的输出结果侦
     async def get_latest_frame_generator():
@@ -193,7 +195,7 @@ async def video_output_feed():
     return StreamingResponse(get_latest_frame_generator(), media_type="multipart/x-mixed-replace; boundary=frame")
 
 
-@app.post('/single_upload')
+@router.post('/single_upload')
 async def single_upload_file(file: UploadFile = File(...)):
     try:
         # 读取文件内容
@@ -253,6 +255,7 @@ async def lifespan(app: FastAPI):
     conf.save_config()
 
 app.router.lifespan_context = lifespan
+app.include_router(router)
 
 def main():
     import uvicorn
