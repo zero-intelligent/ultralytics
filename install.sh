@@ -29,7 +29,7 @@ SERVICE_NAME="mcd-video-analysis"
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME.service"
 
 # 创建服务单元文件
-cat > "$SERVICE_FILE" <<EOL
+sudo cat > "$SERVICE_FILE" <<EOL
 [Unit]
 Description=$SERVICE_NAME
 After=network.target
@@ -48,13 +48,13 @@ WantedBy=multi-user.target
 EOL
 
 # 重新加载 systemd 配置
-systemctl daemon-reload
+sudo systemctl daemon-reload
 
 # 启动服务
-systemctl start "$SERVICE_NAME"
+sudo systemctl start "$SERVICE_NAME"
 
 # 设置为自动启动
-systemctl enable "$SERVICE_NAME"
+sudo systemctl enable "$SERVICE_NAME"
 
 # 查看服务启动状态
 systemctl status "$SERVICE_NAME"
