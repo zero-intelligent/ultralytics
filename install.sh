@@ -7,6 +7,7 @@ cd $APP_HOME
 # 安装文件路径
 whl_file=./dist/ultralytics-8.2.63-py3-none-any.whl
 
+# 如果安全文件不存在，先去build一个
 if [ ! -f "$whl_file" ]; then
     echo "Error: File $whl_file does not exist. begin to build. "
     if ! pip install -i https://mirrors.aliyun.com/pypi/simple build setuptools wheel; then
@@ -18,7 +19,11 @@ if [ ! -f "$whl_file" ]; then
         exit 1
     fi
 fi
+
+# 如果 $whl_file 已经安装，先卸载
 pip uninstall "$whl_file" -y
+
+# 安装 $whl_file 文件
 if ! pip install --user "$whl_file" -i https://mirrors.aliyun.com/pypi/simple; then
     echo "Error: Failed to install $whl_file."
     exit 1
