@@ -2,6 +2,27 @@ import platform
 import subprocess
 import re
 import cv2
+from mcd.logger import log 
+
+def check_camera_availability(camera_id=0):
+    # 打开摄像头
+    cap = cv2.VideoCapture(camera_id)
+    
+    if not cap.isOpened():
+        log.error(f"无法打开摄像头 {camera_id}")
+        return False
+
+    # 读取一帧来检测摄像头的可用性
+    ret, frame = cap.read()
+    if not ret:
+        log.error(f"摄像头 {camera_id} 无法读取帧")
+        cap.release()
+        return False
+
+    # 释放资源
+    cap.release()
+    log.info(f"摄像头 {camera_id} 正常工作且可用")
+    return True
 
 
 def list_cameras():
@@ -68,15 +89,16 @@ def get_cameras():
     os_type = platform.system()
     
     if os_type == "Windows":
-        return get_cameras_windows()
+        result = get_cameras_windows()
     elif os_type == "Linux":
-        return get_cameras_linux()
+        result = get_cameras_linux()
     elif os_type == "Darwin":  # macOS
-        return get_cameras_mac()
+        result = get_cameras_mac()
     else:
-        print(f"Unsupported OS: {os_type}")
-        return []
+        log.error(f"Unsupported OS: {os_type}")
+        result = []
     
+    return [(id,name) for id,name in result if check_camera_availability(id)]
 
 
 if __name__ == "__main__":
