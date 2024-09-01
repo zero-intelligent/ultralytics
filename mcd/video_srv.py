@@ -96,7 +96,8 @@ def detect_frames():
     datasource_type = conf.current_detect_config()['data_source_type']
     source = conf.data_source()
     classes = [0] if mode == Mode.PERSON else None
-    log.info(f"model:{conf.current_detect_config()['model']} is tracking source={source},stream=True,verbose=False,classes={source}")
+    
+    log.info(f"model:{conf.current_detect_config()['model']} is tracking source={source},stream=True,verbose=False,classes={classes}")
     for result in model.track(source=source, stream=True,verbose=False,classes=classes):
         # 如果用户已经切换了mode或者数据源，当前的检测程序退出
         if (conf.current_mode,conf.current_detect_config()['data_source_type'], conf.data_source()) != (mode,datasource_type,source):

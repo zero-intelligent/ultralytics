@@ -84,21 +84,11 @@ person_detect_config = {
 
 }
 
-
-def configure_default_local_camera():
-    from mcd.camera import get_cameras
-    cameras = get_cameras()
-    if not cameras:
-        log.error("找不到可用的本地摄像头")
-        return
-        
-    if not huiji_detect_config['camera_source']:
-        huiji_detect_config['camera_source'] = cameras[0]
-    if not person_detect_config['camera_source']:
-        person_detect_config['camera_source'] = cameras[0]
-    
-
-configure_default_local_camera()
+def current_detect_config():
+    if current_mode == Mode.HUIJI:
+        return huiji_detect_config
+    else:
+        return person_detect_config
 
 def data_source():
     detect_config = current_detect_config()
@@ -112,11 +102,23 @@ def data_source():
         return detect_config['video_file']
     
 
-def current_detect_config():
-    if current_mode == Mode.HUIJI:
-        return huiji_detect_config
-    else:
-        return person_detect_config
+def configure_default_local_camera():
+    from mcd.camera import get_cameras
+    cameras = get_cameras()
+    if not cameras:
+        log.error("找不到可用的本地摄像头")
+        return
+    camera_id,camera_name = cameras[0]
+    if not huiji_detect_config['camera_source']:
+        huiji_detect_config['camera_source'] = camera_id
+    if not person_detect_config['camera_source']:
+        person_detect_config['camera_source'] = camera_id
+    log.info(f"camera_source is configured to: {camera_id},data_source:{data_source()}")
+    
+
+configure_default_local_camera()
+
+
     
 config_file = 'mcd_conf.json'
 
