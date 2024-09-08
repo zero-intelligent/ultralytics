@@ -13,6 +13,16 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             }
+        },
+        {
+            "name": "mcd_demo",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "examples/McDonlad_Demo.py",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
         }
     ]
 }

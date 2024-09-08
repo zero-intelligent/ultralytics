@@ -14,8 +14,15 @@ model = YOLO("yolov8n.pt")  # load an official detection model
 
 
 # train model
-model.train(data="coco8.yaml", epochs=3)
+model.train(data="/Users/mac/python_projects/ultralytics/datasets/MCD/data.yaml", epochs=3)
 metrics = model.val()
-results = model("https://ultralytics.com/images/bus.jpg")
-path = model.export(format="onnx")
+results = model("/Users/mac/Downloads/mcd1.jpg")
+
+for r in results:
+    im_array = r.plot()
+    import cv2
+    cv2.imwrite('/Users/mac/Downloads/mcd1_result.jpg', im_array)
+    
+
+# path = model.export(format="onnx")
 
