@@ -1,5 +1,6 @@
 
 from ultralytics import YOLO
+from datetime import datetime
 
 # Load a model
 model = YOLO("yolov8n.pt")  # load an official detection model
@@ -14,15 +15,11 @@ model = YOLO("yolov8n.pt")  # load an official detection model
 
 
 # train model
-model.train(data="/Users/mac/python_projects/ultralytics/datasets/MCD/data.yaml", epochs=3)
+save_dir = f"runs/detect/{datetime.now():%Y-%m-%d.%H}"
+model.train(data="datasets/MCD/data.yaml", epochs=100,save=True,save_dir=save_dir)
 metrics = model.val()
-results = model("/Users/mac/Downloads/mcd1.jpg")
+results = model("assets/taocan1.jpg",save=True,save_dir=save_dir)
+results = model("assets/taocan2.jpg",save=True,save_dir=save_dir)
 
-for r in results:
-    im_array = r.plot()
-    import cv2
-    cv2.imwrite('/Users/mac/Downloads/mcd1_result.jpg', im_array)
-    
 
-# path = model.export(format="onnx")
 

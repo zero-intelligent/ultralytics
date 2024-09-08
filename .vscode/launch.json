@@ -20,6 +20,7 @@
             "request": "launch",
             "program": "examples/McDonlad_Demo.py",
             "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             }
