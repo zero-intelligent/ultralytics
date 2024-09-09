@@ -71,13 +71,14 @@ def get_cameras_mac():
             stderr=subprocess.PIPE,
             text=True
         )
+        
 
         # Define a regex pattern to match camera names
         pattern = re.compile(r'\s{4}(.+):\n')
 
         # Find all matches in the command output
         camera_names = pattern.findall(result.stdout)
-        return [(index,v) for index,v in enumerate(camera_names)]
+        return enumerate(camera_names)
 
     except subprocess.CalledProcessError as e:
         # Handle errors in command execution
