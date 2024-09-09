@@ -15,10 +15,10 @@
             }
         },
         {
-            "name": "mcd_demo",
+            "name": "mcd_train",
             "type": "debugpy",
             "request": "launch",
-            "program": "examples/McDonlad_Demo.py",
+            "program": "mcd/train.py",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
             "env": {
