@@ -6,7 +6,13 @@ from datetime import datetime
 model = YOLO("yolov8n.pt")  # load an official detection model
 # train model
 save_dir = f"runs/detect/{datetime.now():%Y-%m-%d.%H}"
-model.train(data="datasets/MCD/data.yaml", epochs=100,save=True,save_dir=save_dir)
+model.train(
+    data="datasets/MCD/data.yaml", 
+    epochs=100,
+    save=True,
+    save_dir=save_dir,
+    augment=True)
+
 metrics = model.val()
 
 test_files = ["assets/taocan1.jpg",
