@@ -6,12 +6,12 @@ from cProfile import Profile
 from pstats import SortKey, Stats
 
 
-def update_yaml(yaml_file, update_dict):
+def update_yaml(yaml_file, **kwargs):
     # 加载 YAML 文件到字典
     with open(yaml_file, 'r') as file:
         data = yaml.safe_load(file)
 
-    data |= update_dict
+    data |= kwargs
 
     # 保存修改后的字典回 YAML 文件
     with open(yaml_file, 'w') as file:
