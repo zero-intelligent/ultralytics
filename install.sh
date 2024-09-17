@@ -75,7 +75,7 @@ if ! npm run build; then
 fi
 
 
-if "include `pwd`/nginx.conf" /etc/nginx/nginx.conf; then
+if grep "include `pwd`/nginx.conf" /etc/nginx/nginx.conf; then
     echo "nginx 配置正确"
 else
     echo "nginx 未配置"
