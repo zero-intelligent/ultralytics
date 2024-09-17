@@ -114,7 +114,7 @@ def configure_default_local_camera():
     if not person_detect_config['camera_source']:
         person_detect_config['camera_source'] = camera_id
         
-    log.info(f"available local cameras:{cameras} select default to: {cameras[0]},data_source:{data_source()}")
+    log.info(f"available local cameras:{cameras} \ndefault use: {cameras[0]},data_source:{data_source()}")
     
 
 configure_default_local_camera()
