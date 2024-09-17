@@ -79,7 +79,7 @@ if grep -q "include `pwd`/nginx.conf" /etc/nginx/nginx.conf; then
     echo "nginx 已包含正确配置"
 else
     # 如果未包含，找到 http 节点的起始位置并添加 include 行
-    sed -i '/http {/a\'$'\n''    include `pwd`/nginx.conf' /etc/nginx/nginx.conf
+    sed "/http {/a\ $(printf '\n')    include $(pwd)/nginx.conf" /etc/nginx/nginx.conf
     nginx -t
     nginx -s reload
     echo "nginx 已正确配置"
