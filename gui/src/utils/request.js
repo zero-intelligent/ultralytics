@@ -2,7 +2,7 @@ import axios from 'axios'
 // import { MessageBox, Message } from 'element-ui'
 
 const service = axios.create({
-  baseURL: '/api', 
+  baseURL: '', 
 })
 // request interceptor
 service.interceptors.request.use(
