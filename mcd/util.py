@@ -1,9 +1,23 @@
 from functools import wraps
 import threading
 import cv2
+import yaml
 from cProfile import Profile
 from pstats import SortKey, Stats
 
+
+def update_yaml(yaml_file, **kwargs):
+    # 加载 YAML 文件到字典
+    with open(yaml_file, 'r') as file:
+        data = yaml.safe_load(file)
+
+    data |= kwargs
+
+    # 保存修改后的字典回 YAML 文件
+    with open(yaml_file, 'w') as file:
+        yaml.dump(data, file, default_flow_style=False, allow_unicode=True)
+        
+        
 # 获取视频播放时长(秒)
 def get_video_time(vidoe_file):
     # 读取视频文件

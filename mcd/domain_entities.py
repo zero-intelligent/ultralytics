@@ -24,7 +24,7 @@ class ModeDataSource(BaseModel):
     data_source: str = Field(..., min_length=1, description="数据源不能为空")
     
 class TancanResult(BaseModel):
-    id:int = Field(default=0,gt=0, description="id必须>0")
+    id:int = Field(default=0, description="id必须>0")
     name:str = Field(...,description="名称不能为空")
     count:Optional[int] = Field(default=None, description="食物数量")
     real_count:Optional[int] = Field(default=None,ge=0, description="实际数量")

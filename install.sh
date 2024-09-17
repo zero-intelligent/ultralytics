@@ -45,21 +45,3 @@ ExecStart=uvicorn mcd.api:app --host 0.0.0.0 --port 6789 --reload
 ExecStop=/usr/bin/pkill -f uvicorn
 Restart=always
 User=$USER
-WorkingDirectory=$APP_HOME
-Environment="PATH=/usr/local/bin:/usr/bin:/bin" "PYTHONUNBUFFERED=1"
-
-[Install]
-WantedBy=multi-user.target
-EOL
-
-# 重新加载 systemd 配置
-sudo systemctl daemon-reload
-
-# 启动服务
-sudo systemctl start "$SERVICE_NAME"
-
-# 设置为自动启动
-sudo systemctl enable "$SERVICE_NAME"
-
-# 查看服务启动状态
-systemctl status "$SERVICE_NAME"
