@@ -2,7 +2,7 @@ import axios from 'axios'
 // import { MessageBox, Message } from 'element-ui'
 
 const service = axios.create({
-  baseURL: 'pinda.org.cn', 
+  baseURL: '/api', 
 })
 // request interceptor
 service.interceptors.request.use(
