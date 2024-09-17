@@ -9,3 +9,5 @@ if ! python -m build; then
     echo "python -m build fail!"
     exit 1
 fi
+
+echo install success.

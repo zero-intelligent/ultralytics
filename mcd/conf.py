@@ -26,27 +26,17 @@ huiji_detect_config = {
 
     # 食品清单信息：id,EnglishName, ChineseName
     "meals_info": [
-        (0,'Breakfast','早餐'),
-        (1,'Burger with Box','汉堡（盒装）'),
-        (2,'Burger with Package','汉堡（包装）'),
-        (3,'Burger','汉堡'),
-        (4,'Cold Drink','冷饮'),
-        (5,'Crispy Thighs','脆鸡腿'),
-        (6,'Curly Fries','薯卷'),
-        (7,'Fresh Corn Cup','玉米杯'),
-        (8,'Fries','薯条'),
-        (9,'Hash Browns','薯饼'),
-        (10,'Hot Drink','热饮'),
-        (11,'McFlurry','麦旋风'),
-        (12,'McNuggets','麦乐鸡'),
-        (13,'McWings','麦翅'),
-        (14,'Pie','派'),
-        (15,'Sundae','圣代'),
-        (16,'Twist Cone','甜筒'),
-        (17,'Twisty Pasta Box','意面（盒装）'),
-        (18,'Twisty Pasta','意面'),
-        (19,'breakfast box','早餐盒'),
-        (20,'salad','沙拉')
+        (0,'apple-juice','早餐'),
+        (1,'cola','可乐'),
+        (2,'jiroujuan','鸡肉卷'),
+        (3,'juwuba','巨无霸汉堡'),
+        (4,'kaochi','烤翅'),
+        (5,'maileji','麦乐鸡'),
+        (6,'maixuanfeng','麦旋风'),
+        (7,'paper','餐巾纸'),
+        (8,'shutiao','薯条'),
+        (9,'tiansuan-jam','甜酸酱'),
+        (10,'tomato-jam','番茄酱')
     ],
 
     # 预配置套餐信息
