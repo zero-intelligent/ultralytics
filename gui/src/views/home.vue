@@ -4,7 +4,7 @@
     <div class="hearder">
       <div class="hearder-box">
         <div class="hearder-logo">
-          <el-image style="width: 100%; height: 100px" :src="require('./../assets/logo.png')" fit="contain"></el-image>
+          <el-image style="width: 100%; height: 80px" :src="require('./../assets/logo.png')" fit="contain"></el-image>
         </div>
         <div class="hearder-mian">
           <el-tabs v-model="activeName" @tab-click="handleClick">
@@ -60,11 +60,11 @@
           <div style="display: flex;">
             <el-upload ref="upload" multiple action="" :show-file-list="false" :http-request="handleFileUpload"
               :limit="10" :on-exceed="handleExceed" :on-success="handleAvatarSuccess">
-              <el-button type="info" icon='el-icon-video-camera' style="padding: 13px; " :disabled="disabled">导入视频 <i
-                  class="el-icon-right"></i></el-button>
+              <el-button type="info" icon='el-icon-video-camera'  :disabled="disabled"><span style="margin-left: 10px;display: inline-block;">导入视频</span> <i
+                  class="el-icon-right" style="margin-left: 35px;display: inline-block;font-weight: 600;"></i></el-button>
             </el-upload>
-            <el-button type="info" icon='el-icon-bangzhu' @click="changeisCameraShow" style="margin-left: 20px;">链接摄像头 <i
-                class="el-icon-right"></i></el-button>
+            <el-button type="info" icon='el-icon-bangzhu' @click="changeisCameraShow" style="margin-left: 20px;">  <span style="margin-left: 10px;display: inline-block;">链接摄像头</span><i
+                class="el-icon-right" style="margin-left: 20px;display: inline-block;font-weight: 600;"></i></el-button>
           </div>
           <div>
             <el-select v-model="value" placeholder="请选择">
@@ -118,17 +118,17 @@
             <el-input v-model="input" style="width: 600px;"></el-input>
           </div>
           <div style="text-align: end;">
-            <el-button type="info" @click="isCameraShow = true"> 取 消 </el-button>
+            <el-button type="info" @click="isCameraShow = true" style="border-radius: 4px;padding: 12px 25px;"> 取 消 </el-button>
             <el-button type="warning" style="margin-left: 20px;" @click="submit"> 确 定 </el-button>
           </div>
         </div>
         <div class="middle-footer" v-if="activeName != 'second'">
-          <el-button type="warning" @click="changeType(0)"
-            :style="{ color: configInfo.taocan_id === 0 ? '#fff' : '', textDecoration: configInfo.taocan_id === 0 ? 'underline' : '' }">
-            套餐A </el-button>
+          <el-button type="warning" @click="changeType(0)" 
+            :style="{  paddingBottom:  configInfo.taocan_id === 0 ? '0' : '10px',}">
+            套餐A <span v-if="configInfo.taocan_id === 0" style="display: block; height: 2px; width: 45px;background-color: black;margin-top: 5px;"></span></el-button>
           <el-button type="warning" style="margin-left: 20px;" @click="changeType(1)"
-            :style="{ color: configInfo.taocan_id === 1 ? '#fff' : '', textDecoration: configInfo.taocan_id === 1 ? 'underline' : '' }">
-            套餐B </el-button>
+            :style="{ paddingBottom:  configInfo.taocan_id === 1 ? '0' : '10px'}">
+            套餐B  <span v-if="configInfo.taocan_id === 1" style="display: block; height: 2px; width: 45px;background-color: black;margin-top: 5px;"></span></el-button>
         </div>
       </div>
     </div>
@@ -675,9 +675,9 @@ export default {
 }
 
 .hearder {
-  height: 120px;
+  height: 100px;
   box-sizing: border-box;
-  padding: 20px 20px 0 20px;
+  padding: 10px 20px 0 20px;
 }
 
 .hearder-box {
@@ -721,7 +721,7 @@ export default {
   height: 100%;
   box-sizing: border-box;
   padding: 20px;
-  background: #333;
+  background: #222;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -788,7 +788,7 @@ export default {
   height: 100%;
   overflow-y: auto;
   box-sizing: border-box;
-  padding: 20px;
+  padding: 20px 40px 20px 30px;
 }
 
 .middle-search {
@@ -800,12 +800,14 @@ export default {
 .middle-main {
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
 }
 
 .middle-main-else {
   margin-top: 40px;
   height: 520px;
-  background: #444;
+  background: #222;
   border-radius: 8px;
   display: flex;
   justify-content: space-around;
@@ -816,23 +818,22 @@ export default {
 
 .middle-main-item {
   width:  calc(47% - 36px);
-  margin-right: 2%;
   margin-top: 40px;
   height: 420px;
-  background: #333;
-  border-radius: 8px;
+  background: #222;
+  border-radius: 12px;
 }
 
 .middle-main-hearder {
   display: flex;
   justify-content: space-between;
-  background: #666;
+  background: #29292D;
   font-size: 16px;
   height: 50px;
   line-height: 50px;
   box-sizing: border-box;
   padding: 0 10px;
-  border-radius: 8px;
+  border-radius: 12px 12px 0 0 ;
 }
 
 .middle-main-vedio {
@@ -854,7 +855,7 @@ export default {
 }
 
 .el-tabs__item {
-  height: 100px;
+  height: 90px;
   line-height: 100px;
   font-size: 18px;
   color: #666;
@@ -883,9 +884,12 @@ export default {
 }
 
 .el-button--info {
-  background: #333;
+  background: #111;
   border: 0;
-  color: #EEE;
+  color: #aaa;
+  border-radius: 12px 12px 12px 0;
+  padding: 14px 20px;
+  font-size: 15px;
 }
 
 .el-range-editor.is-active,
@@ -897,22 +901,36 @@ export default {
 .el-radio__input.is-checked+.el-radio__label {
   color: #FFBC0D
 }
-
-.el-input__inner {
-  background: #333;
-  color: #EEE;
+.middle-main-else { 
+  .el-input__inner{
+  background: #333 !important;
   border: 0;
+  color: #ccc;
+}
+.el-button--info {
+  background: #333;
+  border: 0;
+  color: #ccc;
+}
+}
+.el-input__inner {
+  background: #111;
+  border: 0;
+  color: #aaa;
+  border-radius: 12px 12px 12px 0;
+  padding: 14px 20px;
+  font-size: 15px;
 }
 
 .el-radio__inner {
-  background: #333;
-  color: #EEE;
+  background: #111;
+  color: #aaa;
   border: 0;
 }
 
 .el-select-dropdown {
-  background: #333;
-  color: #EEE;
+  background: #111;
+  color: #aaa;
   border: 0;
 }
 
@@ -937,7 +955,9 @@ export default {
 .el-button--warning {
   background-color: #FFBC0D;
   color: #333;
-  padding: 10px 30px;
+  padding: 12px 40px;
   font-weight: 900;
+  font-size: 16px;
+  border-radius: 10px;
 }
 </style>
