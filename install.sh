@@ -63,3 +63,14 @@ sudo systemctl enable "$SERVICE_NAME"
 
 # 查看服务启动状态
 systemctl status "$SERVICE_NAME"
+
+
+
+# 编译前端
+cd $APP_HOME/gui
+
+if ! npm run build; then
+    echo "npm run build fail!"
+    exit 1
+fi
+
