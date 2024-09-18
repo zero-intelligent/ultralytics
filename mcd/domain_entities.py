@@ -29,7 +29,7 @@ class ModeDataSource(BaseModel):
     
 class TancanResult(BaseModel):
     id:int = Field(default=0, description="id必须>0")
-    name:Optional[str] = Field(default="",description="名称不能为空")
+    name:str = Field(default="",description="名称不能为空")
     count:Optional[int] = Field(default=None, description="食物数量")
     real_count:Optional[int] = Field(default=None,ge=0, description="实际数量")
     lack_item:Optional[bool] = Field(default=None, description="是否欠缺食物")

@@ -199,9 +199,10 @@ def huiji_detect_results(results):
         for obj in result.boxes:
             obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else 0
             obj_class = int(obj.cls.item())
-            if obj_class not in meal_result:
-                meal_result[obj_class]=set()
-            meal_result[obj_class].add(obj_id)
+            if obj_class in [id for id,en_name,cn_name in conf.huiji_detect_config['meals_info']]:
+                if obj_class not in meal_result:
+                    meal_result[obj_class]=set()
+                meal_result[obj_class].add(obj_id)
 
     global current_taocan_check_result,last_taocan_check_result
     last_taocan_check_result = current_taocan_check_result
