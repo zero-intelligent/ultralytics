@@ -67,7 +67,7 @@ sudo systemctl enable "$SERVICE_NAME"
 
 
 # 重新启动服务
-sudo systemctl start "$SERVICE_NAME"
+sudo systemctl restart "$SERVICE_NAME"
 
 sleep 2
 
