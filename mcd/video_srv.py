@@ -194,12 +194,13 @@ def huiji_detect_results(results):
     img=None
     meal_result=None
     meal_result = {}
+    valid_cls = [id for id,en_name,cn_name in conf.huiji_detect_config['meals_info']]
     for result in results:
         # 提取每个检测结果的 id 和 class 信息
         for obj in result.boxes:
             obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else 0
             obj_class = int(obj.cls.item())
-            if obj_class in [id for id,en_name,cn_name in conf.huiji_detect_config['meals_info']]:
+            if obj_class in valid_cls:
                 if obj_class not in meal_result:
                     meal_result[obj_class]=set()
                 meal_result[obj_class].add(obj_id)
