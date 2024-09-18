@@ -23,6 +23,10 @@ class ModeDataSource(BaseModel):
     data_source_type: DataSourceType = Field(default=DataSourceType.CAMERA)
     data_source: str = Field(..., min_length=1, description="数据源不能为空")
     
+    class Config:
+        use_enum_values = True  # This ensures that enum values are serialized as their underlying values
+
+    
 class TancanResult(BaseModel):
     id:int = Field(default=0, description="id必须>0")
     name:str = Field(...,description="名称不能为空")

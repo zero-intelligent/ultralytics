@@ -12,7 +12,7 @@ from mcd.resp import ok
 from mcd.logger import log
 from mcd.camera import get_cameras
 from mcd import conf,video_srv
-from mcd.domain_entities import ModeDataSource,Mode
+from mcd.domain_entities import DataSourceType, ModeDataSource,Mode
 from mcd.event import config_changed_event,result_frame_arrive_event
 
 
@@ -31,7 +31,7 @@ app.add_middleware(
 @router.get("/demo_huiji")
 async def demo(mode:Mode = Query(default=Mode.HUIJI)):
     video_srv.update_datasource(ModeDataSource(
-        mode = mode,
+        mode = Mode(mode),
         data_source_type = "camera",
         data_source = "0"
     ))
@@ -73,6 +73,9 @@ async def get_config():
     return StreamingResponse(config_stream(), media_type="text/event-stream")
 
 def get_config():
+    # assure enum type
+    conf.current_mode =  Mode(conf.current_mode)
+    
     config = {
         "mode": conf.current_mode.value,
         "running_state": video_srv.VideoState.running_state.value,
@@ -126,7 +129,7 @@ async def get_mode_datasource():
     return ok({
             "mode": conf.current_mode,
             "data_source_type": conf.current_detect_config()['data_source_type'],
-            "data_source": video_srv.data_source()
+            "data_source": conf.data_source()
         })
 
 @router.get("/taocans")
@@ -206,8 +209,8 @@ async def single_upload_file(file: UploadFile = File(...)):
             f.write(file_content)
          # 上传完成后，更新文件信息
         video_srv.update_datasource(ModeDataSource(
-            mode = conf.current_mode,
-            data_source_type = "video_file",
+            mode = Mode(conf.current_mode),
+            data_source_type = DataSourceType.VIDEO_FILE,
             data_source = file_path
         ))
         return {"filename": file.filename, "file_size": len(file_content)}

@@ -4,6 +4,10 @@ APP_HOME=`cd -P $(dirname "$0");pwd`
 echo "APP_HOME=$APP_HOME"
 
 cd $APP_HOME
+
+# 删除中间缓存文件
+rm -f mcd_conf.json
+
 # 安装文件路径
 whl_file=./dist/ultralytics-8.2.63-py3-none-any.whl
 
@@ -63,6 +67,7 @@ sudo systemctl enable "$SERVICE_NAME"
 
 # 查看服务启动状态
 systemctl status "$SERVICE_NAME"
+
 
 
 

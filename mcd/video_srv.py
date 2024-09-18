@@ -42,7 +42,7 @@ def swith_mode(mode:Mode):
     if mode == Mode.PERSON:
         PersonResults.id_info = {}
     
-    conf.current_mode = mode
+    conf.current_mode = Mode(mode)
     # 通知正在运行的模型退出
     VideoState.detect_frame_exit = True
     
@@ -57,7 +57,7 @@ def update_datasource(datasource:ModeDataSource):
     detect_config = conf.current_detect_config()
     
     #更新配置信息
-    conf.current_mode = datasource.mode
+    conf.current_mode = Mode(datasource.mode)
     detect_config['data_source_type'] = datasource.data_source_type
     if datasource.data_source_type == DataSourceType.CAMERA:
         detect_config['camera_source'] = datasource.data_source
