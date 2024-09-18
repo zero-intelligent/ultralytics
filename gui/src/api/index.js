@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-export var baseUrl = process.env.NODE_ENV === 'production' ?  '/api' : 'http://127.0.0.1:6789'
+export var baseUrl = process.env.NODE_ENV === 'production' ?  '/api' : 'http://127.0.0.1:6789/api'
 //export var baseUrl = 'http://127.0.0.1:6789';
 //export var baseUrl = 'http://192.168.31.77:6789';
 
