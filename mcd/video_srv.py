@@ -134,20 +134,12 @@ def detect_frames():
         })
     
     # 模型运行结束后，回收较重的模型资源
+    cv2.destroyAllWindows()  # 确保关闭所有 OpenCV 窗口
     del model
     gc.collect()
-    if datasource_type == "camera":
-        release_camera(source)
+
     change_running_state(RunningState.FINISHED)
     
-    
-def release_camera(source):
-    """手动释放摄像头资源"""
-    cap = cv2.VideoCapture(source)
-    if cap.isOpened():
-        cap.release()
-        log.info(f"Camera source {source} released.")
-        
         
 def get_huiji_detect_items(detect_result):
     if not detect_result:
