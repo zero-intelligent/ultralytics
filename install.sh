@@ -65,8 +65,15 @@ sudo systemctl start "$SERVICE_NAME"
 # 设置为自动启动
 sudo systemctl enable "$SERVICE_NAME"
 
+
+# 重新启动服务
+sudo systemctl start "$SERVICE_NAME"
+
+sleep 2
+
 # 查看服务启动状态
 systemctl status "$SERVICE_NAME"
+
 
 
 
