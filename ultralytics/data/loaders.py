@@ -94,6 +94,9 @@ class LoadStreams:
                 )
             self.caps[i] = cv2.VideoCapture(s)  # store video capture object
             if not self.caps[i].isOpened():
+                self.caps[i].release()
+            self.caps[i] = cv2.VideoCapture(s)  # store video capture object
+            if not self.caps[i].isOpened():
                 raise ConnectionError(f"{st}Failed to open {s}")
             w = int(self.caps[i].get(cv2.CAP_PROP_FRAME_WIDTH))
             h = int(self.caps[i].get(cv2.CAP_PROP_FRAME_HEIGHT))
