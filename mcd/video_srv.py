@@ -147,7 +147,7 @@ def detect_frames():
     del model
     gc.collect()
     change_running_state(RunningState.FINISHED)
-    log.info(f"release cap, model, gc.collected, state to:{RunningState.FINISHED}")
+    log.info(f"release cap[source={source}], model[file={model_path}], gc.collected, state to:{RunningState.FINISHED}")
         
 def get_huiji_detect_items(detect_result):
     if not detect_result:

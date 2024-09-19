@@ -50,7 +50,11 @@ huiji_detect_config = {
                 [2,'Big Mac',1],
                 [3,'Chicken McNuggets',1],
                 [4,'Coca-Cola ',1],
-                [6,'French Fries',1]
+                [6,'French Fries',1],
+                [0,'Sweet And Sour Sauce',1],
+                [8,'Napkin',1],
+                [9,'Tomato Flavored Seasoningm',1]
+                
             ]
         },
         {
@@ -60,7 +64,10 @@ huiji_detect_config = {
                 [5,'Crispy chicken sticks',1],
                 [1,'Apple Juice',1],
                 [7,'McFlurry',1],
-                [10,'V-Wings',1]
+                [10,'V-Wings',1],
+                [0,'Sweet And Sour Sauce',1],
+                [8,'Napkin',1],
+                [9,'Tomato Flavored Seasoningm',1]
             ]
         }
     ]
