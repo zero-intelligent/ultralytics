@@ -7,6 +7,8 @@ cd $APP_HOME
 
 # 删除中间缓存文件
 rm -f mcd_conf.json
+# 删除旧的日志
+rm -rf logs
 
 # 安装文件路径
 whl_file=./dist/ultralytics-8.2.63-py3-none-any.whl
