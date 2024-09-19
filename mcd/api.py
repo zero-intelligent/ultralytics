@@ -1,7 +1,7 @@
 import json
 import os
 import time
-from fastapi import APIRouter, FastAPI, File, HTTPException, Request,Response, UploadFile
+from fastapi import APIRouter, FastAPI, File, HTTPException, Request,Response, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi import Query
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -68,11 +68,26 @@ async def get_config():
             config_changed_event.clear()  # 清除事件，等待下次设置
             config = get_config()
             event = f"data: {json.dumps(config,ensure_ascii=False)}\n\n"
-            log.info(f"推送事件：{event}")
+            log.info(f"SSE push event：{event}")
             yield event
 
     return StreamingResponse(config_stream(), media_type="text/event-stream")
 
+@router.websocket("/config_ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            await config_changed_event.wait()  # 等待新消息
+            config_changed_event.clear()  # 清除事件，等待下次设置
+            config = get_config()
+            log.info(f"websocket push json {config}")
+            # data = await websocket.receive_text()
+            await websocket.send_json(config)
+    except WebSocketDisconnect:
+        log.error("Client disconnected")
+        
+        
 def get_config():
     # assure enum type
     conf.current_mode =  Mode(conf.current_mode)
