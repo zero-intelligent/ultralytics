@@ -65,9 +65,7 @@ huiji_detect_config = {
                 [1,'Apple Juice',1],
                 [7,'McFlurry',1],
                 [10,'V-Wings',1],
-                [0,'Sweet And Sour Sauce',1],
-                [8,'Napkin',1],
-                [9,'Tomato Flavored Seasoningm',1]
+                [8,'Napkin',1]
             ]
         }
     ]
