@@ -8,7 +8,7 @@ from mcd.logger import log
 
 current_mode = Mode.HUIJI
 
-drop_rate = 0.01
+drop_rate = 0.5
 
 huiji_detect_config = {
 
