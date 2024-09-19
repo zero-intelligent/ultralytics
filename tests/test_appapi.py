@@ -192,6 +192,10 @@ def test_video_source_feed():
     log.info(f'{video_file} capture_frames time {stream_time}s')
     
 
-    
 
-
+def test_websocket():
+    with client.websocket_connect("/api/config_ws") as websocket:
+        websocket.send_text("Hello, WebSocket")
+        data = websocket.receive_json()
+        log.info(f"{data}")
+        assert len(data) > 0
