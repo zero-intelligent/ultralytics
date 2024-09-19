@@ -75,7 +75,9 @@ async def get_config():
 
 @router.websocket("/config_ws")
 async def websocket_endpoint(websocket: WebSocket):
+    log.info("websocket_endpoint enter")
     await websocket.accept()
+    log.info("websocket_endpoint accepted")
     try:
         while True:
             await config_changed_event.wait()  # 等待新消息
@@ -84,6 +86,7 @@ async def websocket_endpoint(websocket: WebSocket):
             log.info(f"websocket push json {config}")
             # data = await websocket.receive_text()
             await websocket.send_json(config)
+            log.info("websocket pushed")
     except WebSocketDisconnect:
         log.error("Client disconnected")
         
