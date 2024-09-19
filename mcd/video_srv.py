@@ -81,6 +81,8 @@ def run_detect_loop():
             detect_frames()
     thread = threading.Thread(name="main_loop",target=loop,daemon=True)
     thread.start()
+    log.info(f"main_loop Thread started.")
+
 
 # @profile
 def detect_frames():
@@ -98,7 +100,6 @@ def detect_frames():
     classes = [0] if mode == Mode.PERSON else None
     
     log.info(f"mode:{mode},VideoCapture datasource_type={datasource_type},source={source} model:{model_path} tracking persist=True,verbose=False,classes={classes}")
-    
     cap = cv2.VideoCapture(source)
     while True:
         # 如果被标记退出，则退出
@@ -114,7 +115,6 @@ def detect_frames():
         
         if random.random() < conf.drop_rate:  # 按照一定的比率丢侦
             continue  # 跳过这一帧
-        
         
         ret, frame = cap.read()
         if not ret:
@@ -138,11 +138,12 @@ def detect_frames():
             "orig_frame": orig_frame,
             "tracked_frame": tracked_frame
         })
-
+        
     cap.release()
     del model
     gc.collect()
     change_running_state(RunningState.FINISHED)
+    log.info(f"release cap, model, gc.collected, state to:{RunningState.FINISHED}")
         
 def get_huiji_detect_items(detect_result):
     if not detect_result:
