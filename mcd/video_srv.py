@@ -42,7 +42,7 @@ def swith_mode(mode:Mode):
     if mode == Mode.PERSON:
         PersonResults.id_info = {}
     
-    conf.current_mode = mode
+    conf.current_mode = Mode(mode)
     # 通知正在运行的模型退出
     VideoState.detect_frame_exit = True
     
@@ -57,7 +57,7 @@ def update_datasource(datasource:ModeDataSource):
     detect_config = conf.current_detect_config()
     
     #更新配置信息
-    conf.current_mode = datasource.mode
+    conf.current_mode = Mode(datasource.mode)
     detect_config['data_source_type'] = datasource.data_source_type
     if datasource.data_source_type == DataSourceType.CAMERA:
         detect_config['camera_source'] = datasource.data_source
@@ -90,21 +90,18 @@ def detect_frames():
     VideoState.frame_rate = 0
     
     change_running_state(RunningState.LOADING)
-    
-    model = YOLO(conf.current_detect_config()['model'])
+    model_path = conf.current_detect_config()['model']
+    model = YOLO(model_path)
     mode = conf.current_mode
     datasource_type = conf.current_detect_config()['data_source_type']
     source = conf.data_source()
     classes = [0] if mode == Mode.PERSON else None
     
-    log.info(f"model:{conf.current_detect_config()['model']} is tracking source={source},stream=True,verbose=False,classes={classes}")
-    for result in model.track(source=source, stream=True,verbose=False,classes=classes):
-        # 如果用户已经切换了mode或者数据源，当前的检测程序退出
-        if (conf.current_mode,conf.current_detect_config()['data_source_type'], conf.data_source()) != (mode,datasource_type,source):
-            log.info(f"{conf.current_mode},data_source:{source} quiting")
-            break
-        
-         # 如果被标记退出，则退出
+    log.info(f"mode:{mode},VideoCapture datasource_type={datasource_type},source={source} model:{model_path} tracking persist=True,verbose=False,classes={classes}")
+    
+    cap = cv2.VideoCapture(source)
+    while True:
+        # 如果被标记退出，则退出
         if VideoState.detect_frame_exit:
             VideoState.detect_frame_exit = False
             break
@@ -118,26 +115,34 @@ def detect_frames():
         if random.random() < conf.drop_rate:  # 按照一定的比率丢侦
             continue  # 跳过这一帧
         
-        orig_frame = array2jpg(result.orig_img)  # 获取原始帧
+        
+        ret, frame = cap.read()
+        if not ret:
+            break
+        
+        results = model.track(frame, persist=True,verbose=False,classes=classes)
+        if not results:
+            break
+        
+        orig_frame = array2jpg(results[0].orig_img)  # 获取原始帧
         if not orig_frame:
             continue
 
         if conf.current_mode == Mode.HUIJI:
-            tracked_frame = huiji_detect_results(result)
+            tracked_frame = huiji_detect_results(results[0])
         else:
-            tracked_frame = get_person_detect_result(result)
+            tracked_frame = get_person_detect_result(results[0])
             
         #将结果写入队列
         video_frame_queue.put({
             "orig_frame": orig_frame,
             "tracked_frame": tracked_frame
         })
-    
-    # 模型运行结束后，回收较重的模型资源
+
+    cap.release()
     del model
     gc.collect()
     change_running_state(RunningState.FINISHED)
-    
         
 def get_huiji_detect_items(detect_result):
     if not detect_result:
@@ -184,14 +189,16 @@ def huiji_detect_results(results):
     img=None
     meal_result=None
     meal_result = {}
+    valid_cls = [id for id,en_name,cn_name in conf.huiji_detect_config['meals_info']]
     for result in results:
         # 提取每个检测结果的 id 和 class 信息
         for obj in result.boxes:
             obj_id = obj.id.item() if hasattr(obj, 'id') and obj.id else 0
             obj_class = int(obj.cls.item())
-            if obj_class not in meal_result:
-                meal_result[obj_class]=set()
-            meal_result[obj_class].add(obj_id)
+            if obj_class in valid_cls:
+                if obj_class not in meal_result:
+                    meal_result[obj_class]=set()
+                meal_result[obj_class].add(obj_id)
 
     global current_taocan_check_result,last_taocan_check_result
     last_taocan_check_result = current_taocan_check_result

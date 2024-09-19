@@ -23,39 +23,39 @@ def test_yolo():
 
     
 def test_switch_mode():
-    response = client.get("/switch_mode?mode=huiji_detect")
+    response = client.get("/api/switch_mode?mode=huiji_detect")
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
 
 
 def test_available_cameras():
-    response = client.get("/available_cameras")
+    response = client.get("/api/available_cameras")
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
     assert len(json['data']) > 0
 
 def test_mode_datasource():
-    response = client.post("/mode_datasource",json={
-        'mode': Mode.HUIJI,
-        'data_source_type':DataSourceType.CAMERA,
+    response = client.post("/api/mode_datasource",json={
+        'mode': Mode.HUIJI.value,
+        'data_source_type':DataSourceType.CAMERA.value,
         'data_source':'0'
     })
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
 
-    response = client.get("/mode_datasource")
+    response = client.get("/api/mode_datasource")
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
-    assert json['data']['mode'] == Mode.HUIJI
+    assert json['data']['mode'] == Mode.HUIJI.value
     assert json['data']['data_source_type'] == DataSourceType.CAMERA.value
     assert int(json['data']['data_source']) == 0
 
 def test_taocans():
-    response = client.get("/taocans")
+    response = client.get("/api/taocans")
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
@@ -63,8 +63,8 @@ def test_taocans():
     assert json['data']['current_taocan_id'] == 0
 
 def test_switch_taocan():
-    response = client.post("/mode_datasource",json={
-        'mode':Mode.HUIJI,
+    response = client.post("/api/mode_datasource",json={
+        'mode':Mode.HUIJI.value,
         'data_source_type':DataSourceType.CAMERA.value,
         'data_source':'0'
     })
@@ -72,12 +72,12 @@ def test_switch_taocan():
     json =  response.json()
     assert json['code'] == 0
     
-    response = client.get("/switch_taocan?taocan_id=1")
+    response = client.get("/api/switch_taocan?taocan_id=1")
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
     
-    response = client.get("/get_config")
+    response = client.get("/api/get_config")
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
@@ -88,8 +88,8 @@ def http_get(url):
     assert response.status_code == 200
     
 def test_get_config():
-    response = client.post("/mode_datasource",json={
-        'mode':Mode.HUIJI,
+    response = client.post("/api/mode_datasource",json={
+        'mode':Mode.HUIJI.value,
         'data_source_type':DataSourceType.VIDEO_FILE.value,
         'data_source':'assets/demo_short.mp4'
     })
@@ -97,7 +97,7 @@ def test_get_config():
     json =  response.json()
     assert json['code'] == 0
     
-    response = client.get("/get_config")
+    response = client.get("/api/get_config")
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
@@ -114,7 +114,7 @@ def test_get_config():
         log.info(f"wait 2s to 等到摄像头启动, 获取到套餐检测结果.")
         time.sleep(2)
         total_seconds += 2
-        response = client.get("/get_config")
+        response = client.get("/api/get_config")
         assert response.status_code == 200
         json =  response.json()
         assert json['code'] == 0
@@ -141,22 +141,22 @@ def test_get_config():
         
 
 def test_huiji_video_taocan_detect_result():
-    response = client.get("/huiji_video_taocan_detect_result")
+    response = client.get("/api/huiji_video_taocan_detect_result")
     assert response.status_code == 200
     json =  response.json()
-    assert json['code'] == 1
+    assert json['code'] == 0
 
 
 
 def test_upload_file():
     file_path = "assets/demo_short.mp4"  # 替换为实际文件路径
     with open(file_path, "rb") as file:
-        response = client.post("/single_upload", files={"file": file})
+        response = client.post("/api/single_upload", files={"file": file})
     assert response.status_code == 200
     assert response.json()["filename"] == "demo_short.mp4"
     assert os.path.exists("uploads/demo_short.mp4")
 
-    response = client.get("/mode_datasource")
+    response = client.get("/api/mode_datasource")
     assert response.status_code == 200
     json =  response.json()
     assert json['code'] == 0
@@ -168,9 +168,9 @@ def test_upload_file():
 def test_video_source_feed():
     video_file = 'assets/demo_short.mp4'
     
-    response = client.post("/mode_datasource",json={
-        'mode':Mode.HUIJI,
-        'data_source_type':DataSourceType.VIDEO_FILE,
+    response = client.post("/api/mode_datasource",json={
+        'mode':Mode.HUIJI.value,
+        'data_source_type':DataSourceType.VIDEO_FILE.value,
         'data_source':video_file
     })
     assert response.status_code == 200
@@ -192,10 +192,6 @@ def test_video_source_feed():
     log.info(f'{video_file} capture_frames time {stream_time}s')
     
 
-    for f in video_srv.huiji_detect_frames():
-        pass
-    
-    
     
 
 

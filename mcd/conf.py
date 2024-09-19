@@ -4,6 +4,8 @@ from mcd.domain_entities import DataSourceType, Mode
 from mcd.logger import log
 
 # 当前的分析模式 套餐汇集分析：huiji_detect, 大厅人员检测分析：person_detect
+
+
 current_mode = Mode.HUIJI
 
 drop_rate = 0.01
@@ -26,7 +28,7 @@ huiji_detect_config = {
 
     # 食品清单信息：id,EnglishName, ChineseName
     "meals_info": [
-        (0,'apple-juice','早餐'),
+        (0,'apple-juice','苹果汁'),
         (1,'cola','可乐'),
         (2,'jiroujuan','鸡肉卷'),
         (3,'juwuba','巨无霸汉堡'),
@@ -45,19 +47,21 @@ huiji_detect_config = {
             "id": 0,
             "name": '麦辣鸡腿汉堡中套餐',
             "items":[
-                [3,'Burger',1],
-                [12,'McNuggets',1],
-                [4,'Cold Drink',1]
+                [1,'cola',1],
+                [3,'juwuba',1],
+                [7,'paper',1],
+                [10,'tomato-jam',1]
             ]
         },
         {
             "id": 1,
             "name": '周末聚划算四人餐',
             "items":[
-                [3,'Burger',4],
-                [8,'Fries',1],
-                [11,'McFlurry',4],
-                [14,'Pie',4],
+                [1,'cola',4],
+                [3,'juwuba',4],
+                [5,'maileji',2],
+                [7,'paper',4],
+                [10,'tomato-jam',4]
             ]
         }
     ]

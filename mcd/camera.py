@@ -4,6 +4,32 @@ import re
 import cv2
 from mcd.logger import log 
 
+
+    
+def release_camera(source):
+    """手动释放摄像头资源"""
+    cap = cv2.VideoCapture(source)
+    if cap.isOpened():
+        cap.release()
+        log.info(f"Camera source {source} released.")
+        
+def check_camera_availability(camera_id=0):
+    # 打开摄像头
+    cap = cv2.VideoCapture(camera_id)
+    
+    if not cap.isOpened():
+        return False
+
+    # 读取一帧来检测摄像头的可用性
+    ret, frame = cap.read()
+    if not ret:
+        cap.release()
+        return False
+
+    # 释放资源
+    cap.release()
+    return True
+
 def check_camera_availability(camera_id=0):
     # 打开摄像头
     cap = cv2.VideoCapture(camera_id)

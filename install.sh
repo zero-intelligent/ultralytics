@@ -4,6 +4,10 @@ APP_HOME=`cd -P $(dirname "$0");pwd`
 echo "APP_HOME=$APP_HOME"
 
 cd $APP_HOME
+
+# 删除中间缓存文件
+rm -f mcd_conf.json
+
 # 安装文件路径
 whl_file=./dist/ultralytics-8.2.63-py3-none-any.whl
 
@@ -46,7 +50,7 @@ ExecStop=/usr/bin/pkill -f uvicorn
 Restart=always
 User=$USER
 WorkingDirectory=$APP_HOME
-Environment="PATH=/usr/local/bin:/usr/bin:/bin" "PYTHONUNBUFFERED=1"
+Environment="PATH=/usr/local/bin:/usr/bin:/bin" "PYTHONUNBUFFERED=1" "PYTHONPATH=$APP_HOME"
 
 [Install]
 WantedBy=multi-user.target
@@ -61,5 +65,34 @@ sudo systemctl start "$SERVICE_NAME"
 # 设置为自动启动
 sudo systemctl enable "$SERVICE_NAME"
 
+
+# 重新启动服务
+sudo systemctl restart "$SERVICE_NAME"
+
+sleep 2
+
 # 查看服务启动状态
 systemctl status "$SERVICE_NAME"
+
+
+
+
+
+# 编译前端
+cd $APP_HOME/gui
+
+if ! npm run build; then
+    echo "npm run build fail!"
+    exit 1
+fi
+
+
+if grep -q "include $(pwd)/nginx.conf" /etc/nginx/nginx.conf; then
+    echo "nginx 已包含正确配置"
+else
+    # 如果未包含，找到 http 节点的起始位置并添加 include 行
+    sed -i "/http {/a\ $(printf '\n')    include $(pwd)/nginx.conf" /etc/nginx/nginx.conf
+    nginx -t
+    nginx -s reload
+    echo "nginx 已正确配置"
+fi
