@@ -46,6 +46,8 @@ def swith_mode(mode:Mode):
     # 通知正在运行的模型退出
     VideoState.detect_frame_exit = True
     
+    log.info(f"switch current_mode to {conf.current_mode }.")
+    
     change_running_state(RunningState.READY)
     
     while not video_frame_queue.empty():
@@ -63,6 +65,8 @@ def update_datasource(datasource:ModeDataSource):
         detect_config['camera_source'] = datasource.data_source
     else:
         detect_config['video_file'] = datasource.data_source
+        
+    log.info(f"update_datasource to {datasource.data_source_type}:{datasource.data_source}.")
     
     # 通知正在运行的模型退出
     VideoState.detect_frame_exit = True
