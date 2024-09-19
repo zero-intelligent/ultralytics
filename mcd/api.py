@@ -1,4 +1,5 @@
 import json
+import os
 import time
 from fastapi import APIRouter, FastAPI, File, HTTPException, Request,Response, UploadFile
 from fastapi import Query
@@ -205,6 +206,7 @@ async def single_upload_file(file: UploadFile = File(...)):
         file_content = await file.read()
         # 处理文件（例如，保存到磁盘）
         file_path = f"uploads/{file.filename}"
+        os.makedirs("uploads",exist_ok=True)
         with open(file_path, "wb") as f:
             f.write(file_content)
          # 上传完成后，更新文件信息
