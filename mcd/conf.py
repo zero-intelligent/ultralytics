@@ -28,7 +28,7 @@ huiji_detect_config = {
 
     # 食品清单信息：id,EnglishName, ChineseName
     "meals_info": [
-        (0,'Sweet And Sour Sauce','甜酸酱'),
+        (0,'1pcs Sweet And Sour Sauce','甜酸酱'),
         (1,'Apple Juice','苹果汁'),
         (2,'Big Mac','巨无霸'),
         (3,'Chicken McNuggets','麦乐鸡'),
@@ -51,7 +51,7 @@ huiji_detect_config = {
                 [3,'Chicken McNuggets',1],
                 [4,'Coca-Cola ',1],
                 [6,'French Fries',1],
-                [0,'Sweet And Sour Sauce',1],
+                [0,'1pcs Sweet And Sour Sauce',1],
                 [8,'Napkin',1],
                 [9,'Tomato Flavored Seasoningm',1]
                 
