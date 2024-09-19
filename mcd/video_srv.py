@@ -126,7 +126,7 @@ def detect_frames():
         if not ret:
             break
         
-        frame = cv2.resize(frame, (640, 640))  # Resize to smaller resolution before tracking
+        # frame = cv2.resize(frame, (640, 640))  # Resize to smaller resolution before tracking
 
         results = model.track(frame, persist=True,verbose=False,classes=classes)
         if not results:
