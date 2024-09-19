@@ -28,17 +28,17 @@ huiji_detect_config = {
 
     # 食品清单信息：id,EnglishName, ChineseName
     "meals_info": [
-        (0,'apple-juice','苹果汁'),
-        (1,'cola','可乐'),
-        (2,'jiroujuan','鸡肉卷'),
-        (3,'juwuba','巨无霸汉堡'),
-        (4,'kaochi','烤翅'),
-        (5,'maileji','麦乐鸡'),
-        (6,'maixuanfeng','麦旋风'),
-        (7,'paper','餐巾纸'),
-        (8,'shutiao','薯条'),
-        (9,'tiansuan-jam','甜酸酱'),
-        (10,'tomato-jam','番茄酱')
+        (0,'Sweet And Sour Sauce','甜酸酱'),
+        (1,'Apple Juice','苹果汁'),
+        (2,'Big Mac','巨无霸'),
+        (3,'Chicken McNuggets','麦乐鸡'),
+        (4,'Coca-Cola','可口可乐'),
+        (5,'Crispy chicken sticks','脆鸡棒'),
+        (6,'French Fries','薯条'),
+        (7,'McFlurry','麦旋风'),
+        (8,'Napkin','餐巾纸'),
+        (9,'Tomato Flavored Seasoningm','番茄味调味料'),
+        (10,'V-Wings','V形鸡翅')
     ],
 
     # 预配置套餐信息
@@ -47,21 +47,20 @@ huiji_detect_config = {
             "id": 0,
             "name": '麦辣鸡腿汉堡中套餐',
             "items":[
-                [1,'cola',1],
-                [3,'juwuba',1],
-                [7,'paper',1],
-                [10,'tomato-jam',1]
+                [2,'Big Mac',1],
+                [3,'Chicken McNuggets',1],
+                [4,'Coca-Cola ',1],
+                [6,'French Fries',1]
             ]
         },
         {
             "id": 1,
             "name": '周末聚划算四人餐',
             "items":[
-                [1,'cola',4],
-                [3,'juwuba',4],
-                [5,'maileji',2],
-                [7,'paper',4],
-                [10,'tomato-jam',4]
+                [5,'Crispy chicken sticks',1],
+                [1,'Apple Juice',1],
+                [7,'McFlurry',1],
+                [10,'V-Wings',1]
             ]
         }
     ]
