@@ -1,6 +1,7 @@
 from ultralytics.engine.results import Results
 from copy import deepcopy
 import torch
+import time
 from ultralytics.utils.plotting import Annotator
 from mcd.event import config_changed_event
 
@@ -55,34 +56,29 @@ class PersonResults(Results):
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
             for d in reversed(pred_boxes):
-                c, conf, id = int(d.cls), float(
-                    d.conf) if conf else None, None if d.id is None else int(d.id.item())
+                c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
                 if not id:
                     continue
                 if id not in PersonResults.id_info:
                     PersonResults.id_info[id] = {
-                        "time_s": 0.0,
-                        "path": [[int((float(d.xyxy[0][0]) + float(d.xyxy[0][2]))/2),
+                        'start_time': time.time(),
+                        'refresh_time': time.time(),
+                        'path': [[int((float(d.xyxy[0][0]) + float(d.xyxy[0][2]))/2),
                                   int((float(d.xyxy[0][1]) + float(d.xyxy[0][3]))/2)]]
                     }
-                else:
-                    # 每发现一帧，积累每帧的时间
-                    old_time_s = int(PersonResults.id_info[id]['time_s'])
-                    PersonResults.id_info[id]['time_s'] += 1.0/20
-                    if int(PersonResults.id_info[id]['time_s']) != old_time_s:
-                        config_changed_event.set()  # 事件设置之前，要确保 time_ms 已经更新
-                        
-                    PersonResults.id_info[id]['path'] += [[int((float(d.xyxy[0][0]) + float(d.xyxy[0][2]))/2),
-                                                           # 添加路径坐标
-                                                           int((float(d.xyxy[0][1]) + float(d.xyxy[0][3]))/2)]]
+                id_info = PersonResults.id_info[id]
+
+                if id_info['refresh_time'] + 1 < time.time():
+                    id_info['refresh_time'] = time.time()
+                    config_changed_event.set()  # 事件设置之前，要确保 time_ms 已经更新
                     
-                label = f"id:{id},{int(PersonResults.id_info[id]['time_s'])}s"
-                xy = [
-                    int((float(d.xyxy[0][0]) + float(d.xyxy[0][2]))/2)-8, int(d.xyxy[0][1])]
-                annotator.text(xy, label, txt_color=(
-                    48, 128, 20), box_style=True)
-                annotator.routing_path(
-                    PersonResults.id_info[id]['path'], color=(48, 128, 20))
+                id_info['path'] += [[int((float(d.xyxy[0][0]) + float(d.xyxy[0][2]))/2),# 添加路径坐标
+                                    int((float(d.xyxy[0][1]) + float(d.xyxy[0][3]))/2)]]
+                label = f"id:{id},{int(id_info['refresh_time'] - id_info['start_time'])}s"
+                xy = [int((float(d.xyxy[0][0]) + float(d.xyxy[0][2]))/2)-8, int(d.xyxy[0][1])]
+                
+                annotator.text(xy, label, txt_color=(48, 128, 20), box_style=True)
+                annotator.routing_path(id_info['path'], color=(48, 128, 20))
 
         # Plot Classify results
         if pred_probs is not None and show_probs:

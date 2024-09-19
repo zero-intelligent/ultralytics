@@ -15,15 +15,13 @@ from mcd.domain_entities import DataSourceType, Mode, ModeDataSource, RunningSta
 
 
 def get_current_person_detect_result():
-    return {id:int(v['time_s']) for id,v in PersonResults.id_info.items()}
+    return {id: int(v['refresh_time']-v['start_time']) for id,v in PersonResults.id_info.items()}
 
 def get_person_detect_result(detect_result):
     detect_result.__class__ = PersonResults
     tracked_frame = detect_result.plot()  # 获取带检测结果的帧
     return array2jpg(tracked_frame)
 
-
-    
 class VideoState:
     running_state:RunningState = RunningState.READY #运行状态：准备（ready), 装载中(loading), 运行中(running), 结束（finished)
     frame_count:int = 0
