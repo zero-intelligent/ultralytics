@@ -61,7 +61,7 @@ def update_datasource(datasource:ModeDataSource):
     #更新配置信息
     conf.current_mode = Mode(datasource.mode)
     detect_config['data_source_type'] = datasource.data_source_type
-    if datasource.data_source_type == DataSourceType.CAMERA:
+    if DataSourceType(datasource.data_source_type) == DataSourceType.CAMERA:
         detect_config['camera_source'] = datasource.data_source
     else:
         detect_config['video_file'] = datasource.data_source

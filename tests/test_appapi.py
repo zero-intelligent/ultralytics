@@ -40,7 +40,7 @@ def test_mode_datasource():
     response = client.post("/api/mode_datasource",json={
         'mode': Mode.HUIJI.value,
         'data_source_type':DataSourceType.CAMERA.value,
-        'data_source':'0'
+        'data_source':'23'
     })
     assert response.status_code == 200
     json =  response.json()
@@ -52,7 +52,7 @@ def test_mode_datasource():
     assert json['code'] == 0
     assert json['data']['mode'] == Mode.HUIJI.value
     assert json['data']['data_source_type'] == DataSourceType.CAMERA.value
-    assert int(json['data']['data_source']) == 0
+    assert int(json['data']['data_source']) == 23
 
 def test_taocans():
     response = client.get("/api/taocans")
