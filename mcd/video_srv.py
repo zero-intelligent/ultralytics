@@ -97,7 +97,7 @@ def detect_frames():
     source = conf.data_source()
     classes = [0] if mode == Mode.PERSON else None
     
-    log.info(f"VideoCapture {source} model:{model_path} tracking persist=True,verbose=False,classes={classes}")
+    log.info(f"mode:{mode},VideoCapture datasource_type={datasource_type},source={source} model:{model_path} tracking persist=True,verbose=False,classes={classes}")
     
     cap = cv2.VideoCapture(source)
     while True:
