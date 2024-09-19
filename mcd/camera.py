@@ -41,7 +41,7 @@ def check_camera_availability(camera_id=0):
     # 读取一帧来检测摄像头的可用性
     ret, frame = cap.read()
     if not ret:
-        log.error(f"摄像头 {camera_id} 无法读取帧")
+        log.warning(f"摄像头 {camera_id} 无法读取帧")
         cap.release()
         return False
 
