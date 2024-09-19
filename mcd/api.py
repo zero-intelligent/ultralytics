@@ -109,9 +109,9 @@ async def config():
 async def switch_mode(mode:Mode = Query(default=Mode.HUIJI)):
     switch_ok = video_srv.swith_mode(mode)
     if switch_ok:
-        return ok(msg=f"mode swit to {mode}")
+        return ok(msg=f"mode swit to {conf.current_mode}")
     else:
-        return ok(msg=f"mode has been {mode}")
+        return ok(msg=f"mode has been {conf.current_mode}")
     
 
 @router.post("/mode_datasource")
@@ -123,7 +123,7 @@ async def set_mode_datasource(request: ModeDataSource):
         return ok(msg=f"mode_datasource same,no changed")
         
     video_srv.update_datasource(request)
-    return ok(msg=f"mode_datasource changed")
+    return ok(msg=f"mode_datasource changed to:{conf.current_mode}:{conf.current_detect_config()['data_source_type']}:{conf.data_source()}")
 
 @router.get("/mode_datasource")
 async def get_mode_datasource():
