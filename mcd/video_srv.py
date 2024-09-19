@@ -90,21 +90,18 @@ def detect_frames():
     VideoState.frame_rate = 0
     
     change_running_state(RunningState.LOADING)
-    
-    model = YOLO(conf.current_detect_config()['model'])
+    model_path = conf.current_detect_config()['model']
+    model = YOLO(model_path)
     mode = conf.current_mode
     datasource_type = conf.current_detect_config()['data_source_type']
     source = conf.data_source()
     classes = [0] if mode == Mode.PERSON else None
     
-    log.info(f"model:{conf.current_detect_config()['model']} is tracking source={source},stream=True,verbose=False,classes={classes}")
-    for result in model.track(source=source, stream=True,verbose=False,classes=classes):
-        # 如果用户已经切换了mode或者数据源，当前的检测程序退出
-        if (conf.current_mode,conf.current_detect_config()['data_source_type'], conf.data_source()) != (mode,datasource_type,source):
-            log.info(f"config:{(conf.current_mode,conf.current_detect_config()['data_source_type'], conf.data_source())} != {(mode,datasource_type,source)}, current track quiting")
-            break
-        
-         # 如果被标记退出，则退出
+    log.info(f"VideoCapture {source} model:{model_path} tracking persist=True,verbose=False,classes={classes}")
+    
+    cap = cv2.VideoCapture(source)
+    while True:
+        # 如果被标记退出，则退出
         if VideoState.detect_frame_exit:
             VideoState.detect_frame_exit = False
             break
@@ -118,28 +115,34 @@ def detect_frames():
         if random.random() < conf.drop_rate:  # 按照一定的比率丢侦
             continue  # 跳过这一帧
         
-        orig_frame = array2jpg(result.orig_img)  # 获取原始帧
+        
+        ret, frame = cap.read()
+        if not ret:
+            break
+        
+        results = model.track(frame, persist=True,verbose=False,classes=classes)
+        if not results:
+            break
+        
+        orig_frame = array2jpg(results[0].orig_img)  # 获取原始帧
         if not orig_frame:
             continue
 
         if conf.current_mode == Mode.HUIJI:
-            tracked_frame = huiji_detect_results(result)
+            tracked_frame = huiji_detect_results(results[0])
         else:
-            tracked_frame = get_person_detect_result(result)
+            tracked_frame = get_person_detect_result(results[0])
             
         #将结果写入队列
         video_frame_queue.put({
             "orig_frame": orig_frame,
             "tracked_frame": tracked_frame
         })
-    
-    # 模型运行结束后，回收较重的模型资源
-    cv2.destroyAllWindows()  # 确保关闭所有 OpenCV 窗口
+
+    cap.release()
     del model
     gc.collect()
-
     change_running_state(RunningState.FINISHED)
-    
         
 def get_huiji_detect_items(detect_result):
     if not detect_result:
