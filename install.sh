@@ -58,22 +58,23 @@ Environment="PATH=/usr/local/bin:/usr/bin:/bin" "PYTHONUNBUFFERED=1" "PYTHONPATH
 WantedBy=multi-user.target
 EOL
 
-# 重新加载 systemd 配置
+
+echo "重新加载 systemd 配置"
 sudo systemctl daemon-reload
 
-# 启动服务
+echo "启动服务"
 sudo systemctl start "$SERVICE_NAME"
 
-# 设置为自动启动
+echo "设置为自动启动"
 sudo systemctl enable "$SERVICE_NAME"
 
-
-# 重新启动服务
+echo "重新启动服务"
 sudo systemctl restart "$SERVICE_NAME"
 
+echo "等待2秒"
 sleep 2
 
-# 查看服务启动状态
+echo "查看服务启动状态"
 systemctl status "$SERVICE_NAME"
 
 
