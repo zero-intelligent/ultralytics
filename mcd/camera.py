@@ -35,7 +35,7 @@ def check_camera_availability(camera_id=0):
     cap = cv2.VideoCapture(camera_id)
     
     if not cap.isOpened():
-        log.error(f"无法打开摄像头 {camera_id}")
+        log.warning(f"无法打开摄像头 {camera_id}")
         return False
 
     # 读取一帧来检测摄像头的可用性

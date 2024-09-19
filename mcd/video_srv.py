@@ -15,7 +15,7 @@ from mcd.domain_entities import DataSourceType, Mode, ModeDataSource, RunningSta
 
 
 def get_current_person_detect_result():
-    return {id: int(v['refresh_time']-v['start_time']) for id,v in PersonResults.id_info.items()}
+    return PersonResults.total_time_info
 
 def get_person_detect_result(detect_result):
     detect_result.__class__ = PersonResults
@@ -37,8 +37,6 @@ def change_running_state(new_state):
 def swith_mode(mode:Mode):
     if conf.current_mode == mode:
         return False
-    if mode == Mode.PERSON:
-        PersonResults.id_info = {}
     
     conf.current_mode = Mode(mode)
     # 通知正在运行的模型退出
@@ -96,10 +94,16 @@ def detect_frames():
     change_running_state(RunningState.LOADING)
     model_path = conf.current_detect_config()['model']
     model = YOLO(model_path)
-    mode = conf.current_mode
+    mode = Mode(conf.current_mode)
     datasource_type = conf.current_detect_config()['data_source_type']
     source = conf.data_source()
-    classes = [0] if mode == Mode.PERSON else None
+    classes = None
+    # 人员检测模
+    if mode == Mode.PERSON:
+        classes = [0]  # 只保留人员检测
+        PersonResults.id_info_tracker = {} #清空id_info_tracker ，确保每次重新计算轨迹
+        PersonResults.total_time_info = {} #清空total_time_info ，确保每次重新计算人员停留时间
+                
     
     log.info(f"mode:{mode},VideoCapture datasource_type={datasource_type},source={source} model:{model_path} tracking persist=True,verbose=False,classes={classes}")
     cap = cv2.VideoCapture(source)
