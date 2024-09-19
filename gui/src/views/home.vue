@@ -265,7 +265,7 @@ export default {
         this.loading = true
         let params = {
           // type: this.radio,
-          data_source: this.radio == '1' ? this.valueCamera : this.input,
+          data_source: this.radio == '1' ? (this.valueCamera + "") : this.input,
           data_source_type: "camera",
           mode: this.activeName == 'first' ? "huiji_detect" : "person_detect"
           // url: this.input
@@ -359,7 +359,7 @@ export default {
       if (result.code === 0) {
         this.configInfo = { ...result.data }
         this.radio = this.configInfo.camera_type === 0 ? "1" : "2"
-        this.valueCamera = this.configInfo.camera_local
+        this.valueCamera = this.configInfo.camera_local + ""
         this.input = this.configInfo.camera_url
         if (this.configInfo.mode == 'huiji_detect') {
           this.activeName = 'first'
