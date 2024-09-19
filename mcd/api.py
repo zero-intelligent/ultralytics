@@ -245,10 +245,11 @@ async def global_exception_handler(request, exc):
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    log.info(f"http request: {request.method} {request.url}")
+    log.info(f"{request.method} {request.url}")
+    start = time.time()
     response = await call_next(request)
     respons_text = response.json() if hasattr(response,'json') else ''
-    log.info(f"Response: {response.status_code} {respons_text}")
+    log.info(f"{request.method} {request.url} response: {response.status_code} {respons_text},rts:{time.time()-start:.2f}s")
     return response
 
 
