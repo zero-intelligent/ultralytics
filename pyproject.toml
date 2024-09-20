@@ -83,7 +83,7 @@ dependencies = [
     "colorlog>=6.8.2",
     "lapx>=0.5.2",
     uvicorn = {extras = ["standard"], version = "^0.30.6"},
-    "python-multipart>=0.0.9",
+    "python-multipart>=0.0.9"
 ]
 
 # Optional dependencies ------------------------------------------------------------------------------------------------
