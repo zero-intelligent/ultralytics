@@ -75,71 +75,17 @@ async def get_config():
 
 @router.websocket("/config_ws")
 async def websocket_endpoint(websocket: WebSocket):
-    log.info("websocket_endpoint enter")
     await websocket.accept()
-    log.info("websocket_endpoint accepted")
     try:
         while True:
             await config_changed_event.wait()  # 等待新消息
             config_changed_event.clear()  # 清除事件，等待下次设置
             config = get_config()
             log.info(f"websocket push json {config}")
-            # data = await websocket.receive_text()
             await websocket.send_json(config)
-            log.info("websocket pushed")
     except WebSocketDisconnect:
         log.error("Client disconnected")
         
-        
-        
-        
-
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    try:
-        while True:
-            data = await websocket.receive_text()
-            await websocket.send_text(f"Message text was: {data}")
-    except WebSocketDisconnect:
-        print("Client disconnected")
-        
-html = """
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>WebSocket Example</title>
-    </head>
-    <body>
-        <h1>WebSocket Example</h1>
-        <button onclick="connectWebSocket()">Connect WebSocket</button>
-        <button onclick="sendMessage()">Send Message</button>
-        <ul id='messages'>
-        </ul>
-        <script>
-            var websocket;
-            function connectWebSocket() {
-                websocket = new WebSocket("ws://8.140.49.13:6789/ws");
-                websocket.onmessage = function(event) {
-                    var messages = document.getElementById('messages');
-                    var message = document.createElement('li');
-                    var content = document.createTextNode(event.data);
-                    message.appendChild(content);
-                    messages.appendChild(message);
-                };
-            }
-            function sendMessage() {
-                websocket.send("Hello from client");
-            }
-        </script>
-    </body>
-</html>
-"""
-
-@app.get("/")
-async def get():
-    return HTMLResponse(html)
-
 
 def get_config():
     # assure enum type
