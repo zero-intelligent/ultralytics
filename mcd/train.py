@@ -33,7 +33,7 @@ def main():
         data=yaml_file, 
         epochs=100,
         batch=128,
-        workers=8,
+        workers=16,
         save=True,
         save_dir=save_dir,
         augment=True)
