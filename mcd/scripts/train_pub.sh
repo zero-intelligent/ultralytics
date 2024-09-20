@@ -18,5 +18,6 @@ echo "本地训练模型复制到鲁班猫"
 scp -P 2224 ~/python_projects/ultralytics/mcd/weights/huiji.onnx cat@8.140.49.13:/home/cat/app/ultralytics/mcd/weights/huiji.onnx
 
 echo "重启鲁班猫服务"
-ssh -p 2224 admin@8.140.49.13 'sudo systemctl restart mcd-video-analysis.service'
+ssh -p 2224 cat@8.140.49.13 'echo "temppwd" | sudo -S systemctl restart mcd-video-analysis.service'
+
 
