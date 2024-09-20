@@ -105,7 +105,7 @@ def detect_frames():
         PersonResults.total_time_info = {} #清空total_time_info ，确保每次重新计算人员停留时间
                 
     
-    log.info(f"mode:{mode},VideoCapture datasource_type={datasource_type},source={source} model:{model_path} tracking persist=True,verbose=False,classes={classes}")
+    log.info(f"mode:{mode},VideoCapture datasource={datasource_type}/{source} model={model_path} tracking persist=True,verbose=False,classes={classes}")
     cap = cv2.VideoCapture(source)
     while True:
         # 如果被标记退出，则退出
@@ -115,9 +115,12 @@ def detect_frames():
         
         change_running_state(RunningState.RUNNING)
 
-        #计算帧率
+        #计算帧率, 最近20帧的平均帧率=帧数/时间
         VideoState.frame_count += 1
-        VideoState.frame_rate = VideoState.frame_count / (time.time() - start_time)
+        if VideoState.frame_count >= 20:
+            VideoState.frame_rate = VideoState.frame_count / (time.time() - start_time)
+            VideoState.frame_count = 0 # 重新计数
+            start_time = time.time() # 重新计时
         
         if random.random() < conf.drop_rate:  # 按照一定的比率丢侦
             continue  # 跳过这一帧
@@ -126,16 +129,15 @@ def detect_frames():
         if not ret:
             break
         
-        # frame = cv2.resize(frame, (640, 640))  # Resize to smaller resolution before tracking
-
+        # log.info(f"{mode},{model_path} tracking {datasource_type}/{source}")
         results = model.track(frame, persist=True,verbose=False,classes=classes)
         if not results:
             break
-        
+        # log.info(f"{mode},{model_path} array2jpg {datasource_type}/{source},")
         orig_frame = array2jpg(results[0].orig_img)  # 获取原始帧
         if not orig_frame:
             continue
-
+        # log.info(f"{mode},{model_path} detect_results {datasource_type}/{source},")
         if conf.current_mode == Mode.HUIJI:
             tracked_frame = huiji_detect_results(results[0])
         else:
@@ -146,12 +148,17 @@ def detect_frames():
             "orig_frame": orig_frame,
             "tracked_frame": tracked_frame
         })
+        # log.info(f"{mode},{model_path} detect_results {datasource_type}/{source},frame_rate:{VideoState.frame_rate}")
         
+        
+        
+        
+    log.info(f"{mode},{model_path} release {datasource_type}/{source},")
     cap.release()
     del model
     gc.collect()
     change_running_state(RunningState.FINISHED)
-    log.info(f"release cap[source={source}], model[file={model_path}], gc.collected, state to:{RunningState.FINISHED}")
+    # log.info(f"release cap[source={source}], model[file={model_path}], gc.collected, state to:{RunningState.FINISHED}")
         
 def get_huiji_detect_items(detect_result):
     if not detect_result:
