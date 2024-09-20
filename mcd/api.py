@@ -69,7 +69,7 @@ async def get_config():
             config_changed_event.clear()  # 清除事件，等待下次设置
             config = get_config()
             event = f"data: {json.dumps(config,ensure_ascii=False)}\n\n"
-            log.info(f"SSE push event：{event}")
+            log.debug(f"SSE push event：{event}")
             yield event
 
     return StreamingResponse(config_stream(), media_type="text/event-stream")

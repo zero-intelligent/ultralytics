@@ -110,7 +110,7 @@ def detect_frames():
         PersonResults.total_time_info = {} #清空total_time_info ，确保每次重新计算人员停留时间
                 
     
-    log.info(f"mode:{mode},VideoCapture datasource={datasource_type}/{source} model={model_path} tracking persist=True,verbose=False,classes={classes}")
+    log.info(f"{mode},VideoCapture datasource={datasource_type}/{source} model={model_path} tracking persist=True,verbose=False,classes={classes}")
     cap = cv2.VideoCapture(source)
     while True:
         # 如果被标记退出，则退出
