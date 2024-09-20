@@ -83,7 +83,7 @@ dependencies = [
     "colorlog>=6.8.2",
     "lapx>=0.5.2",
     "python-multipart>=0.0.9",
-    "uvicorn['standard']>=0.30.6"
+    "uvicorn[standard]>=0.30.6"
 ]
 
 # Optional dependencies ------------------------------------------------------------------------------------------------
