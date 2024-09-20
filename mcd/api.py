@@ -119,7 +119,7 @@ html = """
         <script>
             var websocket;
             function connectWebSocket() {
-                websocket = new WebSocket("ws://127.0.0.1:6789/ws");
+                websocket = new WebSocket("ws://8.140.49.13:6789/ws");
                 websocket.onmessage = function(event) {
                     var messages = document.getElementById('messages');
                     var message = document.createElement('li');
