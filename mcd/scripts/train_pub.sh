@@ -7,7 +7,7 @@ echo "复制训练数据到服务器"
 scp -P 2222 -r ~/Downloads/MCD admin@8.140.49.13:/home/admin/python_projects/ultralytics/datasets/
 
 echo "开始训练模型"
-ssh -p 2222 admin@8.140.49.13 'cd python_projects/ultralytics;conda activate ultralytics; python mcd/train.py datasets/MCD'
+ssh -p 2222 admin@8.140.49.13 'cd python_projects/ultralytics;conda activate ultralytics; export PYTHONPATH=$(pwd);python mcd/train.py datasets/MCD'
 
 
 echo "训练结果模型复制到本地"
