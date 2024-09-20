@@ -32,6 +32,8 @@ def main():
     model.train(
         data=yaml_file, 
         epochs=100,
+        batch=32,
+        workers=8,
         save=True,
         save_dir=save_dir,
         augment=True)
