@@ -4,7 +4,7 @@
     <div class="hearder">
       <div class="hearder-box">
         <div class="hearder-logo">
-          <el-image style="width: 100%; height: 80px" :src="require('./../assets/logo.png')" fit="contain"></el-image>
+          <el-image style="width: 100%; height: 100px" :src="require('./../assets/mlogo.svg')" fit="contain"></el-image>
         </div>
         <div class="hearder-mian">
           <el-tabs v-model="activeName" @tab-click="handleClick">
@@ -60,11 +60,13 @@
           <div style="display: flex;">
             <el-upload ref="upload" multiple action="" :show-file-list="false" :http-request="handleFileUpload"
               :limit="10" :on-exceed="handleExceed" :on-success="handleAvatarSuccess">
-              <el-button type="info" icon='el-icon-video-camera'  :disabled="disabled"><span style="margin-left: 10px;display: inline-block;">导入视频</span> <i
-                  class="el-icon-right" style="margin-left: 35px;display: inline-block;font-weight: 600;"></i></el-button>
+              <el-button type="info" icon='el-icon-video-camera' :disabled="disabled"><span
+                  style="margin-left: 10px;display: inline-block;">导入视频</span> <i class="el-icon-right"
+                  style="margin-left: 35px;display: inline-block;font-weight: 600;"></i></el-button>
             </el-upload>
-            <el-button type="info" icon='el-icon-bangzhu' @click="changeisCameraShow" style="margin-left: 20px;">  <span style="margin-left: 10px;display: inline-block;">链接摄像头</span><i
-                class="el-icon-right" style="margin-left: 20px;display: inline-block;font-weight: 600;"></i></el-button>
+            <el-button type="info" icon='el-icon-bangzhu' @click="changeisCameraShow" style="margin-left: 20px;"> <span
+                style="margin-left: 10px;display: inline-block;">链接摄像头</span><i class="el-icon-right"
+                style="margin-left: 20px;display: inline-block;font-weight: 600;"></i></el-button>
           </div>
           <div>
             <el-select v-model="value" placeholder="请选择">
@@ -74,20 +76,18 @@
           </div>
         </div>
         <div class="middle-main" v-if="isCameraShow">
-          <span style="display: inline-block;margin-top: 40px;padding-right: 8px;width: 72px;"> 
-            <!-- slot="placeholder" class="image-slot" -->
-            <div>
-              {{ configInfo.running_state }}
-              <span class="dot">...</span>
-            </div>
-            <div v-if='frame_rate > 0'>
-              帧率：{{ frame_rate }}
-            </div>
-          </span>
+          
+
           <div v-for="(item, index) in cardList" :key="index" class="middle-main-item">
             <div class="middle-main-hearder">
               <div>{{ item.label }}</div>
+              <span style="display: inline-block;padding-right: 8px;width: 72px;">
+              <!-- slot="placeholder" class="image-slot" -->{{ configInfo.running_state }}<span class="dot">...</span>
 
+              <!-- <div v-if='frame_rate > 0'>
+                帧率：{{ frame_rate }}
+              </div> -->
+            </span>
             </div>
             <!-- <div class="middle-main-vedio" v-if="isShow && configInfo && configInfo.data_type === 'video_file'">
               <video-component :videoSrc="getSrc(item.src)"></video-component>
@@ -97,7 +97,6 @@
 
               <el-image :src="getSrc(item.src)" width="100%" height="100%" style="width: 100%; height: 100%"
                 :preview-src-list="getSrcList(item.src)" fit="cover">
-
               </el-image>
             </div>
           </div>
@@ -118,17 +117,25 @@
             <el-input v-model="input" style="width: 600px;"></el-input>
           </div>
           <div style="text-align: end;">
-            <el-button type="info" @click="isCameraShow = true" style="border-radius: 4px;padding: 12px 25px;"> 取 消 </el-button>
+            <el-button type="info" @click="isCameraShow = true" style="border-radius: 4px;padding: 12px 25px;"> 取 消
+            </el-button>
             <el-button type="warning" style="margin-left: 20px;" @click="submit"> 确 定 </el-button>
           </div>
         </div>
+
         <div class="middle-footer" v-if="activeName != 'second'">
-          <el-button type="warning" @click="changeType(0)" 
-            :style="{  paddingBottom:  configInfo.taocan_id === 0 ? '0' : '10px',}">
-            套餐A <span v-if="configInfo.taocan_id === 0" style="display: block; height: 2px; width: 45px;background-color: black;margin-top: 5px;"></span></el-button>
-          <el-button type="warning" style="margin-left: 20px;" @click="changeType(1)"
-            :style="{ paddingBottom:  configInfo.taocan_id === 1 ? '0' : '10px'}">
-            套餐B  <span v-if="configInfo.taocan_id === 1" style="display: block; height: 2px; width: 45px;background-color: black;margin-top: 5px;"></span></el-button>
+          <el-button type="warning" @click="changeType(0)">
+            <span style="position: relative;"> 套餐A
+              <span v-if="configInfo.taocan_id != 1"
+                style="display: block; height: 2px; width: 90px;background-color: black;position: absolute;top: 25px;left: -23px;"></span>
+            </span>
+          </el-button>
+          <el-button type="warning" style="margin-left: 20px;" @click="changeType(1)">
+            <span style="position: relative;">套餐B
+              <span v-if="configInfo.taocan_id === 1"
+                style="display: block; height: 2px; width: 90px;background-color: black;position: absolute;top: 25px;left: -23px;"></span>
+            </span>
+          </el-button>
         </div>
       </div>
     </div>
@@ -145,6 +152,7 @@ export default {
   components: {
     // videoComponent
   },
+
   data() {
     return {
       radio: '1',
@@ -175,7 +183,31 @@ export default {
       disabled: false,
       configInfo: {},
       timer: null,
-      eventSource: null
+      eventSource: null,
+      ws: null,
+      lockReconnect: false,
+      heartCheck:{
+        timeout: 2000, //2000发一次心跳
+        timeoutObj: null,
+        serverTimeoutObj: null,
+        reset() {
+          clearTimeout(this.timeoutObj);
+          clearTimeout(this.serverTimeoutObj);
+          return this;
+        },
+        start() {
+          this.timeoutObj = setTimeout(() => {
+            //这里发送一个心跳，后端收到后，返回一个心跳消息，
+            //onmessage拿到返回的心跳就说明连接正常
+            this.ws.send("ping");
+            console.log("ping!");
+            // self.serverTimeoutObj = setTimeout(function () {
+            //   //如果超过一定时重置间还没，说明后端主动断开了
+            //   ws.close(); //如果onclose会执行reconnect，我们执行ws.close()就行了.如果直接执行reconnect 会触发onclose导致重连两次
+            // }, self.timeout);
+          }, this.timeout);
+        },
+      }
     }
   },
 
@@ -188,37 +220,119 @@ export default {
   async mounted() {
     await this.getConfigInfo()
 
-    this.connectEventSource();
+    // this.connectEventSource();
+    this.wsConnect()
   },
   created() {
 
   },
   methods: {
 
-    connectEventSource() {
-      this.eventSource = new EventSource(baseUrl + '/config_sse');
-      //this.eventSource = new EventSource('http://192.168.31.77:6789/config_sse');
+    getWsIp(){
 
-      this.eventSource.onmessage = (event) => {
-        console.log(event.data)
-        const data = JSON.parse(event.data);
-        console.log(data);
-        // this.events.push(data);
+      var nbaseUrl = baseUrl;
+      nbaseUrl = nbaseUrl.replace("http://","");
+      nbaseUrl = nbaseUrl.replace("/api","");
+
+      if(nbaseUrl == ""){
+        return document.domain + ":8000";
+      }
+
+      return nbaseUrl;
+    },
+
+    // 创建
+    wsConnect() {
+      /**
+       * 重连时这里要重新将实例交给ws
+       * 1.发布订阅监听
+       * 2.直接传
+       */
+      this.lockReconnect = false; //避免ws重复连接
+      this.ws = null; // 判断当前浏览器是否支持WebSocket
+      var wsUrl = "ws://" + this.getWsIp() + "/api/config_ws";  //后端的ws接口
+      this.createWebSocket(wsUrl); //连接ws
+    },
+    createWebSocket(url) {
+      try {
+        // if ("WebSocket" in window) {
+          this.ws = new WebSocket(url);
+        // }
+        this.initEventHandle(url);
+      } catch (e) {
+        this.reconnect(url);
+        console.log(11, e);
+      }
+    },
+    initEventHandle(wsUrl) {
+      var self = this
+      self.ws.onclose = function () {
+        self.reconnect(wsUrl);
+        console.log("llws连接关闭!" + new Date().toLocaleString());
+      };
+      self.ws.onerror = function () {
+        self.reconnect(wsUrl);
+      };
+      self.ws.onopen = function () {
+        console.log("llws连接成功!" + new Date().toLocaleString());
+        //this.heartCheck.reset().start(); //心跳检测重置
+      };
+      self.ws.onmessage = (msg) => {
+        console.log("获得消息", msg)
+        //如果获取到消息，心跳检测重置
+        // this.heartCheck.reset().start(); //拿到任何消息都说明当前连接是正常的
+        let data = JSON.parse(msg.data);
+        console.log(22, data);
+
         let dataJson = {
           code: 0,
           data: data
         };
         this.doGetConfig(dataJson);
+
+        // 变动值 (注意this指向)
+        // self.leaderboard.sort((a, b) => b.countScore - a.countScore);
       };
-
-      this.eventSource.onopen = function (event) {
-        console.log('EventSource open ', event);
-      }
-
-      this.eventSource.onerror = (error) => {
-        console.error('EventSource failed', error);
+      // 监听窗口关闭事件，当窗口关闭时，主动去关闭websocket连接，防止连接还没断开就关闭窗口，server端会抛异常。
+      window.onbeforeunload = function (msg) {
+        console.log("222", msg);
+        // this.ws.close();
       };
     },
+    reconnect(url) {
+      var self = this
+      if (self.lockReconnect) return;
+      self.lockReconnect = true;
+      setTimeout(function () {
+        //没连接上会一直重连，设置延迟避免请求过多
+        self.createWebSocket(url);
+        self.lockReconnect = false;
+      }, 2000);
+    },
+
+    // connectEventSource() {
+    //   this.eventSource = new EventSource(baseUrl + '/config_sse');
+    //   //this.eventSource = new EventSource('http://192.168.31.77:6789/config_sse');
+    //   this.eventSource.onmessage = (event) => {
+    //     console.log(event.data)
+    //     const data = JSON.parse(event.data);
+    //     console.log(data);
+    //     // this.events.push(data);
+    //     let dataJson = {
+    //       code: 0,
+    //       data: data
+    //     };
+    //     this.doGetConfig(dataJson);
+    //   };
+
+    //   this.eventSource.onopen = function (event) {
+    //     console.log('EventSource open ', event);
+    //   }
+
+    //   this.eventSource.onerror = (error) => {
+    //     console.error('EventSource failed', error);
+    //   };
+    // },
 
     getSrc(src) {
       if (src == "" || src == "null" || src == null) {
@@ -551,19 +665,19 @@ export default {
       console.log("start to upload");
       uploadCamera(formData).then((res) => {
         if (res.error !== "error") {
-          this.list.forEach((item) => {
-            if (item.name === file.name) {
-              item.percent = 100;
-            }
-          })
+          // this.list.forEach((item) => {
+          //   if (item.name === file.name) {
+          //     item.percent = 100;
+          //   }
+          // })
           this.$message.success(`${file.name}：上传完成`);
-          this.getConfigInfo();
+          // this.getConfigInfo();
         } else {
-          this.list.forEach((item) => {
-            if (item.name === file.name) {
-              item.typeProgress = 1;
-            }
-          })
+          // this.list.forEach((item) => {
+          //   if (item.name === file.name) {
+          //     item.typeProgress = 1;
+          //   }
+          // })
         }
       }).finally(() => {
         this.disabled = false;
@@ -696,7 +810,7 @@ export default {
 }
 
 .hearder-logo {
-  width: 330px;
+  width: 370px;
 }
 
 .hearder-mian {
@@ -817,7 +931,7 @@ export default {
 }
 
 .middle-main-item {
-  width:  calc(47% - 36px);
+  width: 49%;
   margin-top: 40px;
   height: 420px;
   background: #222;
@@ -833,7 +947,7 @@ export default {
   line-height: 50px;
   box-sizing: border-box;
   padding: 0 10px;
-  border-radius: 12px 12px 0 0 ;
+  border-radius: 12px 12px 0 0;
 }
 
 .middle-main-vedio {
@@ -901,18 +1015,21 @@ export default {
 .el-radio__input.is-checked+.el-radio__label {
   color: #FFBC0D
 }
-.middle-main-else { 
-  .el-input__inner{
-  background: #333 !important;
-  border: 0;
-  color: #ccc;
+
+.middle-main-else {
+  .el-input__inner {
+    background: #333 !important;
+    border: 0;
+    color: #ccc;
+  }
+
+  .el-button--info {
+    background: #333;
+    border: 0;
+    color: #ccc;
+  }
 }
-.el-button--info {
-  background: #333;
-  border: 0;
-  color: #ccc;
-}
-}
+
 .el-input__inner {
   background: #111;
   border: 0;
