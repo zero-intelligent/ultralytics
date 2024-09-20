@@ -4,7 +4,7 @@ import time
 from fastapi import APIRouter, FastAPI, File, HTTPException, Request,Response, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi import Query
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from contextlib import asynccontextmanager
@@ -91,6 +91,56 @@ async def websocket_endpoint(websocket: WebSocket):
         log.error("Client disconnected")
         
         
+        
+        
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await websocket.send_text(f"Message text was: {data}")
+    except WebSocketDisconnect:
+        print("Client disconnected")
+        
+html = """
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WebSocket Example</title>
+    </head>
+    <body>
+        <h1>WebSocket Example</h1>
+        <button onclick="connectWebSocket()">Connect WebSocket</button>
+        <button onclick="sendMessage()">Send Message</button>
+        <ul id='messages'>
+        </ul>
+        <script>
+            var websocket;
+            function connectWebSocket() {
+                websocket = new WebSocket("ws://127.0.0.1:6789/ws");
+                websocket.onmessage = function(event) {
+                    var messages = document.getElementById('messages');
+                    var message = document.createElement('li');
+                    var content = document.createTextNode(event.data);
+                    message.appendChild(content);
+                    messages.appendChild(message);
+                };
+            }
+            function sendMessage() {
+                websocket.send("Hello from client");
+            }
+        </script>
+    </body>
+</html>
+"""
+
+@app.get("/")
+async def get():
+    return HTMLResponse(html)
+
+
 def get_config():
     # assure enum type
     conf.current_mode =  Mode(conf.current_mode)
