@@ -24,7 +24,7 @@ huiji_detect_config = {
     "current_taocan_id": 0,
 
     #当前使用的模型
-    "model": "mcd/weights/huiji_detect_model.onnx",
+    "model": "mcd/weights/huiji.onnx",
 
     # 食品清单信息：id,EnglishName, ChineseName
     "meals_info": [

@@ -7,8 +7,8 @@ from util import update_yaml
 
 dataset_dir = sys.argv[1] if  len(sys.argv) == 2 else os.getcwd() + '/datasets/MCD'
 
+# from ultralytics import YOLO;YOLO('runs/detect/2024-09-20.10/weights/best.pt').export(format='onnx')
 
-    
 def main():
 
     # train model
@@ -37,6 +37,8 @@ def main():
         augment=True)
 
     metrics = model.val()
+    
+    model.export(format="onnx")
 
     test_files = ["assets/taocan1.jpg",
                 "assets/taocan2.jpg"]
