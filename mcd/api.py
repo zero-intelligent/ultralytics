@@ -15,7 +15,7 @@ from mcd.camera import get_cameras
 from mcd import conf,video_srv
 from mcd.domain_entities import DataSourceType, ModeDataSource,Mode
 from mcd.event import config_changed_event,result_frame_arrive_event
-
+from mcd.session import UserMonitor
 
 app = FastAPI()
 router = APIRouter(prefix="/api")
@@ -77,6 +77,7 @@ async def get_config():
 @router.websocket("/config_ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
+    UserMonitor.user_enter()
     try:
         while True:
             await config_changed_event.wait()  # 等待新消息
@@ -85,6 +86,7 @@ async def websocket_endpoint(websocket: WebSocket):
             log.info(f"websocket push json {config}")
             await websocket.send_json(config)
     except WebSocketDisconnect:
+        UserMonitor.user_leave()
         log.error("Client disconnected")
         
 

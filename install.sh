@@ -52,7 +52,7 @@ ExecStop=/usr/bin/pkill -f uvicorn
 Restart=always
 User=$USER
 WorkingDirectory=$APP_HOME
-Environment="PATH=/usr/local/bin:/usr/bin:/bin" "PYTHONUNBUFFERED=1" "PYTHONPATH=$APP_HOME" "OMP_NUM_THREADS=4" "ONNX_NUM_INTEROP_THREADS=2"
+Environment="PATH=/usr/local/bin:/usr/bin:/bin" "PYTHONUNBUFFERED=1" "PYTHONPATH=$APP_HOME"
 
 [Install]
 WantedBy=multi-user.target

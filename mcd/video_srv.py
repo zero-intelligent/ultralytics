@@ -12,6 +12,7 @@ from mcd.logger import log
 from mcd.custom_result import PersonResults
 from mcd.event import config_changed_event
 from mcd.domain_entities import DataSourceType, Mode, ModeDataSource, RunningState, TancanResult
+from mcd.session import UserMonitor
 
 
 def get_current_person_detect_result():
@@ -75,10 +76,14 @@ def update_datasource(datasource:ModeDataSource):
 
 video_frame_queue = queue.Queue()
 
+
 def run_detect_loop():
     def loop():
         while True:
-            detect_frames()
+            if UserMonitor.has_active_client():
+                detect_frames()
+            else:
+                time.sleep(1)
     thread = threading.Thread(name="main_loop",target=loop,daemon=True)
     thread.start()
     log.info(f"main_loop Thread started.")
@@ -121,9 +126,14 @@ def detect_frames():
             VideoState.frame_rate = VideoState.frame_count / (time.time() - start_time)
             VideoState.frame_count = 0 # 重新计数
             start_time = time.time() # 重新计时
-        
-        if random.random() < conf.drop_rate:  # 按照一定的比率丢侦
+            
+        # 按照一定的比率丢侦
+        if random.random() < conf.drop_rate:  
             continue  # 跳过这一帧
+        
+        #如果已经没有用户了，退出循环
+        if not UserMonitor.has_active_client():
+            break
         
         ret, frame = cap.read()
         if not ret:
@@ -149,8 +159,6 @@ def detect_frames():
             "tracked_frame": tracked_frame
         })
         # log.info(f"{mode},{model_path} detect_results {datasource_type}/{source},frame_rate:{VideoState.frame_rate}")
-        
-        
         
         
     log.info(f"{mode},{model_path} release {datasource_type}/{source},")
