@@ -8,6 +8,8 @@
 local_dataset_dir=~/Downloads/MCD
 local_model_path=~/python_projects/ultralytics/mcd/weights/huiji.onnx
 
+# trap 可以用来捕获错误信号，并在错误发生时执行特定的操作
+trap 'echo "Error occurred! Exiting..."; exit 1' ERR
 
 echo "备份服务器训练数据"
 ssh -p 2222 admin@8.140.49.13 'cd python_projects/ultralytics/datasets;mv MCD MCD_$(date +"%Y%m%d%H")'
